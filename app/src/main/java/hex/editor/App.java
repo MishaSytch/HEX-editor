@@ -3,12 +3,11 @@
  */
 package hex.editor;
 
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+import hex.editor.Frames.MainWindow;
 
+public class App {
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        HexEditor hexEditor = new HexEditor();
+        
     }
 }
