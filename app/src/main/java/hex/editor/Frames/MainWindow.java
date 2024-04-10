@@ -22,7 +22,7 @@ public class MainWindow extends JFrame {
     private Color BackMainColor = new Color(10, 10, 15);
     private Color BackNotMainColor = new Color(20, 10, 15);
     private Color BackNotMainColor_Alpha = new Color(20, 10, 15, 50);
-    private Color BackNotMainColor_LIGHTER = new Color(50, 42, 54);
+    private Color BackNotMainColor_LIGHTER = new Color(25, 15, 25);
     private Color MainTextColor = new Color(240, 240, 240);
     
     private File file = new File("");
@@ -88,11 +88,6 @@ public class MainWindow extends JFrame {
 
         base.add(headPanel, BorderLayout.NORTH);
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension((int)(wigth), (int)(this.getHeight() * BOTTOM_SIZE)));
-        bottomPanel.setBackground(BackNotMainColor_LIGHTER);
-        base.add(bottomPanel, BorderLayout.SOUTH);
-
         JPanel mainPanel = new JPanel();        
         mainPanel.setPreferredSize(new Dimension(wigth, height));
         mainPanel.setBackground(Color.lightGray);
@@ -130,6 +125,5 @@ public class MainWindow extends JFrame {
         base.add(mainPanel, BorderLayout.CENTER);
 
         this.add(base);
-        // this.pack();
     }
 }
