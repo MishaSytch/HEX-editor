@@ -18,14 +18,14 @@ public class MainWindow extends JFrame {
     private float HEAD_SIZE = 0.04f;
     private float BOTTOM_SIZE = 0.15f;
     
-    
-    private Color BackMainColor = new Color(10, 10, 15);
-    private Color BackNotMainColor = new Color(20, 10, 15);
-    private Color BackNotMainColor_Alpha = new Color(20, 10, 15, 50);
-    private Color BackNotMainColor_LIGHTER = new Color(25, 15, 25);
+    private int AlphaChanel = 255;
+    private Color BackMainColor = new Color(10, 10, 15, AlphaChanel);
+    private Color BackNotMainColor = new Color(20, 10, 15, AlphaChanel);
+    private Color BackNotMainColor_Alpha = new Color(20, 10, 15, AlphaChanel);
+    private Color BackNotMainColor_LIGHTER = new Color(25, 15, 25, AlphaChanel);
     private Color MainTextColor = new Color(240, 240, 240);
     
-    private File file = new File("");
+    private File file;
 
     public MainWindow(
     ) {
@@ -44,19 +44,13 @@ public class MainWindow extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
 
-        JPanel base = new JPanel(new BorderLayout());
-        base.setBounds(new Rectangle(new Dimension(height, wigth)));
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setPreferredSize(new Dimension((int)(this.getWidth() * LEFT_SIZE), height));
-        leftPanel.setBackground(BackNotMainColor);
+        JPanel base = getMainPanel(1, 1, Color.WHITE);
+        
+        JPanel leftPanel = getMainPanel(LEFT_SIZE, 1, BackNotMainColor);
         leftPanel.setBorder(BorderFactory.createEtchedBorder(1));
         base.add(leftPanel, BorderLayout.WEST);
 
-        JPanel headPanel = new JPanel();
-        headPanel.setPreferredSize(new Dimension((int)(wigth), (int)(this.getHeight() * HEAD_SIZE)));
-        headPanel.setBackground(BackNotMainColor);
-        headPanel.setLayout(new BorderLayout());
+        JPanel headPanel = getMainPanel(1, HEAD_SIZE, BackNotMainColor);
         {
             JMenuBar menuBar = new JMenuBar();
             menuBar.setBackground(BackNotMainColor);
@@ -85,45 +79,53 @@ public class MainWindow extends JFrame {
 
             headPanel.add(menuBar, BorderLayout.WEST);
         }
-
         base.add(headPanel, BorderLayout.NORTH);
 
-        JPanel mainPanel = new JPanel();        
-        mainPanel.setPreferredSize(new Dimension(wigth, height));
-        mainPanel.setBackground(Color.lightGray);
+        JPanel mainPanel = getMainPanel(1, 1, Color.LIGHT_GRAY);
         mainPanel.setLayout(new GridLayout());
         {
-            JPanel hexPanel = new JPanel();
-            hexPanel.setBackground(BackMainColor);
-            hexPanel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
-            hexPanel.setBorder(BorderFactory.createEtchedBorder(1));
-            hexPanel.setForeground(MainTextColor);
-            hexPanel.setLayout(new FlowLayout());
+            JPanel hexPanel = getWorkPanel();
             {
-                JLabel text = new JLabel();
-                text.setText("HEX");
-                text.setForeground(MainTextColor);
-                hexPanel.add(text);
+                JLabel text = getText("HEX");
+                hexPanel.add(text, BorderLayout.NORTH);
             }
-
-            JPanel editPanel = new JPanel();
-            editPanel.setBackground(BackMainColor);
-            editPanel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
-            editPanel.setBorder(BorderFactory.createEtchedBorder(1));
-            editPanel.setForeground(MainTextColor);
-            editPanel.setLayout(new FlowLayout());
-            {
-                JLabel text = new JLabel();
-                text.setText(file != null? "Pleace, open file!": file.getName());
-                text.setForeground(MainTextColor);
-                editPanel.add(text);
-            }
-
             mainPanel.add(hexPanel, BorderLayout.WEST);
+            
+            JPanel editPanel = getWorkPanel();
+            {
+                String info = file == null? "Pleace, open file": file.getName();
+                JLabel text = getText(info);
+                editPanel.add(text, BorderLayout.NORTH);
+            }
             mainPanel.add(editPanel, BorderLayout.EAST);
         }
         base.add(mainPanel, BorderLayout.CENTER);
 
         this.add(base);
+    }
+
+    private JLabel getText(String info){
+        JLabel text = new JLabel();
+        text.setText(info);
+        text.setForeground(MainTextColor);
+        return text;
+    }
+
+    private JPanel getMainPanel(double perWidth, double perHeight, Color color) {
+        JPanel panel = new JPanel();
+        panel.setPreferredSize(new Dimension((int)(this.getWidth() * perWidth), (int)(this.getHeight() * perHeight)));
+        panel.setBackground(color);
+        panel.setLayout(new BorderLayout());
+        return panel;
+    }
+
+    private JPanel getWorkPanel() {
+        JPanel panel = new JPanel();
+        panel.setBackground(BackMainColor);
+        panel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
+        panel.setBorder(BorderFactory.createEtchedBorder(1));
+        panel.setForeground(MainTextColor);
+        panel.setLayout(new FlowLayout());
+        return panel;
     }
 }
