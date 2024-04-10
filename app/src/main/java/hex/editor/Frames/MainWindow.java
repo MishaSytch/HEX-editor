@@ -9,6 +9,11 @@ public class MainWindow extends JFrame {
     private int screenHeight;
     private String TITLE = "Hex editor";
     private ImageIcon icon = new ImageIcon("app\\src\\main\\resources\\img\\MainIcon.png");
+
+    private float LEFT_SIZE = 0.25f;
+    private float RIGHT_SIZE = 0.15f;
+    private float HEAD_SIZE = 0.04f;
+    private float BOTTOM_SIZE = 0.15f;
     
     private Color BackNotMainColor = new Color(20, 10, 15);
     private Color BackNotMainColor_Alpha = new Color(20, 10, 15, 99);
@@ -29,47 +34,28 @@ public class MainWindow extends JFrame {
         this.setIconImage(icon.getImage());
         this.setLayout(new BorderLayout());
         this.setBounds((screenWigth - wigth) / 2, (screenHeight - height) / 2, wigth, height);
+        this.setMinimumSize(new Dimension(wigth, height));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
 
         JPanel base = new JPanel(new BorderLayout());
         base.setBounds(new Rectangle(new Dimension(height, wigth)));
 
-        JPanel mainPanel = new JPanel();        
-        mainPanel.setPreferredSize(new Dimension(wigth, height));
-        mainPanel.setBackground(Color.lightGray);
-        mainPanel.setLayout(new BorderLayout());
-        {
-            JPanel hexPanel = new JPanel();
-            hexPanel.setPreferredSize(new Dimension((int)(mainPanel.getWidth() * 0.5), mainPanel.getHeight()));
-            hexPanel.setBackground(Color.BLUE);
-            hexPanel.setLayout(new BorderLayout());
-            mainPanel.add(hexPanel, BorderLayout.WEST);
-
-            JPanel editPanel = new JPanel();
-            editPanel.setPreferredSize(new Dimension((int)(mainPanel.getWidth() * 0.5), mainPanel.getHeight()));
-            editPanel.setBackground(BackNotMainColor_Alpha);
-            editPanel.setLayout(new BorderLayout());
-            mainPanel.add(editPanel, BorderLayout.EAST);
-        }
-        base.add(mainPanel, BorderLayout.CENTER);
-
         JPanel leftPanel = new JPanel();
-        leftPanel.setPreferredSize(new Dimension((int)(wigth * 0.25), height));
+        leftPanel.setPreferredSize(new Dimension((int)(this.getWidth() * LEFT_SIZE), height));
         leftPanel.setBackground(BackNotMainColor);
         leftPanel.setBorder(BorderFactory.createEtchedBorder(1));
         base.add(leftPanel, BorderLayout.WEST);
 
         JPanel rightPanel = new JPanel();
-        rightPanel.setPreferredSize(new Dimension((int)(wigth * 0.15), height));
+        rightPanel.setPreferredSize(new Dimension((int)(this.getWidth() * RIGHT_SIZE), height));
         rightPanel.setBackground(BackNotMainColor_Alpha);
         base.add(rightPanel, BorderLayout.EAST);
 
         JPanel headPanel = new JPanel();
-        headPanel.setPreferredSize(new Dimension((int)(wigth * 0.06), (int)(height * 0.03)));
+        headPanel.setPreferredSize(new Dimension((int)(wigth), (int)(this.getHeight() * HEAD_SIZE)));
         headPanel.setBackground(BackNotMainColor);
         headPanel.setLayout(new BorderLayout());
-        headPanel.setBorder(BorderFactory.createEtchedBorder(1));
         {
             JMenuBar menuBar = new JMenuBar();
             menuBar.setBackground(BackNotMainColor);
@@ -96,11 +82,31 @@ public class MainWindow extends JFrame {
         base.add(headPanel, BorderLayout.NORTH);
 
         JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension((int)(wigth * 0.15), (int)(height * 0.15)));
+        bottomPanel.setPreferredSize(new Dimension((int)(wigth), (int)(this.getHeight() * BOTTOM_SIZE)));
         bottomPanel.setBackground(BackNotMainColor_LIGHTER);
-        // bottomPanel.setBorder(BorderFactory.createEtchedBorder(1));
         base.add(bottomPanel, BorderLayout.SOUTH);
 
+        JPanel mainPanel = new JPanel();        
+        mainPanel.setPreferredSize(new Dimension(wigth, height));
+        mainPanel.setBackground(Color.lightGray);
+        mainPanel.setLayout(new GridLayout());
+        {
+            JPanel hexPanel = new JPanel();
+            hexPanel.setBackground(Color.BLUE);
+            hexPanel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
+            hexPanel.setLayout(new BorderLayout());
+
+            JPanel editPanel = new JPanel();
+            editPanel.setBackground(Color.yellow);
+            editPanel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
+            editPanel.setLayout(new BorderLayout());
+
+            mainPanel.add(hexPanel, BorderLayout.WEST);
+            mainPanel.add(editPanel, BorderLayout.EAST);
+        }
+        base.add(mainPanel, BorderLayout.CENTER);
+
         this.add(base);
+        // this.pack();
     }
 }
