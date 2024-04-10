@@ -59,6 +59,28 @@ public class MainWindow extends JFrame {
         headPanel.setBackground(BackNotMainColor);
         headPanel.setLayout(new BorderLayout());
         headPanel.setBorder(BorderFactory.createEtchedBorder(1));
+        {
+            JMenuBar menuBar = new JMenuBar();
+            menuBar.setBackground(BackNotMainColor);
+
+            JMenu fileMenu = new JMenu("File");
+            JMenuItem openFile = new JMenuItem("Open file");
+            fileMenu.setForeground(MainTextColor);
+            JMenuItem save = new JMenuItem("Save");
+            JMenuItem saveAs = new JMenuItem("Save as");
+            fileMenu.add(openFile);
+            fileMenu.add(save);
+            fileMenu.add(saveAs);
+            menuBar.add(fileMenu);
+
+            JMenu helpMenu = new JMenu("Help");
+            helpMenu.setForeground(MainTextColor);
+            JMenuItem infoItem = new JMenuItem("What is Hex?");
+            helpMenu.add(infoItem);
+            menuBar.add(helpMenu);
+
+            headPanel.add(menuBar, BorderLayout.WEST);
+        }
 
         base.add(headPanel, BorderLayout.NORTH);
 
