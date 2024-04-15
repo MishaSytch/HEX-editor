@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
+
+import com.google.common.base.Strings;
+
 import java.util.*;
 
 public class FileViewer {
@@ -16,7 +19,7 @@ public class FileViewer {
         this.path = Paths.get(path);
     }
 
-    public List<String> getLine(int from, int to) {
+    public List<String> getLines() {
         List<String> lines = new ArrayList<String>();
         try (Stream<String> stream = Files.lines(path)) {
             lines = stream.toList();
@@ -26,6 +29,4 @@ public class FileViewer {
 
         return lines;
     }
-
-
 }

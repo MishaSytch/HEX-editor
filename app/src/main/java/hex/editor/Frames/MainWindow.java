@@ -1,11 +1,7 @@
 package hex.editor.Frames;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainWindow extends JFrame {
     private Toolkit toolkit;
