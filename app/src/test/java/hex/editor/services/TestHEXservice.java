@@ -1,38 +1,24 @@
-package hex.editor;
+package hex.editor.services;
 
-import java.util.Scanner;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import org.junit.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import com.google.common.base.Strings;
 
-import hex.editor.services.FileViewer;
-import hex.editor.services.HEXservice;
-
-public class AppTest {
+public class TestHEXservice {
     String bigFilePath = new String("app/src/test/filesForTest/bigText.txt"); 
     String verySmallFilePath = new String("app/src/test/filesForTest/verySmallText.txt");
 
-    @AfterAll
-    void appExecuted() {
-        App app = new App();
-        Assertions.assertNotNull(app);
-
-        HexEditor hex = new HexEditor();
-        Assertions.assertNotNull(hex);
-    }
-
-
     @Test
-    void HEXserviceTest() {
+    void testHEXservice() {
         
         HEXservice heXservice = new HEXservice();
         heXservice.readLinesFromFile(verySmallFilePath);
-
-        
-        
-        
         Assertions.assertEquals(heXservice.getBytes().toString(), 
              "0x50, 0x75, 0x6C, 0x76, 0x69, 0x6E, 0x61, 0x72, 0x20, 0x65, 0x6C, 0x65,"
             +"0x6D, 0x65, 0x6E, 0x74, 0x75, 0x6D, 0x20, 0x69, 0x6E, 0x74, 0x65, 0x67,"
@@ -93,18 +79,10 @@ public class AppTest {
 
         System.out.println(heXservice.getBytes());
 
-        try (Stream<Character> stream = Files.lines(path)) {
-            Character[] lines = stream.toArray(Character::new);
+        try (Stream<String> stream = Files.lines(Paths.get(verySmallFilePath))) {
+            Character[] lines = stream.map(x -> x.toCharArray()).toArray(size -> new Character[size]);
 
-            Assertions.assertEquals(heXservice.getStrings(), lines);
+            Assertions.assertEquals(heXservice.getChars(), lines);
         } catch (IOException exception) { System.out.println(exception.getMessage()); }
-
-
-    }
-
-    @Test
-    void FileViewerTest() {
-        FileViewer fileViewer = new FileViewer(verySmallFilePath);
-
     }
 }

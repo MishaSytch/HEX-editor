@@ -12,11 +12,11 @@ public class HEXservice {
     }
 
     public Byte[] getBytes() {
-        return lines.stream().map(x -> {return x.getBytes();}).toArray(size -> new Byte[size]);
+        return lines.stream().map(x -> x.getBytes()).toArray(size -> new Byte[size]);
     }
 
-    public Character[] getCharss() {
-        return lines.stream().toArray(size -> new Character[size]);
+    public Character[] getChars() {
+        return lines.stream().map(x -> x.toCharArray()).toArray(size -> new Character[size]);
     }
     
 }
