@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.junit.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import hex.editor.FilePaths;
@@ -18,7 +19,7 @@ public class TestHEXservice {
     static String bigFilePath; 
     static String verySmallFilePath;
 
-    @AfterAll
+    @BeforeAll
     static void getter() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
