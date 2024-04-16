@@ -3,8 +3,6 @@
  */
 package hex.editor;
 
-import hex.editor.Frames.MainWindow;
-
 public class App {
     public static void main(String[] args) {
         HexEditor hexEditor = new HexEditor();

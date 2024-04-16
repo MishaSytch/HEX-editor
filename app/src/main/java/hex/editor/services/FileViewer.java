@@ -1,13 +1,10 @@
 package hex.editor.services;
 
-import java.io.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
-
-import com.google.common.base.Strings;
 
 import java.util.*;
 
