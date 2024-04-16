@@ -20,9 +20,8 @@ public class TestHEXservice {
 
     @AfterAll
     static void getter() {
-        FilePaths filePaths = new FilePaths();
-        bigFilePath = filePaths.getBigFilePath();
-        verySmallFilePath = filePaths.getVerySmallFilePath();
+        bigFilePath = FilePaths.getBigFilePath();
+        verySmallFilePath = FilePaths.getVerySmallFilePath();
     }
 
     @Test
