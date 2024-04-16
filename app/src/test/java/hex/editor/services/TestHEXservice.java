@@ -3,23 +3,34 @@ package hex.editor.services;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import hex.editor.FilePaths;
+
 
 public class TestHEXservice {
-    String bigFilePath = new String("app/src/test/filesForTest/bigText.txt"); 
-    String verySmallFilePath = new String("app/src/test/filesForTest/verySmallText.txt");
+    static String bigFilePath; 
+    static String verySmallFilePath;
+
+    @AfterAll
+    static void getter() {
+        FilePaths filePaths = new FilePaths();
+        bigFilePath = filePaths.getBigFilePath();
+        verySmallFilePath = filePaths.getVerySmallFilePath();
+    }
 
     @Test
     void testHEXservice() {
         
         HEXservice heXservice = new HEXservice();
         heXservice.readLinesFromFile(verySmallFilePath);
-        Assertions.assertEquals(heXservice.getBytes().toString(), 
+        Assertions.assertEquals(heXservice.getBytes(), 
              "0x50, 0x75, 0x6C, 0x76, 0x69, 0x6E, 0x61, 0x72, 0x20, 0x65, 0x6C, 0x65,"
             +"0x6D, 0x65, 0x6E, 0x74, 0x75, 0x6D, 0x20, 0x69, 0x6E, 0x74, 0x65, 0x67,"
             +"0x65, 0x72, 0x20, 0x65, 0x6E, 0x69, 0x6D, 0x20, 0x6E, 0x65, 0x71, 0x75,"
@@ -76,8 +87,6 @@ public class TestHEXservice {
             +"0x76, 0x61, 0x6D, 0x75, 0x73, 0x20, 0x61, 0x74, 0x20, 0x61, 0x75, 0x67,"
             +"0x75, 0x65, 0x20, 0x65, 0x67, 0x65, 0x74, 0x2E"
         );
-
-        System.out.println(heXservice.getBytes());
 
         try (Stream<String> stream = Files.lines(Paths.get(verySmallFilePath))) {
             Character[] lines = stream.map(x -> x.toCharArray()).toArray(size -> new Character[size]);
