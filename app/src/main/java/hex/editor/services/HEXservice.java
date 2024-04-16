@@ -3,10 +3,8 @@ package hex.editor.services;
 import java.util.*;
 
 public class HEXservice {
-    FileViewer fileViewer;
-    List<String> lines;
-    int from = 0;
-    int rowCounts;    
+    private FileViewer fileViewer;
+    private List<String> lines;    
 
     public void readLinesFromFile(String path) {
         fileViewer = new FileViewer(path);
@@ -14,8 +12,11 @@ public class HEXservice {
     }
 
     public Byte[] getBytes() {
-        return (Byte[]) lines.stream()
-            .map(x -> {return x.getBytes();}).toArray();
+        return lines.stream().map(x -> {return x.getBytes();}).toArray(size -> new Byte[size]);
+    }
+
+    public Character[] getCharss() {
+        return lines.stream().toArray(size -> new Character[size]);
     }
     
 }
