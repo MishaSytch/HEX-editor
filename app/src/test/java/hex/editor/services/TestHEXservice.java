@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
+import java.util.Scanner;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,19 +16,20 @@ import hex.editor.FilePaths;
 public class TestHEXservice {
     static String bigFilePath; 
     static String verySmallFilePath;
+    static HEXservice heXservice;
 
     @BeforeAll
     static void getter() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
+        heXservice = new HEXservice();
+        heXservice.readLinesFromFile(verySmallFilePath);
     }
 
     @Test
-    void testHEXservice() {
-        
-        HEXservice heXservice = new HEXservice();
-        heXservice.readLinesFromFile(verySmallFilePath);
-        Assertions.assertEquals(heXservice.getBytes(), 
+    void testGetBytes() {
+        byte[] bytes = heXservice.getBytes();
+        Assertions.assertEquals(bytes, 
              "0x50, 0x75, 0x6C, 0x76, 0x69, 0x6E, 0x61, 0x72, 0x20, 0x65, 0x6C, 0x65,"
             +"0x6D, 0x65, 0x6E, 0x74, 0x75, 0x6D, 0x20, 0x69, 0x6E, 0x74, 0x65, 0x67,"
             +"0x65, 0x72, 0x20, 0x65, 0x6E, 0x69, 0x6D, 0x20, 0x6E, 0x65, 0x71, 0x75,"
@@ -84,11 +86,19 @@ public class TestHEXservice {
             +"0x76, 0x61, 0x6D, 0x75, 0x73, 0x20, 0x61, 0x74, 0x20, 0x61, 0x75, 0x67,"
             +"0x75, 0x65, 0x20, 0x65, 0x67, 0x65, 0x74, 0x2E"
         );
+    }
 
-        try (Stream<String> stream = Files.lines(Paths.get(verySmallFilePath))) {
-            Character[] lines = stream.map(x -> x.toCharArray()).toArray(size -> new Character[size]);
+    @Test
+    void testGetChars() {
+        try (Scanner scanner = new Scanner(verySmallFilePath)) {
+            StringBuilder stringBuilder = new StringBuilder();
+            while (scanner.hasNext()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+
+            char[] lines = stringBuilder.toString().toCharArray();
 
             Assertions.assertEquals(heXservice.getChars(), lines);
-        } catch (IOException exception) { System.out.println(exception.getMessage()); }
+        }
     }
 }

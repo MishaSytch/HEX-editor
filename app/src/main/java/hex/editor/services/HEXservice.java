@@ -1,22 +1,23 @@
 package hex.editor.services;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HEXservice {
     private FileViewer fileViewer;
-    private List<String> lines;    
+    private String lines;    
 
     public void readLinesFromFile(String path) {
         fileViewer = new FileViewer(path);
-        lines = fileViewer.getLines();
+        lines = fileViewer.getLines().stream().collect(Collectors.joining(" "));
     }
 
-    public Byte[] getBytes() {
-        return lines.stream().map(String::getBytes).toArray(size -> new Byte[size]);
+    public byte[] getBytes() {
+        return lines.getBytes();
     }
 
-    public Character[] getChars() {
-        return lines.stream().map(String::toCharArray).toArray(size -> new Character[size]);
+    public char[] getChars() {
+        return lines.toCharArray();
     }
     
 }
