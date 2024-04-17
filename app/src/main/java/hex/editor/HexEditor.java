@@ -1,15 +1,11 @@
 package hex.editor;
 
-import java.awt.EventQueue;
-import javax.swing.JFrame;
-import hex.editor.Frames.MainWindow;
+import hex.editor.services.HEXservice;
 
 public class HexEditor {
-    public HexEditor() {
-        EventQueue.invokeLater(() -> {
-            JFrame mainFrame = new MainWindow();
-            mainFrame.repaint();
-        });
+    private HEXservice hexService;
 
+    public HexEditor() {
+        hexService = new HEXservice();
     }
 }
