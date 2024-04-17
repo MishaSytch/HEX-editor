@@ -15,9 +15,14 @@ public class HEXservice {
     public String[] getHex() {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
-            .map(c -> String.format("%02x", (int)c))
-            // .map(c -> Integer.toHexString(c.getBytes()[0]))
+            .map(c -> String.format("%04x", (int)c))
             .toArray(String[]::new);
+    }
+
+    public Byte[] getBytes() {
+        return Arrays.stream(getHex())
+            .map(x -> Byte.valueOf(x, 16))
+            .toArray(Byte[]::new);
     }
 
     public String[] getChars() {
