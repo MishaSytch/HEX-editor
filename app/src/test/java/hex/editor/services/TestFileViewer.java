@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import hex.editor.FilePaths;
@@ -13,12 +12,6 @@ import hex.editor.FilePaths;
 public class TestFileViewer {
     static String bigFilePath = FilePaths.getBigFilePath();; 
     static String verySmallFilePath = FilePaths.getVerySmallFilePath();
-
-    // @BeforeAll
-    // static void getter() {
-    //     bigFilePath = FilePaths.getBigFilePath();
-    //     verySmallFilePath = FilePaths.getVerySmallFilePath();
-    // }
     
     @Test
     void testFile() {

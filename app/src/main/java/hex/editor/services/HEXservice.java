@@ -16,11 +16,11 @@ public class HEXservice {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
             .map(c -> String.format("%02x", (int)c))
+            // .map(c -> Integer.toHexString(c.getBytes()[0]))
             .toArray(String[]::new);
     }
 
     public String[] getChars() {
         return lines.split("");
     }
-    
 }

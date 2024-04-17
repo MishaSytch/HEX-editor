@@ -1,11 +1,9 @@
 package hex.editor.services;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,7 +28,7 @@ public class TestHEXservice {
 
     @Test 
     void testGetHex_one() {
-        try (Scanner scanner = new Scanner(oneChar)) {
+        try (Scanner scanner = new Scanner(new File(oneChar))) {
             StringBuilder stringBuilder = new StringBuilder();
             while (scanner.hasNext()){
                 stringBuilder.append(scanner.next());
@@ -40,15 +38,17 @@ public class TestHEXservice {
             heXservice.readLinesFromFile(oneChar);
             String hex = heXservice.getHex()[0];
 
-            Assertions.assertEquals(hex, ch);
-        }
+            Assertions.assertEquals(hex, Integer.toHexString(ch.getBytes()[0]));
+        } catch (FileNotFoundException exception) {}
     }
 
     @Test
     void testGetHex_small() {
         heXservice.readLinesFromFile(verySmallFilePath);
         String[] hex = heXservice.getHex();
-        Byte[] bytes = Arrays.stream(hex).map(x -> Integer.valueOf(x)).toArray(Byte[]::new);
+        Byte[] bytes = Arrays.stream(hex)
+            .map(x -> Byte.valueOf(x, 16))
+            .toArray(Byte[]::new);
         Assertions.assertEquals(bytes, new byte[]{
             (byte)0x50, (byte)0x75, (byte)0x6C, (byte)0x76, (byte)0x69, (byte)0x6E, (byte)0x61, (byte)0x72, (byte)0x20, (byte)0x65, (byte)0x6C, (byte)0x65,
             (byte)0x6D, (byte)0x65, (byte)0x6E, (byte)0x74, (byte)0x75, (byte)0x6D, (byte)0x20, (byte)0x69, (byte)0x6E, (byte)0x74, (byte)0x65, (byte)0x67,
@@ -109,9 +109,9 @@ public class TestHEXservice {
     }
 
     @Test
-    void testGetChars() {
+    void testGetChars() throws FileNotFoundException {
         heXservice.readLinesFromFile(verySmallFilePath);
-        try (Scanner scanner = new Scanner(verySmallFilePath)) {
+        try (Scanner scanner = new Scanner(new File(verySmallFilePath))) {
             StringBuilder stringBuilder = new StringBuilder();
             while (scanner.hasNext()) {
                 stringBuilder.append(scanner.nextLine());
@@ -120,6 +120,8 @@ public class TestHEXservice {
             char[] lines = stringBuilder.toString().toCharArray();
 
             Assertions.assertEquals(heXservice.getChars(), lines);
+        } catch (FileNotFoundException exception) {
+            System.out.println(exception.getMessage());
         }
     }
 }
