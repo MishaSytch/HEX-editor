@@ -7,14 +7,32 @@ import hex.editor.services.HEXservice;
 
 public class HexEditor {
     private HEXservice hexService;
-    String lines;
+    private String strings;
 
-    public HexEditor() {
+    public HexEditor(String path) {
         hexService = new HEXservice();
+        FileViewer fileViewer = new FileViewer(path);
+        strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
 
-    public void readFile(String path) {
+    public void openNewFile(String path) {
         FileViewer fileViewer = new FileViewer(path);
-        lines = fileViewer.getLines().stream().collect(Collectors.joining(""));
+        strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
+
+    public String[] getHexString() {
+        return hexService.getHexFromString(strings);
+    }
+
+    public String[] getCharsString() {
+        return hexService.getCharsFromString(strings);
+    }
+
+    public void editOpenedFileByHex(String[] hex) {
+        String.join(strings, hexService.getCharsFromHex(hex));
+    } 
+
+    public void editOpenedFileByChars(String[] chars) {
+        String.join(strings, chars);
+    } 
 }
