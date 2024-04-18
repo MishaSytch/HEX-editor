@@ -87,4 +87,25 @@ public class TestHEXservice {
             System.out.println(exception.getMessage());
         }
     }
+
+    @Test
+    void testGetBytes() {
+        byte[] xrd = "Integer.valueOf(4, 16) Миша".getBytes();
+        heXservice.readLinesFromFile(verySmallFilePath);
+        try (Scanner scanner = new Scanner(new File(verySmallFilePath))) {
+            StringBuilder stringBuilder = new StringBuilder();
+            while (scanner.hasNext()) {
+                stringBuilder.append(scanner.nextLine());
+            }
+            byte[] lines = stringBuilder.toString().getBytes();
+            Byte[] res = new Byte[lines.length];
+            for (int i = 0; i < lines.length; i++) {
+                res[i] = Byte.valueOf(lines[i]);
+            }
+            
+            Assertions.assertArrayEquals(heXservice.getBytes(), res);
+        } catch (FileNotFoundException exception) {
+            System.out.println(exception.getMessage());
+        }
+    }
 }

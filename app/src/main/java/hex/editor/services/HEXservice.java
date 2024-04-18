@@ -17,15 +17,15 @@ public class HEXservice {
             .map(s -> s.charAt(0))
             .map(c -> {
                 if((int)c > 256) return String.format("%04x", (int)c).toUpperCase();
-                else return String.format("%02x", (int)c).toUpperCase();
+                return String.format("%02x", (int)c).toUpperCase();
             })
             .toArray(String[]::new);
     }
 
-    public Integer[] getBytes() {
+    public Byte[] getBytes() {
         return Arrays.stream(getHex())
-            .map(x -> Integer.valueOf(x, 16))
-            .toArray(Integer[]::new);
+            .map(x -> x.getBytes())
+            .toArray(Byte[]::new);
     }
 
     public String[] getChars() {

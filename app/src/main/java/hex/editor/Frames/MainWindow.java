@@ -37,6 +37,7 @@ public class MainWindow extends JFrame {
         int wigth = (int)(screenWigth * 0.6);
 
         this.setTitle(TITLE);
+        this.setForeground(BackMainColor);
         this.setIconImage(icon.getImage());
         this.setLayout(new BorderLayout());
         this.setBounds((screenWigth - wigth) / 2, (screenHeight - height) / 2, wigth, height);
@@ -72,7 +73,6 @@ public class MainWindow extends JFrame {
             helpMenu.setForeground(MainTextColor);
             {
                 JMenuItem infoItem = new JMenuItem("What is Hex?");
-
                 helpMenu.add(infoItem);    
             }
             menuBar.add(helpMenu);
@@ -90,7 +90,7 @@ public class MainWindow extends JFrame {
                 hexPanel.add(text, BorderLayout.NORTH);
             }
             mainPanel.add(hexPanel, BorderLayout.WEST);
-            
+
             JPanel editPanel = getWorkPanel();
             {
                 String info = file == null? "Pleace, open file": file.getName();
@@ -126,6 +126,13 @@ public class MainWindow extends JFrame {
         panel.setBorder(BorderFactory.createEtchedBorder(1));
         panel.setForeground(MainTextColor);
         panel.setLayout(new FlowLayout());
+
+        JTable table = new JTable();
+        table.setBorder(BorderFactory.createBevelBorder(1));
+        // table.add();
+
+        panel.add(table);
+
         return panel;
     }
 }
