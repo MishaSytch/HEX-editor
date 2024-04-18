@@ -1,4 +1,4 @@
-package hex.editor.Frames;
+package hex.editor.view;
 
 public class TestMainWindow {
     

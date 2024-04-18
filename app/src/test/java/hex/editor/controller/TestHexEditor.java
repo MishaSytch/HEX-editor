@@ -1,9 +1,7 @@
-package hex.editor;
+package hex.editor.controller;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import hex.editor.controller.HexEditor;
 
 public class TestHexEditor {
     @Test
