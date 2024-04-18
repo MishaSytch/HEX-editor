@@ -22,7 +22,6 @@ public class HEXservice {
         return Arrays.stream(hex)
             .map(h -> Integer.valueOf(h, 10))
             .toArray(String[]::new);
-            
     }
 
     public String[] getHexFromChars(String[] chars) {
