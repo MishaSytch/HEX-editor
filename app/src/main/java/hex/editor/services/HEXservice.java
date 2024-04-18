@@ -16,7 +16,7 @@ public class HEXservice {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
             .map(c -> {
-                if((int)c > 255) return String.format("%04x", (int)c).toUpperCase();
+                if((int)c > 256) return String.format("%04x", (int)c).toUpperCase();
                 else return String.format("%02x", (int)c).toUpperCase();
             })
             .toArray(String[]::new);
