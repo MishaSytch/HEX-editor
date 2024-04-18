@@ -1,12 +1,5 @@
 package hex.editor.services;
 
-import java.util.Scanner;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
-import java.io.File;
-import java.io.FileNotFoundException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -57,7 +50,7 @@ public class TestHEXservice {
 
     @Test
     void testGetCharsFromHex_small() {
-        String[] hex = heXservice.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] hex = heXservice.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
         String[] chars = heXservice.getCharsFromHex(hex);
 
         String[] res = heXservice.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");

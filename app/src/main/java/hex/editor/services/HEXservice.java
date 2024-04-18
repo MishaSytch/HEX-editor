@@ -20,7 +20,8 @@ public class HEXservice {
 
     public String[] getCharsFromHex(String[] hex) {
         return Arrays.stream(hex)
-            .map(h -> Integer.valueOf(h, 10))
+            .map(h -> ((char)Integer.parseInt(h, 16)))
+            .map(ch -> String.valueOf(ch))
             .toArray(String[]::new);
     }
 
