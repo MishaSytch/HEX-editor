@@ -7,18 +7,18 @@ import org.junit.jupiter.api.Test;
 import hex.editor.FilePaths;
 
 
-public class TestHEXservice {
+public class TestHexService {
     static String bigFilePath; 
     static String verySmallFilePath;
     static String oneChar;
-    static HEXservice heXservice;
+    static HexService heXservice;
 
     @BeforeAll
     static void getter() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
         oneChar = FilePaths.getOneChar();
-        heXservice = new HEXservice();
+        heXservice = new HexService();
     }
 
     @Test 

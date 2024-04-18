@@ -2,7 +2,7 @@ package hex.editor.services;
 
 import java.util.Arrays;
 
-public class HEXservice {
+public class HexService {
 
     public String[] getHexFromString(String lines) {
         return Arrays.stream(lines.split(""))

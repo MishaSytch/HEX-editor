@@ -5,13 +5,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import hex.editor.FilePaths;
-import hex.editor.services.HEXservice;
+import hex.editor.services.HexService;
 
 public class TestHexEditor {
     static String bigFilePath; 
     static String verySmallFilePath;
     static String oneChar;
-    static HEXservice heXservice;
+    static HexService heXservice;
     static HexEditor hexEditor;
 
     @BeforeAll
@@ -19,7 +19,7 @@ public class TestHexEditor {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
         oneChar = FilePaths.getOneChar();
-        heXservice = new HEXservice();
+        heXservice = new HexService();
     }
     
     @Test

@@ -3,14 +3,14 @@ package hex.editor.controller;
 import java.util.stream.Collectors;
 
 import hex.editor.services.FileViewer;
-import hex.editor.services.HEXservice;
+import hex.editor.services.HexService;
 
 public class HexEditor {
-    private HEXservice hexService;
+    private HexService hexService;
     private String strings;
 
     public HexEditor(String path) {
-        hexService = new HEXservice();
+        hexService = new HexService();
         FileViewer fileViewer = new FileViewer(path);
         strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
