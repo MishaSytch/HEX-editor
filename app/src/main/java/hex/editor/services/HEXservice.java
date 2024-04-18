@@ -15,7 +15,7 @@ public class HEXservice {
     public String[] getHex() {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
-            .map(c -> String.format("%04x", (int)c))
+            .map(c -> String.format("%02x", (int)c))
             .toArray(String[]::new);
     }
 

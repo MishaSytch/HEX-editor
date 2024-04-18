@@ -59,6 +59,8 @@ public class TestHEXservice {
                 heXservice.readLinesFromFile(verySmallFilePath);
                 String[] hex = heXservice.getHex();
 
+                boolean f = hex[0].equals(res[0]);
+
                 Assertions.assertEquals(hex, res);
             } catch (FileNotFoundException exception) {}
     }
