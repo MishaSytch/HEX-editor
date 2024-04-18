@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import hex.editor.FilePaths;
-import hex.editor.controller.HexEditor;
 import hex.editor.services.HEXservice;
 
 public class TestHexEditor {
@@ -29,24 +28,31 @@ public class TestHexEditor {
         Assertions.assertArrayEquals(hexEditor.getCharsString(), new String[]{"в"});
     }
 
+    @Test
     void testOpenNewFile(String path) {
         hexEditor = new HexEditor(oneChar);
-
+        hexEditor.openNewFile(verySmallFilePath);
+        
+        Assertions.assertArrayEquals(hexEditor.getCharsString(), "Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!".split(""));
     }
 
+    @Test
     void testGetHexString() {
-        hexService.getHexFromString(strings);
+        
     }
 
+    @Test
     void testGetCharsString() {
-        hexService.getCharsFromString(strings);
+        
     }
 
+    @Test
     void testEditOpenedFileByHex(String[] hex) {
-        String.join(strings, hexService.getCharsFromHex(hex));
+        
     } 
 
+    @Test
     void testEditOpenedFileByChars(String[] chars) {
-        String.join(strings, chars);
+        
     } 
 }
