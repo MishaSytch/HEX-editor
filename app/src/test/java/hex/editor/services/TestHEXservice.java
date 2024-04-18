@@ -55,7 +55,7 @@ public class TestHEXservice {
                 String[] res = Arrays.stream(ch.split(""))
                     .map(x -> Integer.toHexString(x.getBytes()[0]))
                     .toArray(String[]::new);
-                    
+                String s = Integer.toString(1478, 16);
                 heXservice.readLinesFromFile(verySmallFilePath);
                 String[] hex = heXservice.getHex();
 
