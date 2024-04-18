@@ -2,6 +2,8 @@ package hex.editor.services;
 
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -38,7 +40,7 @@ public class TestHEXservice {
             heXservice.readLinesFromFile(oneChar);
             String hex = heXservice.getHex()[0];
 
-            String res = Integer.toHexString(ch.getBytes()[0]);
+            String res = Integer.toHexString(ch.getBytes()[0]).toUpperCase();
 
             Assertions.assertEquals(hex, res);
         } catch (FileNotFoundException exception) {}
@@ -46,21 +48,28 @@ public class TestHEXservice {
 
     @Test
     void testGetHex_small() {
-            try (Scanner scanner = new Scanner(new File(verySmallFilePath))) {
-                StringBuilder stringBuilder = new StringBuilder();
-                while (scanner.hasNext()){
-                    stringBuilder.append(scanner.nextLine());
-                }
-                String ch = stringBuilder.toString();
-                String[] res = Arrays.stream(ch.split(""))
-                    .map(x -> Integer.toHexString(x.getBytes()[0]))
-                    .toArray(String[]::new);
-                    
+            // try (Scanner scanner = new Scanner(new File(verySmallFilePath))) {
+            //     StringBuilder stringBuilder = new StringBuilder();
+            //     while (scanner.hasNext()){
+            //         stringBuilder.append(scanner.nextLine());
+            //     }
+            //     String ch = stringBuilder.toString();
+            //     String[] res = Arrays.stream(ch.split(""))
+            //         .map(x -> Integer.toString(x.getBytes()[0], 16).toUpperCase())
+            //         .toArray(String[]::new);
+                String[] res = {
+                    "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65",
+                    "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67",
+                    "65", "72", "2E", "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20",
+                    "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E",
+                    "20", "0447", "0438", "0441", "043B", "0430", "21"
+                };
+
                 heXservice.readLinesFromFile(verySmallFilePath);
                 String[] hex = heXservice.getHex();
 
-                Assertions.assertEquals(hex, res);
-            } catch (FileNotFoundException exception) {}
+                Assertions.assertArrayEquals(hex, res);
+            // } catch (FileNotFoundException exception) {}
     }
 
     @Test
@@ -71,10 +80,9 @@ public class TestHEXservice {
             while (scanner.hasNext()) {
                 stringBuilder.append(scanner.nextLine());
             }
+            String[] lines = stringBuilder.toString().split("");
 
-            char[] lines = stringBuilder.toString().toCharArray();
-
-            Assertions.assertEquals(heXservice.getChars(), lines);
+            Assertions.assertArrayEquals(heXservice.getChars(), lines);
         } catch (FileNotFoundException exception) {
             System.out.println(exception.getMessage());
         }

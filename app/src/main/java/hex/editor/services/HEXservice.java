@@ -16,16 +16,16 @@ public class HEXservice {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
             .map(c -> {
-                if((int)c > 255) return String.format("%04x", (int)c);
-                else return String.format("%02x", (int)c);
+                if((int)c > 255) return String.format("%04x", (int)c).toUpperCase();
+                else return String.format("%02x", (int)c).toUpperCase();
             })
             .toArray(String[]::new);
     }
 
-    public Byte[] getBytes() {
+    public Integer[] getBytes() {
         return Arrays.stream(getHex())
-            .map(x -> Byte.valueOf(x, 16))
-            .toArray(Byte[]::new);
+            .map(x -> Integer.valueOf(x, 16))
+            .toArray(Integer[]::new);
     }
 
     public String[] getChars() {
