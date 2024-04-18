@@ -55,11 +55,9 @@ public class TestHEXservice {
                 String[] res = Arrays.stream(ch.split(""))
                     .map(x -> Integer.toHexString(x.getBytes()[0]))
                     .toArray(String[]::new);
-                String s = Integer.toString(1478, 16);
+                    
                 heXservice.readLinesFromFile(verySmallFilePath);
                 String[] hex = heXservice.getHex();
-
-                boolean f = hex[0].equals(res[0]);
 
                 Assertions.assertEquals(hex, res);
             } catch (FileNotFoundException exception) {}
