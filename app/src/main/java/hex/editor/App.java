@@ -2,7 +2,8 @@ package hex.editor;
 
 import java.awt.EventQueue;
 import javax.swing.JFrame;
-import hex.editor.Frames.MainWindow;
+
+import hex.editor.view.MainWindow;
 
 public class App {
     public static void main(String[] args) {

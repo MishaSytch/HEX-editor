@@ -30,20 +30,11 @@ public class TestHEXservice {
 
     @Test 
     void testGetHex_one() {
-        try (Scanner scanner = new Scanner(new File(oneChar))) {
-            StringBuilder stringBuilder = new StringBuilder();
-            while (scanner.hasNext()){
-                stringBuilder.append(scanner.next());
-            }
-            String ch = stringBuilder.toString();
-
             heXservice.readLinesFromFile(oneChar);
-            String hex = heXservice.getHex()[0];
+            String[] hex = heXservice.getHex();
+            String[] res = new String[]{"0432"};
 
-            String res = Integer.toHexString(ch.getBytes()[0]).toUpperCase();
-
-            Assertions.assertEquals(hex, res);
-        } catch (FileNotFoundException exception) {}
+            Assertions.assertArrayEquals(hex, res);
     }
 
     @Test
@@ -89,23 +80,9 @@ public class TestHEXservice {
     }
 
     @Test
-    void testGetBytes() {
-        byte[] xrd = "Integer.valueOf(4, 16) Миша".getBytes();
-        heXservice.readLinesFromFile(verySmallFilePath);
-        try (Scanner scanner = new Scanner(new File(verySmallFilePath))) {
-            StringBuilder stringBuilder = new StringBuilder();
-            while (scanner.hasNext()) {
-                stringBuilder.append(scanner.nextLine());
-            }
-            byte[] lines = stringBuilder.toString().getBytes();
-            Byte[] res = new Byte[lines.length];
-            for (int i = 0; i < lines.length; i++) {
-                res[i] = Byte.valueOf(lines[i]);
-            }
-            
-            Assertions.assertArrayEquals(heXservice.getBytes(), res);
-        } catch (FileNotFoundException exception) {
-            System.out.println(exception.getMessage());
-        }
+    void testGetCharsFromHex() {
+        
+        String[] hex = 
+        String[] chars = heXservice.getCharsFromHex(hex)
     }
 }
