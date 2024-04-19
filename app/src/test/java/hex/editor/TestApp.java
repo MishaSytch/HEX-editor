@@ -7,6 +7,7 @@ public class TestApp {
     @Test
     void testappExecuted() {
         App app = new App();
+        
         Assertions.assertNotNull(app);
     }
 }

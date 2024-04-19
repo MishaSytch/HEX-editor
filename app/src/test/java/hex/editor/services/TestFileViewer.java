@@ -3,7 +3,6 @@ package hex.editor.services;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Assertions;

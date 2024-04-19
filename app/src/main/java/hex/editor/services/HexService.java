@@ -1,5 +1,6 @@
 package hex.editor.services;
 
+
 import java.util.Arrays;
 
 public class HexService {
