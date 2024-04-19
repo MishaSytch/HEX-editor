@@ -7,35 +7,35 @@ import hex.editor.services.FileViewer;
 import hex.editor.services.HexService;
 
 public class HexEditor {
-    private String strings;
+    private String string;
 
-    public String getStrings() {
-        return strings;
+    public String getString() {
+        return string;
     }
 
     public HexEditor(String path) {
         FileViewer fileViewer = new FileViewer(path);
-        strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
+        string = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
 
     public void openNewFile(String path) {
         FileViewer fileViewer = new FileViewer(path);
-        strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
+        string = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
 
     public String[] getHexString() {
-        return HexService.getHexFromString(strings);
+        return HexService.getHexFromString(string);
     }
 
     public String[] getCharsString() {
-        return HexService.getCharsFromString(strings);
+        return HexService.getCharsFromString(string);
     }
 
     public void editOpenedFileByHex(String[] hex) {
-        strings = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(""));
+        string = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(""));
     } 
 
     public void editOpenedFileByChars(String[] chars) {
-        strings = Arrays.stream(chars).collect(Collectors.joining(""));
+        string = Arrays.stream(chars).collect(Collectors.joining(""));
     } 
 }
