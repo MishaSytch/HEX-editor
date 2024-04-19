@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class HexService {
 
-    public String[] getHexFromString(String lines) {
+    public static String[] getHexFromString(String lines) {
         return Arrays.stream(lines.split(""))
             .map(s -> s.charAt(0))
             .map(c -> {
@@ -14,18 +14,18 @@ public class HexService {
             .toArray(String[]::new);
     }
 
-    public String[] getCharsFromString(String lines) {
+    public static String[] getCharsFromString(String lines) {
         return lines.split("");
     }
 
-    public String[] getCharsFromHex(String[] hex) {
+    public static String[] getCharsFromHex(String[] hex) {
         return Arrays.stream(hex)
             .map(h -> ((char)Integer.parseInt(h, 16)))
             .map(ch -> String.valueOf(ch))
             .toArray(String[]::new);
     }
 
-    public String[] getHexFromChars(String[] chars) {
+    public static String[] getHexFromChars(String[] chars) {
         return Arrays.stream(chars)
             .map(s -> s.charAt(0))
             .map(c -> {
