@@ -29,8 +29,8 @@ public class TestHexService {
 
     @Test 
     void testGetHex_none() {
-        String[] hex = HexService.getHexFromString("\n");
-        String[] res = new String[]{Integer.toHexString((byte)'\n')};
+        String[] hex = HexService.getHexFromString("\ng");
+        String[] res = new String[]{Integer.toHexString((byte)'\n'), Integer.toHexString((byte)'g')};
 
         Assertions.assertArrayEquals(hex, res);
     }
