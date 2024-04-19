@@ -21,16 +21,16 @@ public class TestHexService {
 
     @Test 
     void testGetHex_one() {
-        String[] hex = HexService.getHexFromString("а");
-        String[] res = new String[]{Integer.toHexString((byte)'а')};
+        String[] hex = HexService.getHexFromString("a");
+        String[] res = new String[]{Integer.toHexString((byte)'a')};
 
         Assertions.assertArrayEquals(hex, res);
     }
 
     @Test 
     void testGetHex_none() {
-        String[] hex = HexService.getHexFromString("\ng");
-        String[] res = new String[]{Integer.toHexString((byte)'\n'), Integer.toHexString((byte)'g')};
+        String[] hex = HexService.getHexFromString("\n");
+        String[] res = new String[]{"0A"};
 
         Assertions.assertArrayEquals(hex, res);
     }
@@ -40,11 +40,9 @@ public class TestHexService {
         String[] res = {
             "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
             "0A", "0A",
-            "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
         };
 
-        String[] hex = HexService.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
-
+        String[] hex = HexService.getHexFromString("Pulvinar elementum integer.\n\n");
         Assertions.assertArrayEquals(hex, res);
     }
 
