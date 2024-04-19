@@ -32,10 +32,10 @@ public class HexEditor {
     }
 
     public void editOpenedFileByHex(String[] hex) {
-        strings = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(", "));
+        strings = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(""));
     } 
 
     public void editOpenedFileByChars(String[] chars) {
-        strings = Arrays.stream(chars).collect(Collectors.joining(", "));
+        strings = Arrays.stream(chars).collect(Collectors.joining(""));
     } 
 }

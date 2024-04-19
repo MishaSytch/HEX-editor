@@ -32,10 +32,11 @@ public class TestHexEditor {
     @Test
     void testOpenNewFile() {
         hexEditor = new HexEditor(oneChar);
+        Assertions.assertEquals(hexEditor.getStrings(), "B");
+    
         hexEditor.openNewFile(verySmallFilePath);
-        String[] res = "Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!".split("");
         
-        Assertions.assertArrayEquals(hexEditor.getCharsString(), res);
+        Assertions.assertEquals(hexEditor.getStrings(), "Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
     }
 
     @Test
