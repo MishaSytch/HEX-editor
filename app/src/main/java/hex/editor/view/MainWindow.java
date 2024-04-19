@@ -1,8 +1,11 @@
 package hex.editor.view;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 import hex.editor.controller.HexEditor;
+import hex.editor.services.HexService;
+import hex.editor.services.TableViewer;
 
 import java.awt.*;
 import java.io.File;
@@ -25,14 +28,17 @@ public class MainWindow extends JFrame implements ActionListener {
     private float BOTTOM_SIZE = 0.15f;
     
     private int AlphaChanel = 255;
-    private Color BackMainColor = new Color(10, 10, 15, AlphaChanel);
-    private Color BackNotMainColor = new Color(20, 10, 15, AlphaChanel);
+    private Color BackMainColor = new Color(30, 30, 30, AlphaChanel);
+    private Color BackNotMainColor = new Color(25, 25, 25, AlphaChanel);
     private Color BackNotMainColor_Alpha = new Color(20, 10, 15, AlphaChanel);
     private Color BackNotMainColor_LIGHTER = new Color(25, 15, 25, AlphaChanel);
     private Color MainTextColor = new Color(240, 240, 240);
     
     private HexEditor hexEditor;
     private File file;
+
+    private JPanel editPanel;
+    private JPanel hexPanel;
 
 
     public MainWindow(
@@ -143,24 +149,29 @@ public class MainWindow extends JFrame implements ActionListener {
         JPanel mainPanel = getMainPanel(1, 1, Color.LIGHT_GRAY);
         mainPanel.setLayout(new GridLayout());
         {
-            JPanel hexPanel = getWorkPanel();
+            hexPanel = getWorkPanel();
+            hexPanel.setBorder(new EmptyBorder(0, 0, 0, 5));
             {
                 JLabel text = getText("HEX");
+                text.setBorder(new EmptyBorder(10, 0, 10, 0));
                 hexPanel.add(text, BorderLayout.NORTH);
+
+                JTable table = getTable(HexService.getHexFromString("editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10"));
+        
+                hexPanel.add(table, BorderLayout.CENTER);
             }
             mainPanel.add(hexPanel, BorderLayout.WEST);
 
-            JPanel editPanel = getWorkPanel();
+            editPanel = getWorkPanel();
+            editPanel.setBorder(new EmptyBorder(0, 5, 0, 0));
             {
                 String info = file == null? "Pleace, open file": file.getName();
+                
                 JLabel text = getText(info);
-
-                JTable table = new JTable( new String[][] {{ "Сахар" , "кг", "1.5" },
-                { "Мука"  , "кг", "4.0" },
-                { "Молоко", "л" , "2.2" }}, new String[] {"Наименование", "Ед.измерения", 
-                "Количество"});
-
+                text.setBorder(new EmptyBorder(10, 0, 10, 0));
                 editPanel.add(text, BorderLayout.NORTH);
+
+                JTable table = getTable("editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10".split(""));
                 editPanel.add(table, BorderLayout.CENTER);
             }
             mainPanel.add(editPanel, BorderLayout.EAST);
@@ -172,15 +183,35 @@ public class MainWindow extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
+
     @Override
     public void actionPerformed(ActionEvent e) {
         
         
     }
 
+    private JTable getTable(String[] data) {
+        int colomns_count = 10;
+
+        String[] colomns = new String[colomns_count];
+        for (int i = 0 ; i < colomns_count; i++) colomns[i] = String.valueOf(i);
+        String[][] box = TableViewer.getTable(data, colomns_count);
+
+        JTable table = new JTable(box, colomns);
+        // Настройка таблицы
+        table.setRowHeight(30);
+        table.setRowHeight(1, 20);
+        table.setIntercellSpacing(new Dimension(10, 10));
+        table.setShowVerticalLines(true);
+        table.setGridColor(MainTextColor);
+        table.setBackground(BackMainColor);
+        table.setForeground(MainTextColor);
+
+        return table;
+    }
+
     private JLabel getText(String info){
-        JLabel text = new JLabel();
-        text.setText(info);
+        JLabel text = new JLabel(info, SwingConstants.CENTER);
         text.setForeground(MainTextColor);
         return text;
     }
@@ -199,7 +230,7 @@ public class MainWindow extends JFrame implements ActionListener {
         panel.setPreferredSize(new Dimension((int)(this.getWidth() * (0.5 - LEFT_SIZE)), this.getHeight()));
         panel.setBorder(BorderFactory.createEtchedBorder(1));
         panel.setForeground(MainTextColor);
-        panel.setLayout(new FlowLayout());
+        panel.setLayout(new BorderLayout());
 
         JTable table = new JTable();
         table.setBorder(BorderFactory.createBevelBorder(1));
