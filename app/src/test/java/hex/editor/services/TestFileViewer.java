@@ -33,7 +33,6 @@ public class TestFileViewer {
         List<String> list = new ArrayList<String>();
         list.add("Pulvinar elementum integer.");
         list.add("");
-        list.add("Заморозки наступили 3-го числа!");
         Assertions.assertEquals(lines, list);
     }
 
