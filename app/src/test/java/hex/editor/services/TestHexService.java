@@ -7,26 +7,32 @@ import org.junit.jupiter.api.Test;
 import hex.editor.FilePaths;
 
 
-public class TestHEXservice {
+public class TestHexService {
     static String bigFilePath; 
     static String verySmallFilePath;
     static String oneChar;
-    static HEXservice heXservice;
 
     @BeforeAll
     static void getter() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
         oneChar = FilePaths.getOneChar();
-        heXservice = new HEXservice();
     }
 
     @Test 
     void testGetHex_one() {
-            String[] hex = heXservice.getHexFromString("в");
-            String[] res = new String[]{"0432"};
+        String[] hex = HexService.getHexFromString("а");
+        String[] res = new String[]{Integer.toHexString((byte)'а')};
 
-            Assertions.assertArrayEquals(hex, res);
+        Assertions.assertArrayEquals(hex, res);
+    }
+
+    @Test 
+    void testGetHex_none() {
+        String[] hex = HexService.getHexFromString("\n");
+        String[] res = new String[]{Integer.toHexString((byte)'\n')};
+
+        Assertions.assertArrayEquals(hex, res);
     }
 
     @Test
@@ -37,7 +43,7 @@ public class TestHEXservice {
             "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
         };
 
-        String[] hex = heXservice.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] hex = HexService.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
 
         Assertions.assertArrayEquals(hex, res);
     }
@@ -45,25 +51,25 @@ public class TestHEXservice {
     @Test
     void testGetCharsFromString_small() {
         String[] lines = "Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!".split("");
-        Assertions.assertArrayEquals(heXservice.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!"), lines);
+        Assertions.assertArrayEquals(HexService.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!"), lines);
     }
 
     @Test
     void testGetCharsFromHex_small() {
-        String[] hex = heXservice.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
-        String[] chars = heXservice.getCharsFromHex(hex);
+        String[] hex = HexService.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] chars = HexService.getCharsFromHex(hex);
 
-        String[] res = heXservice.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] res = HexService.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
 
         Assertions.assertArrayEquals(chars, res);
     }
 
     @Test
     void testGetHexFromChars_small() {
-        String[] chars = heXservice.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
-        String[] hex = heXservice.getHexFromChars(chars);
+        String[] chars = HexService.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] hex = HexService.getHexFromChars(chars);
 
-        String[] res = heXservice.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        String[] res = HexService.getHexFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
 
         Assertions.assertArrayEquals(hex, res);
     }
