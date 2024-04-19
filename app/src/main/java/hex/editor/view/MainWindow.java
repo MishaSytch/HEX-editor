@@ -154,7 +154,14 @@ public class MainWindow extends JFrame implements ActionListener {
             {
                 String info = file == null? "Pleace, open file": file.getName();
                 JLabel text = getText(info);
+
+                JTable table = new JTable( new String[][] {{ "Сахар" , "кг", "1.5" },
+                { "Мука"  , "кг", "4.0" },
+                { "Молоко", "л" , "2.2" }}, new String[] {"Наименование", "Ед.измерения", 
+                "Количество"});
+
                 editPanel.add(text, BorderLayout.NORTH);
+                editPanel.add(table, BorderLayout.CENTER);
             }
             mainPanel.add(editPanel, BorderLayout.EAST);
         }
