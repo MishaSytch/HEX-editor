@@ -41,8 +41,11 @@ public class MainWindow extends JFrame implements ActionListener {
     private JPanel hexPanel;
 
 
-    public MainWindow(
-    ) {
+    public MainWindow() {
+        init();
+    }
+
+    private void init() {
         toolkit = Toolkit.getDefaultToolkit();
         screenWigth = (int) toolkit.getScreenSize().getWidth();
         screenHeight = (int) toolkit.getScreenSize().getHeight();
@@ -76,17 +79,7 @@ public class MainWindow extends JFrame implements ActionListener {
                 JMenuItem save = new JMenuItem("Save");
                 JMenuItem saveAs = new JMenuItem("Save as");
 
-                openFile.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JFileChooser fileChooser = new JFileChooser();
-
-                        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                            hexEditor = new HexEditor(file.getAbsolutePath());
-                        }
-                    }
-                });
+                openFile.addActionListener(this);
 
                 save.addActionListener(new ActionListener() {
                     @Override
@@ -156,7 +149,7 @@ public class MainWindow extends JFrame implements ActionListener {
                 text.setBorder(new EmptyBorder(10, 0, 10, 0));
                 hexPanel.add(text, BorderLayout.NORTH);
 
-                JTable table = getTable(HexService.getHexFromString("editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10"));
+                JTable table = getTable(file == null? new String[]{""}: hexEditor.getHexString());
         
                 hexPanel.add(table, BorderLayout.CENTER);
             }
@@ -171,22 +164,26 @@ public class MainWindow extends JFrame implements ActionListener {
                 text.setBorder(new EmptyBorder(10, 0, 10, 0));
                 editPanel.add(text, BorderLayout.NORTH);
 
-                JTable table = getTable("editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10editPanel.getHeight() / 10".split(""));
+                JTable table = getTable(file == null? new String[]{""}: hexEditor.getCharsString());
                 editPanel.add(table, BorderLayout.CENTER);
             }
             mainPanel.add(editPanel, BorderLayout.EAST);
         }
         base.add(mainPanel, BorderLayout.CENTER);
-
         this.add(base);
-
         this.setVisible(true);
     }
 
-
     @Override
     public void actionPerformed(ActionEvent e) {
-        
+        if (e.getActionCommand() == "Open file") {
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                hexEditor = new HexEditor(file.getAbsolutePath());
+                this.init();
+            }
+        }
         
     }
 
