@@ -1,16 +1,19 @@
 package hex.editor.controller;
 
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import hex.editor.services.FileViewer;
 import hex.editor.services.HexService;
 
 public class HexEditor {
-    private HexService hexService;
     private String strings;
 
+    public String getStrings() {
+        return strings;
+    }
+
     public HexEditor(String path) {
-        hexService = new HexService();
         FileViewer fileViewer = new FileViewer(path);
         strings = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
@@ -21,18 +24,18 @@ public class HexEditor {
     }
 
     public String[] getHexString() {
-        return hexService.getHexFromString(strings);
+        return HexService.getHexFromString(strings);
     }
 
     public String[] getCharsString() {
-        return hexService.getCharsFromString(strings);
+        return HexService.getCharsFromString(strings);
     }
 
     public void editOpenedFileByHex(String[] hex) {
-        String.join(strings, hexService.getCharsFromHex(hex));
+        strings = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(", "));
     } 
 
     public void editOpenedFileByChars(String[] chars) {
-        String.join(strings, chars);
+        strings = Arrays.stream(chars).collect(Collectors.joining(", "));
     } 
 }
