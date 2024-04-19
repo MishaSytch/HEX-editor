@@ -42,7 +42,7 @@ public class TestHexService {
             "0A", "0A",
         };
         String[] hex = HexService.getHexFromString("Pulvinar elementum integer.\n\n");
-        
+
         Assertions.assertArrayEquals(hex, res);
     }
 
