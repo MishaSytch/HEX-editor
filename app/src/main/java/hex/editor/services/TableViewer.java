@@ -3,7 +3,7 @@ package hex.editor.services;
 import java.util.*;
 
 public class TableViewer {
-    public String[][] getTable(String[] data, int colomns) {
+    public static String[][] getTable(String[] data, int colomns) {
         List<String[]> list = new ArrayList<String[]>();
         
         int i = 0;
@@ -16,6 +16,7 @@ public class TableViewer {
             }
             tmp[i++] = str;
         }
+        list.add(tmp);
         return list.toArray(String[][]::new);
     }
 }

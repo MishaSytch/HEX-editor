@@ -1,7 +1,7 @@
 package hex.editor.services;
 
-import org.junit.gen5.api.Assertions;
-import org.junit.gen5.api.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestTableViewer {
     @Test
@@ -15,7 +15,7 @@ public class TestTableViewer {
             new String[]{"a", "r", " "}
         };
         
-        Assertions.assertEquals(tb, res);
+        Assertions.assertArrayEquals(tb, res);
     }
 
     @Test
@@ -29,6 +29,6 @@ public class TestTableViewer {
             new String[]{"61", "72", "20"}
         };
         
-        Assertions.assertEquals(tb, res);
+        Assertions.assertArrayEquals(tb, res);
     }
 }
