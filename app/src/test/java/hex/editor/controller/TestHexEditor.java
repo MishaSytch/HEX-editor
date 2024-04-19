@@ -80,4 +80,24 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(hexEditor.getCharsString(), ".ulvinar elementum integer.".split(""));
     } 
+
+    @Test 
+    void testFindOne() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G"});
+        Integer[] res = new Integer[]{0};
+        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+
+        Assertions.assertArrayEquals(hex, res);
+    }
+
+    @Test 
+    void testFindTwo() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G", "A", "B", "c"});
+        Integer[] res = new Integer[]{0, 9};
+        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+
+        Assertions.assertArrayEquals(hex, res);
+    }
 }

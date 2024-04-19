@@ -1,10 +1,17 @@
 package hex.editor.view;
 
 import javax.swing.*;
+
+import hex.editor.controller.HexEditor;
+
 import java.awt.*;
 import java.io.File;
+import java.io.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class MainWindow extends JFrame {
+
+public class MainWindow extends JFrame implements ActionListener {
     private Toolkit toolkit;
     private int screenWigth;
     private int screenHeight;
@@ -24,7 +31,9 @@ public class MainWindow extends JFrame {
     private Color BackNotMainColor_LIGHTER = new Color(25, 15, 25, AlphaChanel);
     private Color MainTextColor = new Color(240, 240, 240);
     
+    private HexEditor hexEditor;
     private File file;
+
 
     public MainWindow(
     ) {
@@ -42,7 +51,6 @@ public class MainWindow extends JFrame {
         this.setBounds((screenWigth - wigth) / 2, (screenHeight - height) / 2, wigth, height);
         this.setMinimumSize(new Dimension(wigth, height));
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setVisible(true);
 
         JPanel base = getMainPanel(1, 1, Color.WHITE);
         
@@ -62,6 +70,50 @@ public class MainWindow extends JFrame {
                 JMenuItem save = new JMenuItem("Save");
                 JMenuItem saveAs = new JMenuItem("Save as");
 
+                openFile.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JFileChooser fileChooser = new JFileChooser();
+
+                        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                            hexEditor = new HexEditor(file.getAbsolutePath());
+                        }
+                    }
+                });
+
+                save.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JFileChooser fileChooser = new JFileChooser();
+
+                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                             if (file != null) {
+                                
+                             }  else {
+
+                             }
+                        }
+                    }
+                });
+                
+                saveAs.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JFileChooser fileChooser = new JFileChooser();
+
+                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                             if (file != null) {
+                                String path = fileChooser.getSelectedFile().getAbsolutePath();
+                                String name = fileChooser.getSelectedFile().getName();
+                                
+                             }  else {
+
+                             }
+                        }
+                    }
+                });
+
                 fileMenu.add(openFile);
                 fileMenu.add(save);
                 fileMenu.add(saveAs);    
@@ -72,6 +124,14 @@ public class MainWindow extends JFrame {
             helpMenu.setForeground(MainTextColor);
             {
                 JMenuItem infoItem = new JMenuItem("What is Hex?");
+
+                infoItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        
+                    }
+                });
+
                 helpMenu.add(infoItem);    
             }
             menuBar.add(helpMenu);
@@ -101,6 +161,14 @@ public class MainWindow extends JFrame {
         base.add(mainPanel, BorderLayout.CENTER);
 
         this.add(base);
+
+        this.setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        
+        
     }
 
     private JLabel getText(String info){
