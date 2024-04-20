@@ -5,6 +5,7 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 
 import hex.editor.view.MainWindow;
+import hex.editor.view.ViewController;
 
 public class App {
     public static void main(String[] args) {
@@ -13,8 +14,7 @@ public class App {
 
     private static void startApp() {
         EventQueue.invokeLater(() -> {
-            JFrame mainFrame = new MainWindow();
-            mainFrame.repaint();
+            ViewController ViewController = new ViewController();
         });
     }
 }
