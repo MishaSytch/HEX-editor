@@ -1,12 +1,14 @@
-package hex.editor.view.Panel.origin;
+package hex.editor.view.Frame;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.JFrame;
 
 import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
-public class BasePanel extends JPanel {
+public class BaseFrame extends JFrame {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
 
     public IStyleSheet getStyleSheet() {
@@ -24,19 +26,15 @@ public class BasePanel extends JPanel {
     private int WIDTH;
     public int getWIDTH() {
         return WIDTH;
-    }   
+    } 
 
-    public BasePanel(int height, int width) {
+    public BaseFrame(int height, int width) {
         HEIGHT = height;
         WIDTH = width;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getForeBaseColor());
+        this.setLayout(new BorderLayout());
     }
-
-    public JLabel getText(String info){
-        JLabel text = new JLabel(info, SwingConstants.CENTER);
-        text.setForeground(styleSheet.getMainTextColor());
-        return text;
-    }
+    
 }

@@ -8,25 +8,19 @@ import javax.swing.JMenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
 
+import hex.editor.view.Panel.origin.WorkPanel;
 import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
 public class MenuBar extends JMenuBar implements ActionListener {
-    protected IStyleSheet styleSheet = new StyleSheet_MainWindow();
-    public IStyleSheet getStyleSheet() {
-        return styleSheet;
-    }
-    public void setStyleSheet(IStyleSheet styleSheet) {
-        this.styleSheet = styleSheet;
-    }
+    private IStyleSheet styleSheet = new StyleSheet_MainWindow();
 
-    private File file;
+    private WorkPanel[] WORKPANELS;
 
-    private List<JMenu> menus = new ArrayList<JMenu>(); 
+    public MenuBar(WorkPanel[] workPanels) {
+        this.WORKPANELS = workPanels;
 
-    public MenuBar() {
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
             fileMenu.setForeground(styleSheet.getMainTextColor());
@@ -35,7 +29,21 @@ public class MenuBar extends JMenuBar implements ActionListener {
                 JMenuItem save = new JMenuItem("Save");
                 JMenuItem saveAs = new JMenuItem("Save as");
 
-                openFile.addActionListener(this);
+                openFile.addActionListener(new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent arg0) {
+                        JFileChooser fileChooser = new JFileChooser();
+
+                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                            File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                            for (WorkPanel workPanel : WORKPANELS) {
+                                workPanel.setFile(file);
+                            }
+                        }
+                    }
+                    
+                });
 
                 save.addActionListener(new ActionListener() {
                     @Override
@@ -43,11 +51,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
                         JFileChooser fileChooser = new JFileChooser();
 
                         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                             if (file != null) {
-                                
-                             }  else {
-
-                             }
                         }
                     }
                 });
@@ -58,13 +61,8 @@ public class MenuBar extends JMenuBar implements ActionListener {
                         JFileChooser fileChooser = new JFileChooser();
 
                         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                             if (file != null) {
                                 String path = fileChooser.getSelectedFile().getAbsolutePath();
                                 String name = fileChooser.getSelectedFile().getName();
-                                
-                             }  else {
-
-                             }
                         }
                     }
                 });
@@ -95,5 +93,13 @@ public class MenuBar extends JMenuBar implements ActionListener {
     public void actionPerformed(ActionEvent arg0) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
+    }
+
+    public IStyleSheet getStyleSheet() {
+        return styleSheet;
+    }
+    
+    public void setStyleSheet(IStyleSheet styleSheet) {
+        this.styleSheet = styleSheet;
     }
 }
