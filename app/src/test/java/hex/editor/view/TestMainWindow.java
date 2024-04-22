@@ -1,7 +1,6 @@
 package hex.editor.view;
 
-import org.junit.gen5.api.Assertions;
-import org.junit.gen5.api.Test;
+import org.junit.jupiter.api.*;
 
 public class TestMainWindow {
     

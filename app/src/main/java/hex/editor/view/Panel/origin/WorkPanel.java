@@ -1,21 +1,19 @@
 package hex.editor.view.Panel.origin;
 
 import java.awt.*;
-import java.io.File;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
-import hex.editor.controller.HexEditor;
 import hex.editor.services.TableViewer;
 import hex.editor.view.Style.IStyleSheet;
 
 public class WorkPanel extends BasePanel {
     private JTable table;
     private IStyleSheet styleSheet = super.getStyleSheet();
-    private File file;
-    private HexEditor hexEditor;
 
     public WorkPanel(int height, int width) {
         super(height, width);
@@ -32,16 +30,8 @@ public class WorkPanel extends BasePanel {
         this.add(text, BorderLayout.NORTH);
     }
 
-    public void setFile(File file) {
-        this.file = file;
-        hexEditor = new HexEditor(file.getAbsolutePath());
-    }
-
-    public File getFile() {
-        return file;
-    }
-
     public void showData(String[] data) {
+
         int colomns_count = 10;
 
         String[] colomns = new String[colomns_count];
@@ -57,12 +47,8 @@ public class WorkPanel extends BasePanel {
         table.setShowVerticalLines(true);
         table.setGridColor(styleSheet.getMainTextColor());
         table.setBackground(styleSheet.getBackBaseColor());
-        table.setForeground(styleSheet.getForeBaseColor());
+        table.setForeground(styleSheet.getMainTextColor());
 
         this.add(table, BorderLayout.CENTER);
-    }
-
-    public HexEditor getHexEditor() {
-        return hexEditor;
     }
 }

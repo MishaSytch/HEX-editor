@@ -4,22 +4,42 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
+import java.util.List;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
+import hex.editor.controller.HexEditor;
+import hex.editor.services.Types;
+import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.WorkPanel;
 import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
 public class MenuBar extends JMenuBar implements ActionListener {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
+    private File file = null;
+    private WorkPanel hexEditPanel;
+    private WorkPanel originEditPanel;
+    private MainWindow mainWindow;
+    private JPanel baseWorkPanel;
 
-    private WorkPanel[] WORKPANELS;
-
-    public MenuBar(WorkPanel[] workPanels) {
-        this.WORKPANELS = workPanels;
+    public File getFile() {
+        return file;
+    }
+    
+    public MenuBar(JPanel baseWorkPanel, MainWindow mainWindow) {
+        this.baseWorkPanel = baseWorkPanel;
+        this.hexEditPanel = (WorkPanel) baseWorkPanel.getComponent(0);
+        this.originEditPanel = (WorkPanel) baseWorkPanel.getComponent(1);
+        this.mainWindow = mainWindow;
 
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
@@ -30,16 +50,40 @@ public class MenuBar extends JMenuBar implements ActionListener {
                 JMenuItem saveAs = new JMenuItem("Save as");
 
                 openFile.addActionListener(new ActionListener() {
-
                     @Override
                     public void actionPerformed(ActionEvent arg0) {
                         JFileChooser fileChooser = new JFileChooser();
 
-                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                            File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                            for (WorkPanel workPanel : WORKPANELS) {
-                                workPanel.setFile(file);
-                            }
+                        if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
+                            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                            
+                            HexEditor hexEditor = new HexEditor(file.getAbsolutePath());
+                            Map<Types, String[]> map = new HashMap<Types, String[]>();
+
+                            String[] hex = hexEditor.getHexString();
+                            String[] chars = hexEditor.getCharsString();
+
+                            map.put(Types.HEX, hex);
+                                    map.put(Types.CHARS, chars);
+
+                            mainWindow.getContentPane().remove(baseWorkPanel);
+
+                            hexEditPanel.showData(map.get(Types.HEX));
+                            originEditPanel.showData(map.get(Types.CHARS));
+                            originEditPanel.setTitle(file.getName());
+                            originEditPanel.setTitle("Откройте файл");
+                            hexEditPanel.setTitle("HEX");
+
+                            baseWorkPanel.remove(0);
+                            baseWorkPanel.remove(0);
+                            baseWorkPanel.add(hexEditPanel, BorderLayout.WEST);
+                            baseWorkPanel.add(originEditPanel, BorderLayout.EAST);
+
+                            mainWindow.add(baseWorkPanel);
+                            mainWindow.revalidate();
+                            mainWindow.repaint();
+                            mainWindow.getContentPane().setVisible(false);
+                            mainWindow.getContentPane().setVisible(true);
                         }
                     }
                     

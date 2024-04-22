@@ -2,10 +2,8 @@ package hex.editor;
 
 
 import java.awt.EventQueue;
-import javax.swing.JFrame;
 
-import hex.editor.controller.ViewController;
-import hex.editor.view.MainWindow;
+import hex.editor.controller.Controller;
 
 public class App {
     public static void main(String[] args) {
@@ -14,7 +12,7 @@ public class App {
 
     private static void startApp() {
         EventQueue.invokeLater(() -> {
-            ViewController ViewController = new ViewController();
+            Controller controller = new Controller();
         });
     }
 }

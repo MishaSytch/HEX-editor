@@ -1,19 +1,8 @@
 package hex.editor.view;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
-import hex.editor.controller.HexEditor;
-import hex.editor.services.HexService;
-import hex.editor.services.TableViewer;
 import hex.editor.view.Frame.BaseFrame;
-import hex.editor.view.Panel.origin.BasePanel;
-
 import java.awt.*;
-import java.io.File;
-import java.io.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 
 public class MainWindow extends BaseFrame {
