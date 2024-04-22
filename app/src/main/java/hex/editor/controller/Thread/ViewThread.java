@@ -11,7 +11,7 @@ import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
-public class ViewThread {
+public class ViewThread implements Runnable {
 
     private File file = null;
     private MainWindow mainWindow;
@@ -26,49 +26,56 @@ public class ViewThread {
     private ServiceThread service;
 
 
-    public ViewThread(Exchanger<File> fileExchanger, Exchanger<String[]> dataExchanger) {
-        this.fileExchanger = fileExchanger;
-        this.dataExchanger = dataExchanger;
+    public ViewThread() {
+        init();
+    }
 
+    public void init() {
         mainWindow = new MainWindow();
         originEditPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
+        originEditPanel.setTitle("Откройте файл");
         hexEditPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
+        hexEditPanel.setTitle("HEX");
+
         baseWorkPanel = new JPanel(new GridLayout());
         baseWorkPanel.add(hexEditPanel, BorderLayout.WEST);
         baseWorkPanel.add(originEditPanel, BorderLayout.EAST);
-        menuBar = new MenuBar(hexEditPanel, originEditPanel);
+
+        menuBar = new MenuBar(baseWorkPanel, mainWindow);
+
         mainWindow.add(menuBar, BorderLayout.NORTH);
         mainWindow.add(baseWorkPanel);
         mainWindow.setVisible(true);
+
         service = new ServiceThread(fileExchanger, dataExchanger);
     }
 
-    // @Override
-    // public void run() {
-    //     while (true) {
-    //         file = menuBar.getFile();  
-    //         if (file != null) {
-    //             try {
-    //                 service.run();
-    //                 fileExchanger.exchange(file);
+    @Override
+    public void run() {
+        while (true) {
+            file = menuBar.getFile();  
+            if (file != null) {
+                try {
+                    service.run();
+                    fileExchanger.exchange(file);
 
-    //                 String[] hex = new String[]{""};
-    //                 String[] chars = new String[]{""};
+                    String[] hex = new String[]{""};
+                    String[] chars = new String[]{""};
 
-    //                 hex = dataExchanger.exchange(hex);
-    //                 chars = dataExchanger.exchange(chars);
+                    hex = dataExchanger.exchange(hex);
+                    chars = dataExchanger.exchange(chars);
 
-    //                 originEditPanel.showData(chars);
-    //                 hexEditPanel.showData(hex);
+                    originEditPanel.showData(chars);
+                    hexEditPanel.showData(hex);
 
-    //                 originEditPanel.repaint();
-    //                 hexEditPanel.repaint();
+                    originEditPanel.repaint();
+                    hexEditPanel.repaint();
 
-    //             } catch (InterruptedException e) {
-    //                 System.err.println(e.getMessage());
-    //             }
-    //         }
-    //     }
-    // };
+                } catch (InterruptedException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+    };
     
 }

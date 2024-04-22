@@ -11,7 +11,7 @@ public class Controller {
     public Controller() {
         Exchanger<File> fileExchanger = new Exchanger<File>();
         Exchanger<String[]> dataExchanger = new Exchanger<String[]>();
-        ViewThread view = new ViewThread(fileExchanger, dataExchanger);
+        ViewThread view = new ViewThread();
         ServiceThread service = new ServiceThread(fileExchanger, dataExchanger);
     }
 }

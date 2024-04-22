@@ -27,6 +27,7 @@ public class WorkPanel extends BasePanel {
     }
 
     public void showData(String[] data) {
+
         int colomns_count = 10;
 
         String[] colomns = new String[colomns_count];
@@ -42,7 +43,7 @@ public class WorkPanel extends BasePanel {
         table.setShowVerticalLines(true);
         table.setGridColor(styleSheet.getMainTextColor());
         table.setBackground(styleSheet.getBackBaseColor());
-        table.setForeground(styleSheet.getForeBaseColor());
+        table.setForeground(styleSheet.getMainTextColor());
 
         this.add(table, BorderLayout.CENTER);
     }
