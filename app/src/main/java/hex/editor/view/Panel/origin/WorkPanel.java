@@ -5,6 +5,7 @@ import java.io.File;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableModel;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.services.TableViewer;
@@ -46,9 +47,9 @@ public class WorkPanel extends BasePanel {
         String[] colomns = new String[colomns_count];
         for (int i = 0 ; i < colomns_count; i++) colomns[i] = String.valueOf(i);
         
-        String[][] box = TableViewer.getTable(data, colomns_count);
+        TableModel box = TableViewer.getTable(data, colomns_count);
 
-        table = new JTable(box, colomns);
+        table = new JTable(box);
         // Настройка таблицы
         table.setRowHeight(30);
         table.setRowHeight(10, 20);
