@@ -84,54 +84,6 @@ public class MenuBar extends JMenuBar implements ActionListener {
                             mainWindow.repaint();
                             mainWindow.getContentPane().setVisible(false);
                             mainWindow.getContentPane().setVisible(true);
-
-                            SwingWorker swingWorker = new SwingWorker<Boolean, Map<Types, String[]>>() {
-                                Map<Types, String[]> map = new HashMap<Types, String[]>();
-
-                                @Override
-                                protected Boolean doInBackground() throws Exception { 
-                                    HexEditor hexEditor = new HexEditor(file.getAbsolutePath());
-
-                                    String[] hex = hexEditor.getHexString();
-                                    String[] chars = hexEditor.getCharsString();
-
-                                    map.put(Types.HEX, hex);
-                                    map.put(Types.CHARS, chars);
-                                    System.out.println("Fff");
-                                    
-                                    return true;
-                                }
-
-                                @Override
-                                protected void done() {
-                                    
-                                }   
-                                @Override
-                                protected void process(List<Map<Types, String[]>> chunks) {
-                                    mainWindow.getContentPane().remove(baseWorkPanel);
-
-                                    Map<Types, String[]> map = chunks.get(chunks.size() - 1);
-                                    hexEditPanel.showData(map.get(Types.HEX));
-                                    originEditPanel.showData(map.get(Types.CHARS));
-                                    originEditPanel.setTitle(file.getName());
-                                    originEditPanel.setTitle("Откройте файл");
-                                    hexEditPanel.setTitle("HEX");
-
-                                    baseWorkPanel.remove(0);
-                                    baseWorkPanel.remove(1);
-                                    baseWorkPanel.add(hexEditPanel, BorderLayout.WEST);
-                                    baseWorkPanel.add(originEditPanel, BorderLayout.EAST);
-
-                                    mainWindow.add(baseWorkPanel);
-                                    mainWindow.revalidate();
-                                    mainWindow.repaint();
-                                    mainWindow.getContentPane().setVisible(false);
-                                    mainWindow.getContentPane().setVisible(true);
-                                    
-                                }         
-                            };
-                            swingWorker.execute();
-                            
                         }
                     }
                     
