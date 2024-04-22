@@ -1,9 +1,6 @@
 package hex.editor;
 
-import java.io.File;
-
 public class FilePaths {
-    private static String sep = File.separator;
     private static String bigFilePath = new String("C:\\Users\\misha\\Documents\\nicetu\\HEX-editor\\app\\src\\test\\java\\hex\\editor\\filesForTest\\bigText.txt"); 
     private static String verySmallFilePath = new String("C:\\Users\\misha\\Documents\\nicetu\\HEX-editor\\app\\src\\test\\java\\hex\\editor\\filesForTest\\verySmallText.txt");
     private static String oneChar = new String("C:\\Users\\misha\\Documents\\nicetu\\HEX-editor\\app\\src\\test\\java\\hex\\editor\\filesForTest\\oneChar.txt");

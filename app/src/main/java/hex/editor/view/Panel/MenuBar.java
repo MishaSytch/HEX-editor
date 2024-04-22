@@ -4,22 +4,30 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.SwingWorker;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import hex.editor.controller.HexEditor;
 import hex.editor.view.Panel.origin.WorkPanel;
 import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
 public class MenuBar extends JMenuBar implements ActionListener {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
+    private File file = null;
+    private WorkPanel hexWorkPanel;
+    private WorkPanel originWorkPanel;
 
-    private WorkPanel[] WORKPANELS;
-
-    public MenuBar(WorkPanel[] workPanels) {
-        this.WORKPANELS = workPanels;
+    public File getFile() {
+        return file;
+    }
+    
+    public MenuBar(WorkPanel hexWorkPanel, WorkPanel originWorkPanel) {
+        this.hexWorkPanel = hexWorkPanel;
+        this.originWorkPanel = originWorkPanel;
 
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
@@ -36,10 +44,29 @@ public class MenuBar extends JMenuBar implements ActionListener {
                         JFileChooser fileChooser = new JFileChooser();
 
                         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                            File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                            for (WorkPanel workPanel : WORKPANELS) {
-                                workPanel.setFile(file);
-                            }
+                            file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                            @SuppressWarnings("rawtypes")
+                            SwingWorker swingWorker = new SwingWorker<Boolean,String[]>() {
+                                @Override
+                                protected Boolean doInBackground() throws Exception { 
+                                    HexEditor hexEditor = new HexEditor(file.getAbsolutePath());
+
+                                    String[] hex = hexEditor.getHexString();
+                                    String[] chars = hexEditor.getCharsString();
+                                    
+                                    hexWorkPanel.showData(hex);
+                                    originWorkPanel.showData(chars);
+
+                                    return null;
+                                }
+
+                                @Override
+                                protected void done() {
+
+                                }            
+                            };
+
+                            swingWorker.execute();
                         }
                     }
                     
