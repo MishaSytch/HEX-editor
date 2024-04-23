@@ -67,5 +67,6 @@ public class WorkPanel extends BasePanel {
         this.add(table, BorderLayout.CENTER);
         mainWindow.setVisible(false);
         mainWindow.setVisible(true);
+        System.out.println("View: data reloaded");
     }
 }
