@@ -14,13 +14,12 @@ public class TableViewer {
         DefaultTableModel tableModel = new DefaultTableModel(){
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return true;
             }
         };
 
         Vector<String> columnNames = new Vector<String>();
-        columnNames.add("");
-        for (int i = 0; i < columns_count - 1; i++) columnNames.add(String.valueOf(i));
+        for (int i = 0; i < columns_count; i++) columnNames.add(String.valueOf(i));
 
         tableModel.setColumnIdentifiers(columnNames);
 
@@ -33,8 +32,7 @@ public class TableViewer {
         int data_i = 0;
         for(int i = 0; i < rows_count; i++) {
             Vector<String> inner = new Vector<String>();
-            inner.add(String.valueOf(i));
-            for (int k = 1; k < columns_count; k++) {
+            for (int k = 0; k < columns_count; k++) {
                 if (data_i == data.length) {
                     inner.add("");
                 } else {
