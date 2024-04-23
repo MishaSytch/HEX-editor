@@ -6,7 +6,10 @@ import javax.swing.table.TableModel;
 import javax.swing.table.DefaultTableModel;
 
 public class TableViewer {
-    public static TableModel getTable(String[] data, int columns_count) {
+    private static int size = 100;
+
+    public static TableModel getTable(String[] data, int width) {
+        int columns_count = (int) Math.round(width / size);
         DefaultTableModel tableModel = new DefaultTableModel();
         Vector<Integer> columns = new Vector<Integer>();
         for (int i = 0; i < columns_count; i++) columns.add(i);

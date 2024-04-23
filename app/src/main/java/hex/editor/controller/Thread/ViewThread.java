@@ -12,10 +12,7 @@ import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class ViewThread implements Runnable {
-
-    private File file = null;
     private MainWindow mainWindow;
-    private WorkPanel originEditPanel;
     private WorkPanel editPanel;
     private JPanel baseWorkPanel;
     private MenuBar menuBar;

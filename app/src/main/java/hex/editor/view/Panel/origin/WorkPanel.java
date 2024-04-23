@@ -5,11 +5,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableModel;
 
-import org.checkerframework.checker.units.qual.m;
-
 import java.util.concurrent.Exchanger;
-
-import java.io.File;
 
 import hex.editor.services.TableViewer;
 import hex.editor.view.MainWindow;
@@ -42,19 +38,19 @@ public class WorkPanel extends BasePanel {
         this.removeAll();
         String[] data = new String[]{""};
         try {
-            System.out.println("View wait data");
+            System.out.println("View: wait data");
             data = dataExchanger.exchange(data);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("View reciaved data");
+        System.out.println("View: reciaved data");
 
         int colomns_count = 15;
 
         String[] colomns = new String[colomns_count];
         for (int i = 0 ; i < colomns_count; i++) colomns[i] = String.valueOf(i);
         
-        TableModel box = TableViewer.getTable(data, colomns_count);
+        TableModel box = TableViewer.getTable(data, this.getWidth());
 
         table = new JTable(box);
         table.setBorder(new EmptyBorder(10, 2, 2, 2));
