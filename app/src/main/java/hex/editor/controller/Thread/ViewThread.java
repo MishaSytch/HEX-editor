@@ -23,55 +23,28 @@ public class ViewThread implements Runnable {
     private Exchanger<File> fileExchanger;
     private Exchanger<String[]> dataExchanger;
 
-    private ServiceThread service;
-
-
-    public ViewThread() {
-        init();
+    public ViewThread(Exchanger<File> fileExchanger, Exchanger<String[]> dataExchanger) {
+        this.fileExchanger = fileExchanger;
+        this.dataExchanger = dataExchanger;
     }
 
-    public void init() {
+    private void init() {
         mainWindow = new MainWindow();
-        editPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
+        mainWindow.setVisible(false);
+        editPanel = new WorkPanel(mainWindow, dataExchanger);
 
         baseWorkPanel = new JPanel(new GridLayout());
         baseWorkPanel.add(editPanel, BorderLayout.CENTER);
 
-        menuBar = new MenuBar(baseWorkPanel, mainWindow);
+        menuBar = new MenuBar(fileExchanger, editPanel);
 
         mainWindow.add(menuBar, BorderLayout.NORTH);
         mainWindow.add(baseWorkPanel);
         mainWindow.setVisible(true);
-
-        service = new ServiceThread(fileExchanger, dataExchanger);
     }
 
     @Override
     public void run() {
-        while (true) {
-            file = menuBar.getFile();  
-            if (file != null) {
-                try {
-                    service.run();
-                    fileExchanger.exchange(file);
-
-                    String[] hex = new String[]{""};
-                    String[] chars = new String[]{""};
-
-                    hex = dataExchanger.exchange(hex);
-                    chars = dataExchanger.exchange(chars);
-
-                    originEditPanel.showData(chars);
-                    editPanel.showData(hex);
-
-                    originEditPanel.repaint();
-                    editPanel.repaint();
-
-                } catch (InterruptedException e) {
-                    System.err.println(e.getMessage());
-                }
-            }
-        }
-    };
-    
+        init();
+    }    
 }
