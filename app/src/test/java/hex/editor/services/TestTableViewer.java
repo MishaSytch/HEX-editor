@@ -50,4 +50,24 @@ public class TestTableViewer {
             Assertions.assertEquals(tb.getColumnName(k), res.getColumnName(k));
         }
     }
+
+    @Test
+    void testGetTable_OneChear() {
+        TableModel tb = TableViewer.getTable(HexService.getHexFromString("F"), 200);
+        DefaultTableModel res = new DefaultTableModel();
+        String[] columns = new String[]{"0", "1", "2", "3"};
+        res.setColumnIdentifiers(columns);
+
+        res.addRow(new String[]{"0", "46", "", ""});
+
+        Assertions.assertEquals(res.getColumnCount(), tb.getColumnCount());
+        Assertions.assertEquals(res.getRowCount(), tb.getRowCount());
+
+        for (int k = 0; k < tb.getRowCount(); k++) {
+            for (int i = 0; i < tb.getColumnCount(); i++) {
+                Assertions.assertEquals(res.getValueAt(k, i), tb.getValueAt(k, i));
+            }
+            Assertions.assertEquals(tb.getColumnName(k), res.getColumnName(k));
+        }
+    }
 }

@@ -29,7 +29,11 @@ public class TableViewer {
             Vector<String> inner = new Vector<String>();
             inner.add(String.valueOf(i));
             for (int k = 1; k < columns_count; k++) {
-                inner.add(data[data_i++]);
+                if (data_i == data.length) {
+                    inner.add("");
+                } else {
+                    inner.add(data[data_i++]);
+                }
             }
             tableModel.addRow(inner);
         }
