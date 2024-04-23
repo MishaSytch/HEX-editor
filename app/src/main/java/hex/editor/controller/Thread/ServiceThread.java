@@ -5,7 +5,6 @@ import java.util.concurrent.Exchanger;
 import hex.editor.controller.HexEditor;
 
 public class ServiceThread implements Runnable {
-    private File file = null;
     private Exchanger<File> fileExchanger;
     private Exchanger<String[]> dataExchanger;
     private HexEditor hexEditor;
@@ -18,6 +17,7 @@ public class ServiceThread implements Runnable {
     @Override
     public void run() {
         while (true) {
+            File file = null;
             try {
                 System.out.println("Service: wait file");
                 file = fileExchanger.exchange(file);

@@ -36,6 +36,7 @@ public class MenuBar extends JMenuBar {
                             file = new File(fileChooser.getSelectedFile().getAbsolutePath()); 
                             try {
                                 fileExchanger.exchange(file);
+                                workPanel.setTitle(file.getName());
                                 System.out.println("View: sent file");
                                 workPanel.showData();
                             } catch (InterruptedException e) {

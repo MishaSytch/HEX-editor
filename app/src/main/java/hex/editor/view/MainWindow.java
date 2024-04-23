@@ -4,6 +4,9 @@ import javax.swing.*;
 import hex.editor.view.Frame.BaseFrame;
 import java.awt.*;
 
+import hex.editor.view.Style.IStyleSheet;
+import hex.editor.view.Style.StyleSheet_MainWindow;
+
 
 public class MainWindow extends BaseFrame {
     private static Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -11,12 +14,14 @@ public class MainWindow extends BaseFrame {
     private static int screenHeight = (int) toolkit.getScreenSize().getHeight();
     private String TITLE = "Hex editor";
     private ImageIcon icon = new ImageIcon("app\\src\\main\\resources\\img\\MainIcon.png");
+    private static IStyleSheet styleSheet = new StyleSheet_MainWindow();
 
 
     public MainWindow() {
         super((int)(screenHeight * 0.8), (int)(screenWidth * 0.6));
         this.setTitle(TITLE);
         this.setIconImage(icon.getImage());
+        this.setBackground(styleSheet.getBackBaseColor());
         this.setBounds((screenWidth - super.getWIDTH()) / 2, (screenHeight - super.getHEIGHT()) / 2, super.getWIDTH(), super.getHEIGHT());
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
