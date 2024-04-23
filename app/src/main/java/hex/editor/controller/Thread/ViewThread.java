@@ -16,7 +16,7 @@ public class ViewThread implements Runnable {
     private File file = null;
     private MainWindow mainWindow;
     private WorkPanel originEditPanel;
-    private WorkPanel hexEditPanel;
+    private WorkPanel editPanel;
     private JPanel baseWorkPanel;
     private MenuBar menuBar;
 
@@ -32,14 +32,10 @@ public class ViewThread implements Runnable {
 
     public void init() {
         mainWindow = new MainWindow();
-        originEditPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
-        originEditPanel.setTitle("Откройте файл");
-        hexEditPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
-        hexEditPanel.setTitle("HEX");
+        editPanel = new WorkPanel(mainWindow.getHeight(), mainWindow.getWidth());
 
         baseWorkPanel = new JPanel(new GridLayout());
-        baseWorkPanel.add(hexEditPanel, BorderLayout.WEST);
-        baseWorkPanel.add(originEditPanel, BorderLayout.EAST);
+        baseWorkPanel.add(editPanel, BorderLayout.CENTER);
 
         menuBar = new MenuBar(baseWorkPanel, mainWindow);
 
@@ -66,10 +62,10 @@ public class ViewThread implements Runnable {
                     chars = dataExchanger.exchange(chars);
 
                     originEditPanel.showData(chars);
-                    hexEditPanel.showData(hex);
+                    editPanel.showData(hex);
 
                     originEditPanel.repaint();
-                    hexEditPanel.repaint();
+                    editPanel.repaint();
 
                 } catch (InterruptedException e) {
                     System.err.println(e.getMessage());

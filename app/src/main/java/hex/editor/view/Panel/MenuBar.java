@@ -26,8 +26,7 @@ import hex.editor.view.Style.StyleSheet_MainWindow;
 public class MenuBar extends JMenuBar implements ActionListener {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
     private File file = null;
-    private WorkPanel hexEditPanel;
-    private WorkPanel originEditPanel;
+    private WorkPanel editPanel;
     private MainWindow mainWindow;
     private JPanel baseWorkPanel;
 
@@ -37,8 +36,7 @@ public class MenuBar extends JMenuBar implements ActionListener {
     
     public MenuBar(JPanel baseWorkPanel, MainWindow mainWindow) {
         this.baseWorkPanel = baseWorkPanel;
-        this.hexEditPanel = (WorkPanel) baseWorkPanel.getComponent(0);
-        this.originEditPanel = (WorkPanel) baseWorkPanel.getComponent(1);
+        this.editPanel = (WorkPanel) baseWorkPanel.getComponent(0);
         this.mainWindow = mainWindow;
 
         this.setBackground(styleSheet.getBackSecondaryColor());
@@ -68,16 +66,11 @@ public class MenuBar extends JMenuBar implements ActionListener {
 
                             mainWindow.getContentPane().remove(baseWorkPanel);
 
-                            hexEditPanel.showData(map.get(Types.HEX));
-                            originEditPanel.showData(map.get(Types.CHARS));
-                            originEditPanel.setTitle(file.getName());
-                            originEditPanel.setTitle("Откройте файл");
-                            hexEditPanel.setTitle("HEX");
+                            editPanel.showData(map.get(Types.HEX));
+                            editPanel.setTitle(file.getName());
 
                             baseWorkPanel.remove(0);
-                            baseWorkPanel.remove(0);
-                            baseWorkPanel.add(hexEditPanel, BorderLayout.WEST);
-                            baseWorkPanel.add(originEditPanel, BorderLayout.EAST);
+                            baseWorkPanel.add(editPanel, BorderLayout.CENTER);
 
                             mainWindow.add(baseWorkPanel);
                             mainWindow.revalidate();
