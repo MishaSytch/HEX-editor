@@ -62,12 +62,15 @@ public class WorkPanel extends BasePanel {
             this.remove(pane);
         }
         // Получение данных
-        try {
-            System.out.println("View: wait data");
-            data = dataExchanger.exchange(null);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        
+        System.out.println("View: wait data");
+        while (true) {
+            try {
+                data = dataExchanger.exchange(null);
+                if (data != null) break;
+            } catch (InterruptedException e) {}
         }
+
         System.out.println("View: reciaved data");
 
         // Создание модели
