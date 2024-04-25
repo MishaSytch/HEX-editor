@@ -18,8 +18,9 @@ public class ServiceThread implements Runnable {
     public void run() {
         while (true) {
             File file = null;
+            String[] data = null;
             try {
-                System.out.println("Service: wait file");
+                System.out.println("Service: wait");
                 file = fileExchanger.exchange(file);
             } catch (InterruptedException e) {
                 System.err.println(e.getMessage());
@@ -39,6 +40,5 @@ public class ServiceThread implements Runnable {
                 }
             }
         }
-    }
-    
+    }    
 }
