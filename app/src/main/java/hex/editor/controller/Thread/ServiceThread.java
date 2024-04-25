@@ -19,10 +19,10 @@ public class ServiceThread implements Runnable {
 
     @Override
     public void run() {
-        File file = null;
-        String[] data = null;
         boolean isWaiting = true;
         while (true) {
+            File file = null;
+            String[] data = null;
             try {
                 if (isWaiting)
                     System.out.println("Service: wait");
