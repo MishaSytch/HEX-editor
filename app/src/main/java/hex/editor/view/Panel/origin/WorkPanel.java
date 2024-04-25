@@ -105,13 +105,16 @@ public class WorkPanel extends BasePanel {
         pane.setForeground(styleSheet.getBackBaseColor());
         pane.setPreferredSize(new Dimension(table.getWidth(), table.getHeight()));
 
-        Vector<String> rowNames = new Vector<String>();
-        for (int i = 0; i < model.getRowCount(); i++) rowNames.add(String.valueOf(i));
-
-        for (int i = 0; i < rowNames.size(); i++) {
-            JTextArea text_rowNames = new JTextArea(rowNames.get(i));
-            pane.add(text_rowNames, BorderLayout.WEST);
+        JLabel line_number = new JLabel();
+        line_number.setBackground(styleSheet.getBackBaseColor());
+        line_number.setForeground(styleSheet.getBackBaseColor());
+        for (int i = 0; i < model.getRowCount(); i++) {
+            JLabel text_rowNames = getText("<html>" + i);
+            line_number.add(text_rowNames, BorderLayout.CENTER);
         }
+        line_number.setPreferredSize(new Dimension(40, 200));
+
+        pane.setRowHeaderView(line_number);
 
         this.add(pane, BorderLayout.CENTER);
 
