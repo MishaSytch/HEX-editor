@@ -21,6 +21,7 @@ public class HexService {
 
     public static String[] getCharsFromHex(String[] hex) {
         return Arrays.stream(hex)
+            .filter(x -> x != "")
             .map(hx -> ((char)Integer.parseInt(hx, 16)))
             .map(ch -> String.valueOf(ch))
             .toArray(String[]::new);
@@ -28,6 +29,7 @@ public class HexService {
 
     public static String[] getHexFromChars(String[] chars) {
         return Arrays.stream(chars)
+            .filter(x -> x != "")
             .map(str -> str.charAt(0))
             .map(ch -> {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();

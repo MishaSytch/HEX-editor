@@ -2,8 +2,6 @@ package hex.editor.controller;
 
 import java.util.stream.Collectors;
 
-import org.checkerframework.checker.units.qual.h;
-
 import java.util.Arrays;
 import java.util.*;
 
@@ -39,8 +37,16 @@ public class HexEditor {
         return HexService.getCharsFromHex(new String[]{hex})[0];
     }
 
+    public String getHexFromChar(String ch) {
+        return HexService.getHexFromChars(new String[]{ch})[0];
+    }
+
     public String[] getCharsFromHex(String[] hex) {
         return HexService.getCharsFromHex(hex);
+    }
+
+    public String[] getHexFromChars(String[] chars) {
+        return HexService.getHexFromChars(chars);
     }
 
     public void editOpenedFileByHex(String[] hex) {

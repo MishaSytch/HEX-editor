@@ -19,7 +19,7 @@ public class MenuBar extends JMenuBar {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
     private File file = null;
     
-    public MenuBar(Exchanger<File> fileExchanger, WorkPanel workPanel) {
+    public MenuBar(Exchanger<Object> fileExchanger, WorkPanel workPanel) {
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
             fileMenu.setForeground(styleSheet.getMainTextColor());

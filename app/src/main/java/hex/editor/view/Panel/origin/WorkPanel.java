@@ -1,24 +1,18 @@
 package hex.editor.view.Panel.origin;
 
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ContainerListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 import java.util.concurrent.Exchanger;
 import java.util.*;
 
-import java.util.stream.Collectors;
-
-import hex.editor.services.HexService;
+import hex.editor.model.Info;
+import hex.editor.model.Types;
 import hex.editor.services.TableViewer;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
@@ -27,20 +21,22 @@ import hex.editor.view.Style.IStyleSheet;
 public class WorkPanel extends BasePanel {
     private JTable table;
     private IStyleSheet styleSheet = super.getStyleSheet();
-    private Exchanger<String[]> dataExchanger;
+    private Exchanger<Object> hexExchanger;
+    private Exchanger<Object> charsExchanger;
     private MainWindow mainWindow;
     private JScrollPane pane;
     private JLabel text;
     private JLabel line_number;
-    private String[] data;
+    private String[] hex;
     private DefaultTableModel model;
     private InfoPanel infoPanel;
 
-    public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Exchanger<String[]> dataExchanger) {
+    public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.8));
         this.infoPanel = infoPanel;
         this.mainWindow = mainWindow;
-        this.dataExchanger = dataExchanger;
+        this.hexExchanger = exchangers.get(Types.HEX);
+        this.charsExchanger = exchangers.get(Types.CHARS);
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());
@@ -63,15 +59,15 @@ public class WorkPanel extends BasePanel {
         }
         // Получение данных
         
-        System.out.println("View: wait data");
-        while (true) {
-            try {
-                data = dataExchanger.exchange(null);
-                if (data != null) break;
-            } catch (InterruptedException e) {}
-        }
+        System.out.println("View: wait hex");
+        try {
+            while (true) {
+                hex = (String[])hexExchanger.exchange(null);
+                if (hex != null) break;
+            }
+        } catch (InterruptedException e) {}
 
-        System.out.println("View: reciaved data");
+        System.out.println("View: reciaved hex");
 
         // Создание модели
         int colomns_count = 15;
@@ -79,7 +75,7 @@ public class WorkPanel extends BasePanel {
         for (int i = 0 ; i < colomns_count; i++) 
             colomns[i] = String.valueOf(i);
             
-        model = TableViewer.getTable(data, this.getWidth());
+        model = TableViewer.getTable(hex, this.getWidth());
 
         table = new JTable(model);
         table.setBorder(BorderFactory.createBevelBorder(1));
@@ -99,12 +95,21 @@ public class WorkPanel extends BasePanel {
 
             @Override
             public void mouseClicked(MouseEvent event) {
+                System.out.println("Info: wait info");
                 int row = table.getSelectedRow();
                 int column = table.getSelectedColumn();
 
-                infoPanel.setPosition(row, column);
+                String ch = "empty";
+                try {
+                    if (model.getValueAt(row, column) != "") {
+                        hexExchanger.exchange(new String[]{ (String)model.getValueAt(row, column) });
+                        ch = ((String[])(charsExchanger.exchange(null)))[0];
+                    }
 
-                infoPanel.setValueInfo(HexService.getCharsFromHex(new String[]{(String)model.getValueAt(row, column)})[0], (String)model.getValueAt(row, column));
+                    infoPanel.setInfo(new Info(row, column, ch, (String)model.getValueAt(row, column)));
+                    SwingUtilities.updateComponentTreeUI(infoPanel);
+                } catch (InterruptedException e) {
+                }
             }
 
             @Override
@@ -147,6 +152,6 @@ public class WorkPanel extends BasePanel {
 
         mainWindow.setVisible(false);
         mainWindow.setVisible(true);
-        System.out.println("View: data loaded");
+        System.out.println("View: hex loaded");
     }
 }
