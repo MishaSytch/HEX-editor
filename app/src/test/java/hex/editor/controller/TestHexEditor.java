@@ -84,20 +84,32 @@ public class TestHexEditor {
     @Test 
     void testFindOne() {
         hexEditor = new HexEditor(verySmallFilePath);
-        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G"});
-        Integer[] res = new Integer[]{0};
-        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+        Integer[] hex = hexEditor.find(new String[]{"20"});
 
-        Assertions.assertArrayEquals(hex, res);
+        Assertions.assertArrayEquals(hex, new Integer[] { 8, 18});
     }
 
     @Test 
     void testFindTwo() {
         hexEditor = new HexEditor(verySmallFilePath);
-        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G", "A", "B", "c"});
-        Integer[] res = new Integer[]{0, 9};
-        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+        Integer[] hex = hexEditor.find(new String[]{"2"});
 
-        Assertions.assertArrayEquals(hex, res);
+        Assertions.assertArrayEquals(hex, new Integer[] {});
+    }
+
+    @Test 
+    void findByMask_Simple() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Integer[] hex = hexEditor.findByMask("20");
+        
+        Assertions.assertArrayEquals(hex, new Integer[]{ 8, 18 });
+    }
+
+    @Test 
+    void findByMask_One() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Integer[] hex = hexEditor.findByMask("2+");
+        
+        Assertions.assertArrayEquals(hex, new Integer[]{ 7, 8, 18, 25, 26 });
     }
 }

@@ -3,6 +3,8 @@ package hex.editor.controller;
 import java.util.stream.Collectors;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.*;
 
 import hex.editor.services.FileViewer;
@@ -62,7 +64,7 @@ public class HexEditor {
             throw new IllegalArgumentException("Array has null length"); 
         }
         List<Integer> ints = new ArrayList<Integer>();
-        String[] hex = getCharsString();
+        String[] hex = getHexString();
         int i_bytes = 0;
         int start;
         for (int i = 0; i < hex.length; i++) {
@@ -78,23 +80,19 @@ public class HexEditor {
         return ints.toArray(Integer[]::new);
     }
 
-    public Integer[] findByMask(String[] bytes) {
-        if (bytes.length == 0) {
-            throw new IllegalArgumentException("Array has null length"); 
+    public Integer[] findByMask(String mask) {
+        if (mask.length() == 0) {
+            throw new IllegalArgumentException("Mask is empty"); 
         }
         List<Integer> ints = new ArrayList<Integer>();
-        String[] hex = getCharsString();
-        int i_bytes = 0;
-        int start;
+        String[] hex = getHexString();
+        
+        Pattern regexp = Pattern.compile(mask);
+
         for (int i = 0; i < hex.length; i++) {
-            start = i;
-            while(hex[i].equals(bytes[i_bytes])) {
-                if (i_bytes + 1 == bytes.length) break;
-                i++;
-                i_bytes++;
-            }
-            if (i - start + 1 == bytes.length) ints.add(start);
-            i_bytes = 0; 
+            Matcher match = regexp.matcher(hex[i]);
+            if (match.find()) ints.add(i);
+
         }
         return ints.toArray(Integer[]::new);
     }
