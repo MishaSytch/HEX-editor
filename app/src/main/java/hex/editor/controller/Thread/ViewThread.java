@@ -35,6 +35,7 @@ public class ViewThread implements Runnable {
         mainWindow.setVisible(false);
         infoPanel = new InfoPanel(mainWindow, exchangers);
         editPanel = new WorkPanel(mainWindow, infoPanel, exchangers);
+        infoPanel.setWorkPanel(editPanel);
 
         baseWorkPanel = new JPanel(new BorderLayout());
         baseWorkPanel.add(editPanel, BorderLayout.CENTER);

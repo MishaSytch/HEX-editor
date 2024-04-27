@@ -2,6 +2,7 @@ package hex.editor.controller.Thread;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -105,8 +106,8 @@ public class ServiceThread implements Runnable {
 
             System.out.println("Service: File to Hex");
             String[] hex = hexEditor.getHexString();
-            hexExchanger.exchange(hex);
             System.out.println("Service: Hex sent");
+            hexExchanger.exchange(hex);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -120,8 +121,8 @@ public class ServiceThread implements Runnable {
             } else {
                 data = hexEditor.getCharsFromHex(data);
             }
-            charsExchanger.exchange(data);
             System.out.println("Service: Chars sent");
+            charsExchanger.exchange(data);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -135,8 +136,8 @@ public class ServiceThread implements Runnable {
             } else {
                 data = hexEditor.getHexFromChars(data);
             }
-            hexExchanger.exchange(data);
             System.out.println("Service: Hex sent");
+            hexExchanger.exchange(data);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -147,10 +148,13 @@ public class ServiceThread implements Runnable {
             System.out.println("Service: mask added");
             
             Integer[] pos = hexEditor.findByMask(mask);
-
-            integerExchanger.exchange(pos);
-
+            if (pos.length == 0)
+                System.out.println("Service: Position not found");
+            else 
+                System.out.println("Service: Position found");
+            
             System.out.println("Service: Position sent");
+            integerExchanger.exchange(pos);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -161,10 +165,14 @@ public class ServiceThread implements Runnable {
             System.out.println("Service: hex for search added");
             
             Integer[] pos = hexEditor.find(hex);
+            if (pos.length == 0)
+                System.out.println("Service: Position not found");
+            else 
+                System.out.println("Service: Position found");
+            
+            System.out.println("Service: Position sent");
 
             integerExchanger.exchange(pos);
-
-            System.out.println("Service: Position sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }

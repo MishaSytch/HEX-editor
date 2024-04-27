@@ -9,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -32,8 +34,7 @@ public class WorkPanel extends BasePanel {
     private IStyleSheet styleSheet = super.getStyleSheet();
     private Exchanger<Object> hexExchanger;
     private Exchanger<Object> charsExchanger;
-    private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
-    private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
+    private Exchanger<Object> integerExchanger;
     private MainWindow mainWindow;
     private JScrollPane pane;
     private JLabel text;
@@ -41,6 +42,7 @@ public class WorkPanel extends BasePanel {
     private String[] hex;
     private DefaultTableModel model;
     private InfoPanel infoPanel;
+    private Integer[] positions;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.8));
@@ -48,9 +50,8 @@ public class WorkPanel extends BasePanel {
         this.mainWindow = mainWindow;
         this.hexExchanger = exchangers.get(Types.HEX);
         this.charsExchanger = exchangers.get(Types.CHARS);
-        this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
-        this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING);
-        
+        this.integerExchanger = exchangers.get(Types.INTEGER);
+
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());
@@ -201,6 +202,14 @@ public class WorkPanel extends BasePanel {
 
     private void update() {
         SwingUtilities.updateComponentTreeUI(this);
+    }
 
+    public void waitPosition() {
+        System.out.println("View: Posintion wait");
+        try {
+                positions = (Integer[]) integerExchanger.exchange(null);
+        } catch (InterruptedException e) {
+        }
+        System.out.println("View: Posintion got");
     }
 }

@@ -22,6 +22,7 @@ import hex.editor.model.Info;
 import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.BasePanel;
+import hex.editor.view.Panel.origin.WorkPanel;
 
 public class InfoPanel extends BasePanel {
     private JTextField search;
@@ -32,6 +33,7 @@ public class InfoPanel extends BasePanel {
     private JButton hexButton;
     private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
     private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
+    private WorkPanel workPanel;
 
     public InfoPanel(MainWindow mainWindow, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.2));
@@ -167,10 +169,11 @@ public class InfoPanel extends BasePanel {
                                 } catch (InterruptedException e) {
                                 }
                                 
+                            }     
+                            if (workPanel != null) {
+                                System.out.println("View: searching...");
+                                workPanel.waitPosition();
                             }
-
-        
-                            System.out.println("View: searching...");
                         }
                         }
 
@@ -189,5 +192,9 @@ public class InfoPanel extends BasePanel {
         });
 
         return button;
+    }
+
+    public void setWorkPanel(WorkPanel workPanel) {
+        this.workPanel = workPanel;
     }
 }
