@@ -44,8 +44,17 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(res, new String[]{
             "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-       });
-        
+       });  
+    }
+
+    @Test
+    void testGetHexString_NotValid() {
+        th
+
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            String[] res = hexEditor.getHexString();
+        });
     }
 
     @Test
@@ -79,7 +88,17 @@ public class TestHexEditor {
     }
 
     @Test
-    void getCharsFromHex(String[] hex) {
+    void getHexFromChar_NotValid() {
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            hexEditor.getHexFromChars(new String[]{""});
+        });
+    }
+
+    @Test
+    void getCharsFromHex() {
+
+
         return HexService.getCharsFromHex(hex);
     }
 

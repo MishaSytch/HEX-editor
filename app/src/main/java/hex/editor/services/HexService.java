@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class HexService {
 
-    public static String[] getHexFromString(String line) {
+    public static String[] getHexFromString(String line) throws NullPointerException {
         return Arrays.stream(line.split(""))
             .map(str -> str.charAt(0))
             .map(ch -> {
@@ -15,11 +15,13 @@ public class HexService {
             .toArray(String[]::new);
     }
 
-    public static String[] getCharsFromString(String line) {
+    public static String[] getCharsFromString(String line) throws NullPointerException {
         return line.split("");
     }
 
-    public static String[] getCharsFromHex(String[] hex) throws NumberFormatException {
+    public static String[] getCharsFromHex(String[] hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
+        if (hex.length == 0) throw new ArrayIndexOutOfBoundsException();
+        
         return Arrays.stream(hex)
             .filter(x -> {
                 if (
@@ -35,9 +37,15 @@ public class HexService {
             .toArray(String[]::new);
     }
 
-    public static String[] getHexFromChars(String[] chars) {
+    public static String[] getHexFromChars(String[] chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
+        if (chars.length == 0) throw new ArrayIndexOutOfBoundsException();
+
         return Arrays.stream(chars)
-            .filter(x -> x != "")
+            .filter(x -> {
+                if (x != "") return true;
+
+                throw new NullPointerException();
+            })
             .map(str -> str.charAt(0))
             .map(ch -> {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();

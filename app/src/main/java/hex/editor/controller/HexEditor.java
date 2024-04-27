@@ -1,8 +1,6 @@
 package hex.editor.controller;
 
 import java.util.stream.Collectors;
-
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.*;
@@ -27,31 +25,37 @@ public class HexEditor {
         string = fileViewer.getLines().stream().collect(Collectors.joining(""));
     }
 
-    public String[] getHexString() {
+    public String[] getHexString() throws NullPointerException {
         return HexService.getHexFromString(string);
     }
 
-    public String[] getCharsString() {
+    public String[] getCharsString() throws NullPointerException {
         return HexService.getCharsFromString(string);
     }
 
-    public String getCharFromHex(String hex) {
+    public String getCharFromHex(String hex) throws NumberFormatException, NullPointerException  {
         return HexService.getCharsFromHex(new String[]{hex})[0];
     }
 
-    public String getHexFromChar(String ch) throws NumberFormatException {
-        return HexService.getHexFromChars(new String[]{ch})[0];
+    public String getHexFromChar(String ch) throws ArrayIndexOutOfBoundsException, NullPointerException {
+        String res;
+        try {
+            res = HexService.getHexFromChars(new String[]{ch})[0];
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            throw new NullPointerException();
+        }
+        return res;
     }
 
-    public String[] getCharsFromHex(String[] hex) {
+    public String[] getCharsFromHex(String[] hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
         return HexService.getCharsFromHex(hex);
     }
 
-    public String[] getHexFromChars(String[] chars) {
+    public String[] getHexFromChars(String[] chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
         return HexService.getHexFromChars(chars);
     }
 
-    public void editOpenedFileByHex(String[] hex) {
+    public void editOpenedFileByHex(String[] hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
         string = Arrays.stream(HexService.getCharsFromHex(hex)).collect(Collectors.joining(""));
     } 
 
@@ -59,22 +63,22 @@ public class HexEditor {
         string = Arrays.stream(chars).collect(Collectors.joining(""));
     } 
 
-    public Integer[] find(String[] bytes) {
-        if (bytes.length == 0) {
+    public Integer[] find(String[] searchingHex) {
+        if (searchingHex.length == 0) {
             throw new IllegalArgumentException("Array has null length"); 
         }
         List<Integer> ints = new ArrayList<Integer>();
-        String[] hex = getHexString();
+        String[] hexFromString = getHexString();
         int i_bytes = 0;
         int start;
-        for (int i = 0; i < hex.length; i++) {
+        for (int i = 0; i < hexFromString.length; i++) {
             start = i;
-            while(hex[i].equals(bytes[i_bytes])) {
-                if (i_bytes + 1 == bytes.length) break;
+            while(hexFromString[i].equals(searchingHex[i_bytes])) {
+                if (i_bytes + 1 == searchingHex.length) break;
                 i++;
                 i_bytes++;
             }
-            if (i - start + 1 == bytes.length) ints.add(start);
+            if (i - start + 1 == searchingHex.length) ints.add(start);
             i_bytes = 0; 
         }
         return ints.toArray(Integer[]::new);

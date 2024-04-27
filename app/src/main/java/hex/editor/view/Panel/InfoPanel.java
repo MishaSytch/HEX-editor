@@ -5,7 +5,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JLabel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -15,40 +14,47 @@ import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.BasePanel;
 
 public class InfoPanel extends BasePanel {
-    private JLabel search;
+    private JTextField search;
+    private JLabel info;
+    private MainWindow mainWindow;
 
     public InfoPanel(MainWindow mainWindow) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.2));
+        this.mainWindow = mainWindow;
+
         this.setLayout(new BorderLayout());
         this.setBorder(new EmptyBorder(10, 5, 10, 0));
-        search = new JLabel("FFF");
-        this.add(search);
+
+
+        updateSearch();
     }
 
-    public void setInfo(Info info) {
+    public void setInfo(Info info_Info) {
         this.removeAll();
-        this.add(getText(
+        updateSearch();
+        info = getText(
             "<html>"
-            + "Row: " + info.getRow()
+            + "Row: " + info_Info.getRow()
             + "<br>"
-            + "Column: " + info.getColumn()
+            + "Column: " + info_Info.getColumn()
             + "<br>"
             + "<br>"
             + "<br>"
-            + "Char: " + info.getChar_info()
+            + "Char: " + info_Info.getChar_info()
             + "<br>"
-            + "Hex: " + info.getHex_info()
-            ), BorderLayout.WEST
-        );  
+            + "Hex: " + info_Info.getHex_info()
+        );
+        this.add(info, BorderLayout.WEST);  
     }
 
     public void showSearchWindow() {
-        JTextField text = new JTextField("FFF");
-        
+        this.remove(search);
+        search.setText("");
+        search.setEditable(true);
+
         System.out.println("View: ready to search");
 
-        search.add(text);
-        SwingUtilities.updateComponentTreeUI(this);
+        this.add(search, BorderLayout.SOUTH);
         
         search.addKeyListener(new KeyListener() {
             @Override
@@ -57,18 +63,31 @@ public class InfoPanel extends BasePanel {
 
             @Override
             public void keyReleased(KeyEvent arg0) {
+                if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    updateSearch();
+                }
+                if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
+                    search.setEditable(false);
+
+                    System.out.println("View: searching...");
+                }
             }
 
             @Override
             public void keyTyped(KeyEvent arg0) {
-                if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    search.removeAll();
-                }
-                if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-                    System.out.println("View: searching...");
-                }
             }
             
         });
+    }
+
+    private void updateSearch() {
+        if (search != null) this.remove(search);
+        
+        info = new JLabel();
+        this.add(info, BorderLayout.WEST);  
+        search = new JTextField("To search press: ctrl + S");
+        search.setEditable(false);
+        search.setBorder(new EmptyBorder(10, 10, 10, 10));
+        this.add(search, BorderLayout.SOUTH);
     }
 }

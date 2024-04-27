@@ -1,19 +1,24 @@
 package hex.editor.view.Panel.origin;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Map;
+import java.util.concurrent.Exchanger;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
-import java.util.concurrent.Exchanger;
-import java.util.*;
+import org.checkerframework.checker.nullness.qual.KeyFor;
 
 import hex.editor.model.Info;
 import hex.editor.model.Types;
@@ -143,18 +148,28 @@ public class WorkPanel extends BasePanel {
 
         table.addKeyListener(new KeyListener() {
 
+            private boolean isControlDown;
+
             @Override
             public void keyPressed(KeyEvent arg0) {
             }
 
             @Override
             public void keyReleased(KeyEvent arg0) {
+                if (arg0.isControlDown()) {
+                    isControlDown = true;
+                } else {
+                    isControlDown = false;
+                }
+
+                if (arg0.getKeyCode() == KeyEvent.VK_S && isControlDown) {
+                    infoPanel.showSearchWindow();
+                    update();
+                }
             }
 
             @Override
             public void keyTyped(KeyEvent arg0) {
-                if (arg0.getKeyChar() == KeyEvent.VK_S)
-                    infoPanel.showSearchWindow();
             }
             
         });
@@ -175,8 +190,12 @@ public class WorkPanel extends BasePanel {
         pane.setPreferredSize(new Dimension(table.getWidth(), table.getHeight()));
 
         this.add(pane);
-
-        SwingUtilities.updateComponentTreeUI(this);
+        update();
         System.out.println("View: hex loaded");
+    }
+
+    private void update() {
+        SwingUtilities.updateComponentTreeUI(this);
+
     }
 }
