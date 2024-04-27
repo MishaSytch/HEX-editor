@@ -32,6 +32,8 @@ public class WorkPanel extends BasePanel {
     private IStyleSheet styleSheet = super.getStyleSheet();
     private Exchanger<Object> hexExchanger;
     private Exchanger<Object> charsExchanger;
+    private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
+    private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private MainWindow mainWindow;
     private JScrollPane pane;
     private JLabel text;
@@ -46,6 +48,9 @@ public class WorkPanel extends BasePanel {
         this.mainWindow = mainWindow;
         this.hexExchanger = exchangers.get(Types.HEX);
         this.charsExchanger = exchangers.get(Types.CHARS);
+        this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
+        this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING);
+        
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());

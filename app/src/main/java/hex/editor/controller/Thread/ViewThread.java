@@ -33,7 +33,7 @@ public class ViewThread implements Runnable {
     private void init() {
         mainWindow = new MainWindow();
         mainWindow.setVisible(false);
-        infoPanel = new InfoPanel(mainWindow);
+        infoPanel = new InfoPanel(mainWindow, exchangers);
         editPanel = new WorkPanel(mainWindow, infoPanel, exchangers);
 
         baseWorkPanel = new JPanel(new BorderLayout());
