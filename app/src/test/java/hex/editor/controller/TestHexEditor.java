@@ -44,9 +44,7 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(res, new String[]{
             "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-            // "0A", "0A",
-            // "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
-        });
+       });
         
     }
 
@@ -58,6 +56,47 @@ public class TestHexEditor {
     }
 
     @Test
+    void getCharFromHex_normal() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        String ch = hexEditor.getCharFromHex("044B");
+
+        Assertions.assertEquals(ch, "ы");
+    }
+
+    @Test
+    void getCharFromHex_NotValid() {
+
+        Assertions.assertThrows(NumberFormatException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            hexEditor.getCharFromHex("044S");
+        });
+    }
+
+    @Test
+    void getHexFromChar() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Assertions.assertEquals(new String("044B"), hexEditor.getHexFromChars(new String[]{"ы"})[0]);
+    }
+
+    @Test
+    void getCharsFromHex(String[] hex) {
+        return HexService.getCharsFromHex(hex);
+    }
+
+    @Test
+    void getCharsFromHex_NotValid() {
+        Assertions.assertThrows(NumberFormatException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            hexEditor.getCharsFromHex(new String[]{ "044S", "null"});
+        });
+    }
+
+    @Test
+    void getHexFromChars(String[] chars) {
+        return HexService.getHexFromChars(chars);
+    }
+
+    @Test
     void testEditOpenedFileByHex() {
         hexEditor = new HexEditor(verySmallFilePath);
         String[] hex = hexEditor.getHexString();
@@ -66,8 +105,6 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(hexEditor.getHexString(), new String[]{
             "2E", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-            // "0A", "0A",
-            // "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
         });
     } 
 
@@ -84,20 +121,32 @@ public class TestHexEditor {
     @Test 
     void testFindOne() {
         hexEditor = new HexEditor(verySmallFilePath);
-        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G"});
-        Integer[] res = new Integer[]{0};
-        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+        Integer[] hex = hexEditor.find(new String[]{"20"});
 
-        Assertions.assertArrayEquals(hex, res);
+        Assertions.assertArrayEquals(hex, new Integer[] { 8, 18});
     }
 
     @Test 
     void testFindTwo() {
         hexEditor = new HexEditor(verySmallFilePath);
-        hexEditor.editOpenedFileByChars(new String[]{"A", "B", "c", "D", "F", "1", "3", "1", "G", "A", "B", "c"});
-        Integer[] res = new Integer[]{0, 9};
-        Integer[] hex = hexEditor.find(new String[]{"A", "B", "c"});
+        Integer[] hex = hexEditor.find(new String[]{"2"});
 
-        Assertions.assertArrayEquals(hex, res);
+        Assertions.assertArrayEquals(hex, new Integer[] {});
+    }
+
+    @Test 
+    void findByMask_Simple() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Integer[] hex = hexEditor.findByMask("20");
+        
+        Assertions.assertArrayEquals(hex, new Integer[]{ 8, 18 });
+    }
+
+    @Test 
+    void findByMask_One() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Integer[] hex = hexEditor.findByMask("2+");
+        
+        Assertions.assertArrayEquals(hex, new Integer[]{ 7, 8, 18, 25, 26 });
     }
 }
