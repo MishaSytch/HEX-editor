@@ -39,7 +39,7 @@ public class HexEditor {
         return HexService.getCharsFromHex(new String[]{hex})[0];
     }
 
-    public String getHexFromChar(String ch) {
+    public String getHexFromChar(String ch) throws NumberFormatException {
         return HexService.getHexFromChars(new String[]{ch})[0];
     }
 

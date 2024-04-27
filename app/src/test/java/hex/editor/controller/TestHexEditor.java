@@ -44,9 +44,7 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(res, new String[]{
             "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-            // "0A", "0A",
-            // "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
-        });
+       });
         
     }
 
@@ -58,6 +56,47 @@ public class TestHexEditor {
     }
 
     @Test
+    void getCharFromHex_normal() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        String ch = hexEditor.getCharFromHex("044B");
+
+        Assertions.assertEquals(ch, "ы");
+    }
+
+    @Test
+    void getCharFromHex_NotValid() {
+
+        Assertions.assertThrows(NumberFormatException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            hexEditor.getCharFromHex("044S");
+        });
+    }
+
+    @Test
+    void getHexFromChar() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        Assertions.assertEquals(new String("044B"), hexEditor.getHexFromChars(new String[]{"ы"})[0]);
+    }
+
+    @Test
+    void getCharsFromHex(String[] hex) {
+        return HexService.getCharsFromHex(hex);
+    }
+
+    @Test
+    void getCharsFromHex_NotValid() {
+        Assertions.assertThrows(NumberFormatException.class, () -> {
+            hexEditor = new HexEditor(verySmallFilePath);
+            hexEditor.getCharsFromHex(new String[]{ "044S", "null"});
+        });
+    }
+
+    @Test
+    void getHexFromChars(String[] chars) {
+        return HexService.getHexFromChars(chars);
+    }
+
+    @Test
     void testEditOpenedFileByHex() {
         hexEditor = new HexEditor(verySmallFilePath);
         String[] hex = hexEditor.getHexString();
@@ -66,8 +105,6 @@ public class TestHexEditor {
 
         Assertions.assertArrayEquals(hexEditor.getHexString(), new String[]{
             "2E", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-            // "0A", "0A",
-            // "0417", "0430", "043C", "043E", "0440", "043E", "0437", "043A", "0438", "20", "043D", "0430", "0441", "0442", "0443", "043F", "0438", "043B", "0438", "20", "33", "2D", "0433", "043E", "20", "0447", "0438", "0441", "043B", "0430", "21"
         });
     } 
 

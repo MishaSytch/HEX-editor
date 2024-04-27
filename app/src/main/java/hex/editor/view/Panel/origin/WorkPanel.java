@@ -1,11 +1,15 @@
 package hex.editor.view.Panel.origin;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 import java.util.concurrent.Exchanger;
@@ -74,8 +78,9 @@ public class WorkPanel extends BasePanel {
         String[] colomns = new String[colomns_count];
         for (int i = 0 ; i < colomns_count; i++) 
             colomns[i] = String.valueOf(i);
-            
+
         model = TableViewer.getTable(hex, this.getWidth());
+        
 
         table = new JTable(model);
         table.setBorder(BorderFactory.createBevelBorder(1));
@@ -90,6 +95,8 @@ public class WorkPanel extends BasePanel {
         table.setForeground(styleSheet.getMainTextColor());
         table.setAutoscrolls(true);
         table.getTableHeader().setReorderingAllowed(false);
+        table.setRowSelectionAllowed(false);
+        table.setColumnSelectionAllowed(false);
 
         table.addMouseListener(new MouseListener() {
 
@@ -115,6 +122,7 @@ public class WorkPanel extends BasePanel {
             @Override
             public void mouseEntered(MouseEvent event) {
                 
+                
             }
 
             @Override
@@ -131,9 +139,27 @@ public class WorkPanel extends BasePanel {
             public void mouseReleased(MouseEvent event) {
                 
             }
-            
-
         });
+
+        table.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyPressed(KeyEvent arg0) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+            }
+
+            @Override
+            public void keyTyped(KeyEvent arg0) {
+                if (arg0.getKeyChar() == KeyEvent.VK_S)
+                    infoPanel.showSearchWindow();
+            }
+            
+        });
+
+        table.addColumnSelectionInterval(0, 3);
 
 
         // Настройка нумерации строк
@@ -150,8 +176,7 @@ public class WorkPanel extends BasePanel {
 
         this.add(pane);
 
-        mainWindow.setVisible(false);
-        mainWindow.setVisible(true);
+        SwingUtilities.updateComponentTreeUI(this);
         System.out.println("View: hex loaded");
     }
 }
