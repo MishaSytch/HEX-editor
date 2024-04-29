@@ -35,6 +35,7 @@ public class MenuBar extends JMenuBar {
                         if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                             file = new File(fileChooser.getSelectedFile().getAbsolutePath()); 
                             try {
+                                workPanel.unselectCell();
                                 fileExchanger.exchange(file);
                                 workPanel.setTitle(file.getName());
                                 System.out.println("View: sent file");

@@ -1,6 +1,7 @@
 package hex.editor.view.Panel;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -51,7 +52,6 @@ public class InfoPanel extends BasePanel {
     }
 
     public void setInfo(Info info_Info) {
-        this.removeAll();
         updateSearch();
         info = getText(
             "<html>"
@@ -71,38 +71,27 @@ public class InfoPanel extends BasePanel {
 
     public void showSearchWindow() {
         this.remove(search);
+        
         panel = new JPanel(); 
-        panel.setLayout(new BorderLayout());  
+        panel.setLayout(new GridLayout(2, 1)); 
+        panel.setPreferredSize(new Dimension(getWidth(), (int)(getHeight() * 0.2)));
         
         maskButton = getSearchButton("Search by mask");
 
         hexButton = getSearchButton("Search by Hex");
 
-        panel.add(maskButton, BorderLayout.NORTH);
-        panel.add(hexButton, BorderLayout.SOUTH);
-
+        panel.add(maskButton);
+        panel.add(hexButton);
         
-        
-        JTextField searchByMask = new JTextField();
-        search.setEditable(false);
-        search.setBorder(new EmptyBorder(10, 10, 10, 10));
         this.add(panel, BorderLayout.SOUTH);
-        
-        search.setText("");
-        search.setEditable(true);
-
+        SwingUtilities.updateComponentTreeUI(this);
         System.out.println("View: ready to search");
-
-        this.add(panel, BorderLayout.SOUTH);
     }
 
     private void updateSearch() {
-        if (search != null) this.remove(search);
-        if (panel != null) this.remove(panel);
+        if (search != null) this.removeAll();
         
-        info = new JLabel();
-        this.add(info, BorderLayout.WEST);  
-        search = new JTextField("To search press: ctrl + S");
+        search = new JTextField("To search press: Ctrl + S");
         search.setEditable(false);
         search.setBorder(new EmptyBorder(10, 10, 10, 10));
     }
@@ -134,11 +123,11 @@ public class InfoPanel extends BasePanel {
                     hexButton.setEnabled(false);
                     maskButton.setEnabled(true);
                 }
-                panel.remove(search);
+                panel.setLayout(new GridLayout(3, 1));
                 search.removeAll();
                 search.setEditable(true);
-                search.setBorder(new EmptyBorder(10, 10, 10, 10));
                 search.setText("");
+                search.setBorder(getBorder());
                 panel.add(search);
 
                 SwingUtilities.updateComponentTreeUI(panel);
@@ -152,7 +141,8 @@ public class InfoPanel extends BasePanel {
                     @Override
                     public void keyReleased(KeyEvent arg0) {
                         if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        updateSearch();
+                            updateSearch();
+                            workPanel.unselectCell();
                         }
                         if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
                             search.setEditable(false);
@@ -171,7 +161,7 @@ public class InfoPanel extends BasePanel {
                                 
                             }     
                             if (workPanel != null) {
-                                System.out.println("View: searching...");
+                                System.out.println("View: smt sent");
                                 workPanel.waitPosition();
                             }
                         }

@@ -3,6 +3,8 @@ package hex.editor.controller.Thread;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
 
@@ -46,24 +48,6 @@ public class ViewThread implements Runnable {
 
         mainWindow.add(menuBar, BorderLayout.NORTH);
         mainWindow.add(baseWorkPanel, BorderLayout.CENTER);
-
-        mainWindow.addComponentListener(new ComponentListener(){
-            @Override
-            public void componentResized(ComponentEvent event) {
-                
-                SwingUtilities.updateComponentTreeUI(baseWorkPanel);
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent arg0) {}
-
-            @Override
-            public void componentMoved(ComponentEvent arg0) {}
-
-            @Override
-            public void componentShown(ComponentEvent arg0) {}
-
-        });
 
         mainWindow.setVisible(true);
     }
