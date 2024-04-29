@@ -92,9 +92,14 @@ public class HexEditor {
                     if (++i_byte == searchingHex.size()) 
                         break;
                 }
-                if (i_byte == searchingHex.size()) pos_column.add(start);
+                if (i_byte == searchingHex.size()) {
+                    for (int i = start; i < start + i_byte; i++) {
+                        pos_column.add(i);
+                    }
+                }
                 column = start;
             }
+            pos_row.add(pos_column);
         }
         return pos_row;
     }
