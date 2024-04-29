@@ -19,11 +19,14 @@ public class TestFileViewer {
     void testFile() {
         File file1 = new File(verySmallFilePath);
         File file2 = new File(bigFilePath);
+        File file3 = new File(oneCharFilePath);
 
         Assertions.assertTrue(file1.exists());
         Assertions.assertTrue(file1.isFile());
         Assertions.assertTrue(file2.exists());
         Assertions.assertTrue(file2.isFile());
+        Assertions.assertTrue(file3.exists());
+        Assertions.assertTrue(file3.isFile());
     }
 
     @Test

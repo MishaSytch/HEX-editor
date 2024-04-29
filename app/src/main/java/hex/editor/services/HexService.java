@@ -2,27 +2,29 @@ package hex.editor.services;
 
 
 import java.util.Arrays;
+import java.util.List;
 
 public class HexService {
 
-    public static String[] getHexFromString(String line) throws NullPointerException {
+    public static List<String> getHexFromString(String line) throws NullPointerException {
         return Arrays.stream(line.split(""))
+            .filter(x -> x.length() > 0)
             .map(str -> str.charAt(0))
             .map(ch -> {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
                 return String.format("%02x", (int)ch).toUpperCase();
             })
-            .toArray(String[]::new);
+            .toList();
     }
 
-    public static String[] getCharsFromString(String line) throws NullPointerException {
-        return line.split("");
+    public static List<String> getCharsFromString(String line) throws NullPointerException {
+        return Arrays.stream(line.split("")).toList();
     }
 
-    public static String[] getCharsFromHex(String[] hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
-        if (hex.length == 0) throw new ArrayIndexOutOfBoundsException();
+    public static List<String> getCharsFromHex(List<String> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
+        if (hex.isEmpty()) throw new ArrayIndexOutOfBoundsException();
         
-        return Arrays.stream(hex)
+        return hex.stream()
             .filter(x -> {
                 if (
                     x != "" 
@@ -34,13 +36,13 @@ public class HexService {
             })
             .map(hx -> ((char)Integer.parseInt(hx, 16)))
             .map(ch -> String.valueOf(ch))
-            .toArray(String[]::new);
+            .toList();
     }
 
-    public static String[] getHexFromChars(String[] chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
-        if (chars.length == 0) throw new ArrayIndexOutOfBoundsException();
+    public static List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
+        if (chars.isEmpty()) throw new ArrayIndexOutOfBoundsException();
 
-        return Arrays.stream(chars)
+        return chars.stream()
             .filter(x -> {
                 if (x != "") return true;
 
@@ -51,6 +53,6 @@ public class HexService {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
                 return String.format("%02x", (int)ch).toUpperCase();
             })
-            .toArray(String[]::new);
+            .toList();
     }
 }

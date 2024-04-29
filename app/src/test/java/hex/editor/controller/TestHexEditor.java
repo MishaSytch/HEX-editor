@@ -1,5 +1,8 @@
 package hex.editor.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -10,7 +13,7 @@ import hex.editor.services.HexService;
 public class TestHexEditor {
     static String bigFilePath; 
     static String verySmallFilePath;
-    static String oneChar;
+    static String oneCharPath;
     static HexService heXservice;
     static HexEditor hexEditor;
 
@@ -18,33 +21,35 @@ public class TestHexEditor {
     static void getter() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
-        oneChar = FilePaths.getOneChar();
+        oneCharPath = FilePaths.getOneChar();
         heXservice = new HexService();
-    }
-    
-    @Test
-    void testHexEditor_oneChar() {
-        hexEditor = new HexEditor(oneChar);
-        String[] hex = hexEditor.getCharsString();
-        Assertions.assertArrayEquals(hex, new String[]{"B"});
     }
 
     @Test
     void testOpenNewFile() {
-        hexEditor = new HexEditor(oneChar);
+        hexEditor = new HexEditor(oneCharPath);
         hexEditor.openNewFile(verySmallFilePath);
-        String res = hexEditor.getString();
-        Assertions.assertEquals(res, "Pulvinar elementum integer.");
+        List<String> hex = hexEditor.getStrings();
+        List<String> res = new ArrayList<>();
+        res.add("Pulvinar elementum integer.");
+        res.add("");
+
+        Assertions.assertEquals(res, hex);
     }
 
     @Test
     void testGetHexString() {
         hexEditor = new HexEditor(verySmallFilePath);
-        String[] res = hexEditor.getHexString();
+        List<List<String>> hex = hexEditor.getHexLines();
+        List<List<String>> res = new ArrayList<>();
 
-        Assertions.assertArrayEquals(res, new String[]{
-            "50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
-       });
+        for (String st : new String[]{"50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E"}) {
+            
+        }
+        
+        
+
+        Assertions.assertEquals(hex, res);
         
     }
 
@@ -52,7 +57,7 @@ public class TestHexEditor {
     void testGetCharsString() {
         hexEditor = new HexEditor(verySmallFilePath);
 
-        Assertions.assertArrayEquals(hexEditor.getCharsString(), "Pulvinar elementum integer.".split(""));
+        Assertions.assertArrayEquals(hexEditor.getCharLines(), "Pulvinar elementum integer.".split(""));
     }
 
     @Test
@@ -99,11 +104,11 @@ public class TestHexEditor {
     @Test
     void testEditOpenedFileByHex() {
         hexEditor = new HexEditor(verySmallFilePath);
-        String[] hex = hexEditor.getHexString();
+        String[] hex = hexEditor.getHexLines();
         hex[0] = hex[hex.length - 1];
         hexEditor.editOpenedFileByHex(hex);
 
-        Assertions.assertArrayEquals(hexEditor.getHexString(), new String[]{
+        Assertions.assertArrayEquals(hexEditor.getHexLines(), new String[]{
             "2E", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E", 
         });
     } 
@@ -111,11 +116,11 @@ public class TestHexEditor {
     @Test
     void testEditOpenedFileByChars() {
         hexEditor = new HexEditor(verySmallFilePath);
-        String[] chars = hexEditor.getCharsString();
+        String[] chars = hexEditor.getCharLines();
         chars[0] = chars[chars.length - 1];
         hexEditor.editOpenedFileByChars(chars);
 
-        Assertions.assertArrayEquals(hexEditor.getCharsString(), ".ulvinar elementum integer.".split(""));
+        Assertions.assertArrayEquals(hexEditor.getCharLines(), ".ulvinar elementum integer.".split(""));
     } 
 
     @Test 

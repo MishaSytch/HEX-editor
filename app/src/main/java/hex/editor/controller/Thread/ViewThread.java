@@ -1,14 +1,8 @@
 package hex.editor.controller.Thread;
 
 import java.awt.BorderLayout;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
-
-import javax.swing.SwingUtilities;
 
 import javax.swing.JPanel;
 
@@ -41,12 +35,7 @@ public class ViewThread implements Runnable {
 
         baseWorkPanel = new JPanel(new BorderLayout());
         baseWorkPanel.add(editPanel, BorderLayout.CENTER);
-        baseWorkPanel.add(infoPanel, BorderLayout.WEST);
-
-        System.out.println((byte)'~');
-        System.out.println((int)'~');
-        System.out.println((float)'~');
-        
+        baseWorkPanel.add(infoPanel, BorderLayout.WEST);        
 
         menuBar = new MenuBar(exchangers.get(Types.FILE), editPanel);
 

@@ -25,9 +25,6 @@ public class MenuBar extends JMenuBar {
             fileMenu.setForeground(styleSheet.getMainTextColor());
             {
                 JMenuItem openFile = new JMenuItem("Open file");
-                JMenuItem save = new JMenuItem("Save");
-                JMenuItem saveAs = new JMenuItem("Save as");
-
                 openFile.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent arg0) {
@@ -48,31 +45,7 @@ public class MenuBar extends JMenuBar {
                     
                 });
 
-                save.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JFileChooser fileChooser = new JFileChooser();
-
-                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                        }
-                    }
-                });
-                
-                saveAs.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JFileChooser fileChooser = new JFileChooser();
-
-                        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                String path = fileChooser.getSelectedFile().getAbsolutePath();
-                                String name = fileChooser.getSelectedFile().getName();
-                        }
-                    }
-                });
-
-                fileMenu.add(openFile);
-                fileMenu.add(save);
-                fileMenu.add(saveAs);    
+                fileMenu.add(openFile);   
             }
             this.add(fileMenu);
 

@@ -1,15 +1,15 @@
 package hex.editor.services;
 
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+
 public class TestTableViewer {
     @Test
     void testGetTable_Chars() {
-        TableModel tb = TableViewer.getTable("Pulvinar ".split(""), 200);
+        DefaultTableModel tb = TableViewer.getTable(new String[]{"Pulvinar "});
         DefaultTableModel res = new DefaultTableModel();
         String[] columns = new String[]{"0", "1", "2", "3"};
         res.setColumnIdentifiers(columns);
@@ -31,7 +31,7 @@ public class TestTableViewer {
 
     @Test
     void testGetTable_Hex() {
-        TableModel tb = TableViewer.getTable(HexService.getHexFromString("Pulvinar "), 200);
+        DefaultTableModel tb = TableViewer.getTable(HexService.getHexFromString("Pulvinar "));
         DefaultTableModel res = new DefaultTableModel();
         String[] columns = new String[]{"0", "1", "2", "3"};
         res.setColumnIdentifiers(columns);
@@ -53,7 +53,7 @@ public class TestTableViewer {
 
     @Test
     void testGetTable_OneChear() {
-        TableModel tb = TableViewer.getTable(HexService.getHexFromString("F"), 200);
+        DefaultTableModel tb = TableViewer.getTable(HexService.getHexFromString("F"));
         DefaultTableModel res = new DefaultTableModel();
         String[] columns = new String[]{"0", "1", "2", "3"};
         res.setColumnIdentifiers(columns);

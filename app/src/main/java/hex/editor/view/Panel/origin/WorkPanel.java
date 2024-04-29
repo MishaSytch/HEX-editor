@@ -3,32 +3,24 @@ package hex.editor.view.Panel.origin;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
-
-import org.checkerframework.checker.nullness.qual.KeyFor;
+import javax.swing.table.TableColumnModel;
 
 import hex.editor.model.Info;
 import hex.editor.model.Types;
@@ -46,9 +38,9 @@ public class WorkPanel extends BasePanel {
     private MainWindow mainWindow;
     private JScrollPane pane;
     private JLabel text;
-    private String[] hex;
+    private List<List<String>> hex;
     private InfoPanel infoPanel;
-    private Integer[] positions;
+    private List<List<Integer>> positions;
     private DefaultTableModel model;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
@@ -83,21 +75,13 @@ public class WorkPanel extends BasePanel {
         
         System.out.println("View: wait hex");
         try {
-            while (true) {
-                hex = (String[])hexExchanger.exchange(null);
-                if (hex != null) break;
-            }
+            hex = (List<List<String>>)hexExchanger.exchange(null);
         } catch (InterruptedException e) {}
 
         System.out.println("View: reciaved hex");
 
         // Создание модели
-        int colomns_count = 15;
-        String[] colomns = new String[colomns_count];
-        for (int i = 0 ; i < colomns_count; i++) 
-            colomns[i] = String.valueOf(i);
-
-        model = TableViewer.getTable(hex, this.getWidth());
+        model = TableViewer.getTable(hex);
 
         createAndAddTable(model);
         
@@ -112,14 +96,14 @@ public class WorkPanel extends BasePanel {
     public void waitPosition() {
         System.out.println("View: Posintion wait");
         try {
-                positions = (Integer[]) integerExchanger.exchange(null);
+                positions = (List<List<Integer>>) integerExchanger.exchange(null);
         } catch (InterruptedException e) {
         }
         System.out.println("View: Posintion got");
         selectCell(positions);
     }
 
-    public void selectCell(Integer[] pos) {
+    public void selectCell(List<List<Integer>> pos) {
         positions = pos; 
         this.remove(pane);
         pane.remove(table);
@@ -144,11 +128,13 @@ public class WorkPanel extends BasePanel {
 
                 c.setBackground(styleSheet.getBackBaseColor());
                 if (positions != null) {
-                    for (Integer pos : positions) {
-                        int row_this = pos / model.getColumnCount();
-                        int column_this = pos % model.getColumnCount();
-                        if (row == row_this && column == column_this) {
-                            c.setBackground(new Color(123, 123, 123));
+                    for (int row_this = 0; row_this < positions.size(); row_this++) {
+                        if (row == row_this) {
+                            for (Integer column_this : positions.get(row_this)) {
+                                if (column == column_this) {
+                                    c.setBackground(new Color(123, 123, 123));
+                                }
+                            }
                         }
                     }
                 }
@@ -169,7 +155,15 @@ public class WorkPanel extends BasePanel {
         table.getTableHeader().setReorderingAllowed(false);
         table.setRowSelectionAllowed(false);
         table.setColumnSelectionAllowed(false);
-        table.setRowHeight(50);
+        table.setRowHeight(40);
+
+        TableColumnModel columnModel = table.getColumnModel();
+        for (int i = 0; i < columnModel.getColumnCount(); i++) {
+            if (i < columnModel.getColumnCount()) {
+                columnModel.getColumn(i).setMinWidth(50);
+            }
+            else break;
+        }
 
         table.addMouseListener(new MouseListener() {
 
@@ -182,8 +176,12 @@ public class WorkPanel extends BasePanel {
                 String ch = "empty";
                 try {
                     if (model.getValueAt(row, column) != "") {
-                        hexExchanger.exchange(new String[]{ (String)model.getValueAt(row, column) });
-                        ch = ((String[])(charsExchanger.exchange(null)))[0];
+                        List<List<String>> cells = new ArrayList<>();
+                        List<String> cell = new ArrayList<>();
+                        cell.add((String)model.getValueAt(row, column));
+                        cells.add(cell);
+                        hexExchanger.exchange(cells);
+                        ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
                     }
 
                     infoPanel.setInfo(new Info(row, column, ch, (String)model.getValueAt(row, column)));
@@ -242,14 +240,10 @@ public class WorkPanel extends BasePanel {
             
         });
 
-        table.addColumnSelectionInterval(0, 3);
-
-
         // Настройка панели с прокруткой
         pane = new JScrollPane(table);
         pane.setBackground(styleSheet.getBackBaseColor());
         pane.setForeground(styleSheet.getBackBaseColor());
-        pane.setPreferredSize(new Dimension(table.getWidth(), table.getHeight()));
         this.add(pane);
     }
 } 

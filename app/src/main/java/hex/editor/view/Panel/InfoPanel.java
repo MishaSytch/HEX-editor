@@ -8,7 +8,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Color;
-
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
 
@@ -28,7 +28,6 @@ import hex.editor.view.Panel.origin.WorkPanel;
 public class InfoPanel extends BasePanel {
     private JTextField search;
     private JLabel info;
-    private MainWindow mainWindow;
     private JPanel panel;
     private JButton maskButton;
     private JButton hexButton;
@@ -39,7 +38,6 @@ public class InfoPanel extends BasePanel {
     public InfoPanel(MainWindow mainWindow, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.2));
 
-        this.mainWindow = mainWindow;
         this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
         this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING); 
 
@@ -133,28 +131,28 @@ public class InfoPanel extends BasePanel {
                             updateSearch();
                             workPanel.unselectCell();
                         }
-                        if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-                            search.setEditable(false);
-
-                            if (button == maskButton){
-                                try {
-                                    SEARCH_BY_STRING_Exchanger.exchange(search.getText());
-                                } catch (InterruptedException e) {
+                        if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {  
+                            if (!search.getText().isEmpty()) {
+                                if (button == maskButton){
+                                    try {
+                                        SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim());
+                                    } catch (InterruptedException e) {
+                                    }
+    
+                                } else {
+                                    try {
+                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" ")).toList());
+                                    } catch (InterruptedException e) {
+                                    }
+                                    
+                                }     
+                                if (workPanel != null) {
+                                    System.out.println("View: smt sent");
+                                    workPanel.waitPosition();
                                 }
-
-                            } else {
-                                try {
-                                    SEARCH_BY_HEX_Exchanger.exchange(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" "));
-                                } catch (InterruptedException e) {
-                                }
-                                
-                            }     
-                            if (workPanel != null) {
-                                System.out.println("View: smt sent");
-                                workPanel.waitPosition();
                             }
                         }
-                        }
+                    }
 
                     @Override
                     public void keyTyped(KeyEvent arg0) {
