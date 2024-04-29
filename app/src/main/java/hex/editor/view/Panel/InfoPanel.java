@@ -155,7 +155,7 @@ public class InfoPanel extends BasePanel {
 
                             } else {
                                 try {
-                                    SEARCH_BY_HEX_Exchanger.exchange(search.getText());
+                                    SEARCH_BY_HEX_Exchanger.exchange(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" "));
                                 } catch (InterruptedException e) {
                                 }
                                 

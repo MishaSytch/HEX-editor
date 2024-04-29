@@ -73,12 +73,11 @@ public class HexEditor {
         int start;
         for (int i = 0; i < hexFromString.length; i++) {
             start = i;
-            while(hexFromString[i].equals(searchingHex[i_bytes])) {
-                if (i_bytes + 1 == searchingHex.length) break;
-                i++;
-                i_bytes++;
+            while(hexFromString[i++].equalsIgnoreCase(searchingHex[i_bytes])) {
+                if (++i_bytes == searchingHex.length) 
+                    break;
             }
-            if (i - start + 1 == searchingHex.length) ints.add(start);
+            if (i_bytes == searchingHex.length) ints.add(start);
             i_bytes = 0; 
         }
         return ints.toArray(Integer[]::new);
@@ -91,7 +90,7 @@ public class HexEditor {
         List<Integer> ints = new ArrayList<Integer>();
         String[] hex = getHexString();
         
-        Pattern regexp = Pattern.compile(mask);
+        Pattern regexp = Pattern.compile(mask.toUpperCase());
 
         for (int i = 0; i < hex.length; i++) {
             Matcher match = regexp.matcher(hex[i]);
