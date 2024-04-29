@@ -42,6 +42,10 @@ public class ViewThread implements Runnable {
         baseWorkPanel = new JPanel(new BorderLayout());
         baseWorkPanel.add(editPanel, BorderLayout.CENTER);
         baseWorkPanel.add(infoPanel, BorderLayout.WEST);
+
+        System.out.println((byte)'~');
+        System.out.println((int)'~');
+        System.out.println((float)'~');
         
 
         menuBar = new MenuBar(exchangers.get(Types.FILE), editPanel);

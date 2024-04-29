@@ -53,18 +53,7 @@ public class InfoPanel extends BasePanel {
 
     public void setInfo(Info info_Info) {
         updateSearch();
-        info = getText(
-            "<html>"
-            + "Row: " + info_Info.getRow()
-            + "<br>"
-            + "Column: " + info_Info.getColumn()
-            + "<br>"
-            + "<br>"
-            + "<br>"
-            + "Char: " + info_Info.getChar_info()
-            + "<br>"
-            + "Hex: " + info_Info.getHex_info()
-        );
+        info = getText(info_Info.getInfo());
         this.add(info, BorderLayout.WEST); 
         this.add(search, BorderLayout.SOUTH); 
     }
