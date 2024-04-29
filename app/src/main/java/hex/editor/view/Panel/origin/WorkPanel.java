@@ -119,7 +119,6 @@ public class WorkPanel extends BasePanel {
     }
 
     private void createAndAddTable(DefaultTableModel model) {
-        
         table = new JTable(model);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -141,6 +140,7 @@ public class WorkPanel extends BasePanel {
                 return c;
             }
         });
+        
         table.setForeground(styleSheet.getMainTextColor());
 
         table.setBorder(BorderFactory.createBevelBorder(0));

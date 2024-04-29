@@ -25,12 +25,15 @@ public class MenuBar extends JMenuBar {
             fileMenu.setForeground(styleSheet.getMainTextColor());
             {
                 JMenuItem openFile = new JMenuItem("Open file");
+
                 openFile.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent arg0) {
                         JFileChooser fileChooser = new JFileChooser();
+
                         if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                             file = new File(fileChooser.getSelectedFile().getAbsolutePath()); 
+                            
                             try {
                                 workPanel.unselectCell();
                                 fileExchanger.exchange(file);
@@ -48,22 +51,6 @@ public class MenuBar extends JMenuBar {
                 fileMenu.add(openFile);   
             }
             this.add(fileMenu);
-
-            JMenu helpMenu = new JMenu("Help");
-            helpMenu.setForeground(styleSheet.getMainTextColor());
-            {
-                JMenuItem infoItem = new JMenuItem("What is Hex?");
-
-                infoItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        
-                    }
-                });
-
-                helpMenu.add(infoItem);    
-            }
-            this.add(helpMenu);
     }
 
     public IStyleSheet getStyleSheet() {

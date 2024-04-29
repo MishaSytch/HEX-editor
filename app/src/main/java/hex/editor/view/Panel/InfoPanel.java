@@ -112,13 +112,37 @@ public class InfoPanel extends BasePanel {
                 }
                 panel.setLayout(new GridLayout(3, 1));
                 search.removeAll();
-                search.setEditable(true);
-                search.setText("");
+                search.setEditable(false);
+                search.setText("Type to search...");
                 search.setBorder(getBorder());
                 panel.add(search);
 
                 SwingUtilities.updateComponentTreeUI(panel);
-                
+                search.addMouseListener(new MouseListener() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent arg0) {
+                    }
+
+                    @Override
+                    public void mouseEntered(MouseEvent arg0) {
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent arg0) {
+                    }
+
+                    @Override
+                    public void mousePressed(MouseEvent arg0) {
+                        search.setEditable(true);
+                        search.setText("");
+                    }
+
+                    @Override
+                    public void mouseReleased(MouseEvent arg0) {
+                    }
+                    
+                });
                 search.addKeyListener(new KeyListener() {
 
                     @Override
