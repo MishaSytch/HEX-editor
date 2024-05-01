@@ -4,16 +4,23 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -130,8 +137,9 @@ public class WorkPanel extends BasePanel {
 
                 if (column == 0) {
                     c.setEnabled(false);
+                    
                 }
-                else c.setEnabled(true);
+                else c.setEnabled(false);
 
                 if (positions != null) {
                     for (int row_this = 0; row_this < positions.size(); row_this++) {
@@ -162,6 +170,7 @@ public class WorkPanel extends BasePanel {
         table.setShowVerticalLines(true);
         table.setShowHorizontalLines(true);
         table.setGridColor(styleSheet.getMainTextColor());
+
         
         table.setAutoscrolls(true);
         table.getTableHeader().setReorderingAllowed(false);
@@ -230,6 +239,7 @@ public class WorkPanel extends BasePanel {
 
             @Override
             public void keyPressed(KeyEvent arg0) {
+                
             }
 
             @Override
@@ -242,6 +252,77 @@ public class WorkPanel extends BasePanel {
 
                 if (arg0.getKeyCode() == KeyEvent.VK_S && isControlDown) {
                     infoPanel.showSearchWindow();
+                    update();
+                }
+
+                if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
+                        int[] selectedRows = table.getSelectedRows();
+                        int[] selectedColumns = table.getSelectedColumns();
+                        StringBuilder sb = new StringBuilder();
+                        for (int row : selectedRows) {
+                            for (int col : selectedColumns) {
+                                sb.append(model.getValueAt(row, col).toString());
+                                sb.append("\t");
+                            }
+                            sb.append("\n");
+                        }
+                        StringSelection stringSelection = new StringSelection(sb.toString());
+                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        clipboard.setContents(stringSelection, null);
+                        System.out.println("Copied to clipboard");
+                }
+
+                if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
+                    try {
+                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        String data = (String) clipboard.getData(DataFlavor.stringFlavor);
+                        String[] values = data.split("\t");
+                        if (validateData(data)) {
+                            int[] selectedRows = table.getSelectedRows();
+                            int[] selectedColumns = table.getSelectedColumns();
+                            int valueIndex = 0;
+                            for (int row : selectedRows) {
+                                for (int col : selectedColumns) {
+                                    if (valueIndex < values.length) {
+                                        model.setValueAt(values[valueIndex++], row, col);
+                                    }
+                                }
+                            }
+                            System.out.println("Data pasted with validation");
+                        } else {
+                            System.out.println("Invalid data");
+                        }
+                    } catch (UnsupportedFlavorException | IOException e) {
+                        System.out.println("Failed to paste data: " + e.getMessage());
+                    }
+                }
+
+                if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
+                    int[] selectedRows = table.getSelectedRows();
+                    int[] selectedColumns = table.getSelectedColumns();
+                    
+                    if (selectedRows.length > 0 && selectedColumns.length > 0) {
+                        int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
+                        if (result == JOptionPane.YES_OPTION) {
+                            for (int row : selectedRows) {
+                                for (int col : selectedColumns) {
+                                    // Смещаем значения вправо от удаленной ячейки влево
+                                    for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
+                                        table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
+                                    }
+                                    // Очищаем значение в последней ячейке строки
+                                    table.setValueAt("", row, table.getColumnCount() - 1);
+                                }
+                            }
+                        }
+                        else {
+                            for (int row : selectedRows) {
+                                for (int col : selectedColumns) {
+                                    model.setValueAt("", row, col);
+                                }
+                            }
+                        }
+                    }
                     update();
                 }
             }
@@ -262,5 +343,29 @@ public class WorkPanel extends BasePanel {
         pane.setForeground(styleSheet.getBackBaseColor());
 
         this.add(pane);
+    }
+
+    private boolean validateData(String data) {
+        // Проверка, что строка не пуста и соответствует определенному формату:
+        return data != null && (data.trim().isEmpty() || validateDataArray(data.split("[\t|]")) || data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$"));
+    }
+
+    private boolean validateDataArray(String[] dataArray) {
+        if (dataArray == null) {
+            System.out.println("Data array is null");
+            return false;
+        }
+        
+        for (String data : dataArray) {
+            if (data.trim().isEmpty()) {
+                return true;
+            }
+            if (!data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*$")) {
+                System.out.println("Invalid data: contains non-alphanumeric characters");
+                return false;
+            }
+        }
+        
+        return true;
     }
 } 

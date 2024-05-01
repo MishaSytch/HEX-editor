@@ -11,7 +11,13 @@ public class TableViewer {
         for (List<String> line : lines) {
             columns_count = Math.max(columns_count, line.size());
         }
-        DefaultTableModel tableModel = new DefaultTableModel();
+        DefaultTableModel tableModel = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Запретить редактирование для колонки 0
+                return column != 0;
+            }
+        };
 
         Vector<String> columnNames = new Vector<String>();
         columnNames.add(String.valueOf(""));
