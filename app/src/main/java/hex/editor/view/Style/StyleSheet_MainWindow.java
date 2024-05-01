@@ -3,18 +3,19 @@ package hex.editor.view.Style;
 import java.awt.Color;
 
 public class StyleSheet_MainWindow implements IStyleSheet {
-    private static double LEFT_SIZE = 0.25;
-    private static double RIGHT_SIZE = 0.15;
-    private static double HEAD_SIZE = 0.04;
-    private static double BOTTOM_SIZE = 0.15;
+    private static final double LEFT_SIZE = 0.25;
+    private static final double RIGHT_SIZE = 0.15;
+    private static final double HEAD_SIZE = 0.04;
+    private static final double BOTTOM_SIZE = 0.15;
 
 
-    private static Color BackMainColor = new Color(30, 30, 30);
-    private static Color BackNotMainColor = new Color(25, 25, 25);
-    private static Color ForeMainColor = new Color(25, 15, 25);
-    private static Color ForeNotMainColor = new Color(25, 15, 25);
-    private static Color MainTextColor = new Color(240, 240, 240);
-    private static Color NotMainTextColor = new Color(150, 150, 150);
+    private static final Color BackMainColor = new Color(30, 30, 30);
+    private static final Color BackNotMainColor = new Color(25, 25, 25);
+    private static final Color ForeMainColor = new Color(25, 15, 25);
+    private static final Color ForeNotMainColor = new Color(25, 15, 25);
+    private static final Color MainTextColor = new Color(240, 240, 240);
+    private static final Color NotMainTextColor = new Color(150, 150, 150);
+    private static final Color SelectedColor = new Color(200, 200, 0);
     @Override
     public double getLeftPanelSize() {
         return LEFT_SIZE;    
@@ -54,5 +55,9 @@ public class StyleSheet_MainWindow implements IStyleSheet {
     @Override
     public Color getSecondaryTextColor() {
         return NotMainTextColor;
+    }
+    @Override
+    public Color getSelectedColor() {
+        return SelectedColor;
     }
 }

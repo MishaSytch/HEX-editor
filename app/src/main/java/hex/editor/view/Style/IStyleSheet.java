@@ -15,4 +15,5 @@ public interface IStyleSheet {
 
     Color getMainTextColor();
     Color getSecondaryTextColor();
+    Color getSelectedColor();
 }

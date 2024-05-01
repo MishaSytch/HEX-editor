@@ -129,37 +129,31 @@ public class WorkPanel extends BasePanel {
         table = new JTable(model);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            public Component getTableCellRendererComponent(JTable table1, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
+                Component c = super.getTableCellRendererComponent(table1, value, isSelected, hasFocus, rowIndex, columnIndex);
 
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
 
-                if (column == 0) {
-                    c.setEnabled(false);
-                    
-                }
-                else c.setEnabled(false);
+                // Disable editing for the first column
+                c.setEnabled(columnIndex > 0);
 
                 if (positions != null) {
-                    for (int row_this = 0; row_this < positions.size(); row_this++) {
-                        if (row == row_this) {
-                            for (Integer column_this : positions.get(row_this)) {
-                                if (column == column_this) {
-                                    c.setBackground(new Color(123, 123, 123));
-                                }
-                            }
+                    for (List<Integer> columns : positions) {
+                        if (columns.contains(columnIndex)) {
+                            c.setBackground(styleSheet.getSelectedColor());
+                            break;
                         }
                     }
                 }
 
-                if(isSelected) {
-                    c.setBackground(new Color(200, 200, 0));
+                if (isSelected) {
+                    c.setBackground(styleSheet.getSelectedColor());
                 }
-
 
                 return c;
             }
+
         });
 
         
@@ -276,13 +270,25 @@ public class WorkPanel extends BasePanel {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                         String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        String[] values = data.split("\t");
                         if (validateData(data)) {
+                            String[] values = data.split("[\t\n]+");
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();
                             int valueIndex = 0;
                             for (int row : selectedRows) {
                                 for (int col : selectedColumns) {
+                                    if (col == 0) continue;
+                                    if (values.length < selectedColumns.length * selectedRows.length) {
+                                        String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
+                                        for(int i = 0; i < tmpValues.length; i++) {
+                                            if (i < values.length) {
+                                                tmpValues[i] = values[i];
+                                            } else {
+                                                tmpValues[i] = "";
+                                            }
+                                        }
+                                        values = tmpValues;
+                                    }
                                     if (valueIndex < values.length) {
                                         model.setValueAt(values[valueIndex++], row, col);
                                     }
@@ -306,6 +312,7 @@ public class WorkPanel extends BasePanel {
                         if (result == JOptionPane.YES_OPTION) {
                             for (int row : selectedRows) {
                                 for (int col : selectedColumns) {
+                                    if (col == 0) continue;
                                     // Смещаем значения вправо от удаленной ячейки влево
                                     for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
                                         table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
@@ -318,6 +325,7 @@ public class WorkPanel extends BasePanel {
                         else {
                             for (int row : selectedRows) {
                                 for (int col : selectedColumns) {
+                                    if (col == 0) continue;
                                     model.setValueAt("", row, col);
                                 }
                             }
@@ -333,8 +341,6 @@ public class WorkPanel extends BasePanel {
             
         });
 
-        
-
         // Настройка панели с прокруткой
         pane = new JScrollPane(table);
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -347,7 +353,7 @@ public class WorkPanel extends BasePanel {
 
     private boolean validateData(String data) {
         // Проверка, что строка не пуста и соответствует определенному формату:
-        return data != null && (data.trim().isEmpty() || validateDataArray(data.split("[\t|]")) || data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$"));
+        return data != null && (validateDataArray(data.split("[\t\n]+")) || data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*"));
     }
 
     private boolean validateDataArray(String[] dataArray) {
