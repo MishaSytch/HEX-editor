@@ -14,7 +14,8 @@ public class TableViewer {
         DefaultTableModel tableModel = new DefaultTableModel();
 
         Vector<String> columnNames = new Vector<String>();
-        for (int i = 0; i < columns_count; i++) columnNames.add(String.valueOf(i));
+        columnNames.add(String.valueOf(""));
+        for (int i = 0; i < columns_count - 1 ; i++) columnNames.add(String.valueOf(i));
 
         tableModel.setColumnIdentifiers(columnNames);
 
@@ -23,7 +24,8 @@ public class TableViewer {
         for(int i = 0; i < rows_count; i++) {
             List<String> line = lines.get(i);
             Vector<String> inner = new Vector<String>();
-            for (int k = 0; k < columns_count; k++) {
+            inner.add(String.valueOf(i));
+            for (int k = 1; k < columns_count; k++) {
                 if (k >= line.size()) {
                     inner.add("");
                 } else {

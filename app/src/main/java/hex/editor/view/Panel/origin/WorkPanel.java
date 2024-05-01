@@ -126,6 +126,10 @@ public class WorkPanel extends BasePanel {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
                 c.setBackground(styleSheet.getBackBaseColor());
+
+                if (column == 0) c.setEnabled(false);
+                else c.setEnabled(true);
+
                 if (positions != null) {
                     for (int row_this = 0; row_this < positions.size(); row_this++) {
                         if (row == row_this) {
