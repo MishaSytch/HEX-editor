@@ -16,8 +16,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -35,7 +38,6 @@ public class WorkPanel extends BasePanel {
     private Exchanger<Object> hexExchanger;
     private Exchanger<Object> charsExchanger;
     private Exchanger<Object> integerExchanger;
-    private MainWindow mainWindow;
     private JScrollPane pane;
     private JLabel text;
     private List<List<String>> hex;
@@ -46,7 +48,6 @@ public class WorkPanel extends BasePanel {
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.8));
         this.infoPanel = infoPanel;
-        this.mainWindow = mainWindow;
         this.hexExchanger = exchangers.get(Types.HEX);
         this.charsExchanger = exchangers.get(Types.CHARS);
         this.integerExchanger = exchangers.get(Types.INTEGER);
@@ -66,27 +67,26 @@ public class WorkPanel extends BasePanel {
     }
 
     public void showData() {
-        // Подготовка
-        if (pane != null) {
-            pane.removeAll();
-            this.remove(pane);
-        }
-        // Получение данных
-        
         System.out.println("View: wait hex");
         try {
-            hex = (List<List<String>>)hexExchanger.exchange(null);
-        } catch (InterruptedException e) {}
+            if (pane != null) {
+                pane.removeAll();
+                this.remove(pane);
+            }
 
-        System.out.println("View: reciaved hex");
-
-        // Создание модели
-        model = TableViewer.getTable(hex);
-
-        createAndAddTable(model);
+            hex = (List<List<String>>) hexExchanger.exchange(null);
+            System.out.println("View: received hex");
+    
+            model = TableViewer.getTable(hex);
+            createAndAddTable(model);
         
-        update();
-        System.out.println("View: hex loaded");
+    
+            update();
+            System.out.println("View: hex loaded");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("View: hex loading interrupted");
+        }
     }
 
     private void update() {
@@ -94,12 +94,12 @@ public class WorkPanel extends BasePanel {
     }
 
     public void waitPosition() {
-        System.out.println("View: Posintion wait");
+        System.out.println("View: Position wait");
         try {
                 positions = (List<List<Integer>>) integerExchanger.exchange(null);
         } catch (InterruptedException e) {
         }
-        System.out.println("View: Posintion got");
+        System.out.println("View: Position got");
         selectCell(positions);
     }
 
@@ -126,8 +126,11 @@ public class WorkPanel extends BasePanel {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
                 c.setBackground(styleSheet.getBackBaseColor());
+                ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
 
-                if (column == 0) c.setEnabled(false);
+                if (column == 0) {
+                    c.setEnabled(false);
+                }
                 else c.setEnabled(true);
 
                 if (positions != null) {
@@ -141,24 +144,29 @@ public class WorkPanel extends BasePanel {
                         }
                     }
                 }
+
+                if(isSelected) {
+                    c.setBackground(new Color(200, 200, 0));
+                }
+
+
                 return c;
             }
         });
+
         
         table.setForeground(styleSheet.getMainTextColor());
+        table.setBackground(styleSheet.getBackBaseColor());
 
         table.setBorder(BorderFactory.createBevelBorder(0));
-        table.setRowHeight(30);
-        table.setRowHeight(10, 20);
-        table.setIntercellSpacing(new Dimension(10, 10));
         table.setShowVerticalLines(true);
         table.setShowHorizontalLines(true);
         table.setGridColor(styleSheet.getMainTextColor());
         
         table.setAutoscrolls(true);
         table.getTableHeader().setReorderingAllowed(false);
-        table.setRowSelectionAllowed(false);
-        table.setColumnSelectionAllowed(false);
+        table.setRowSelectionAllowed(true);
+        table.setColumnSelectionAllowed(true);
         table.setRowHeight(40);
 
         TableColumnModel columnModel = table.getColumnModel();
@@ -244,10 +252,15 @@ public class WorkPanel extends BasePanel {
             
         });
 
+        
+
         // Настройка панели с прокруткой
         pane = new JScrollPane(table);
+        pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         pane.setBackground(styleSheet.getBackBaseColor());
         pane.setForeground(styleSheet.getBackBaseColor());
+
         this.add(pane);
     }
 } 
