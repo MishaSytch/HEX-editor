@@ -63,6 +63,8 @@ public class WorkPanel extends BasePanel {
     private Integer lastY;
     private PopupFactory popupFactory = PopupFactory.getSharedInstance();
     private Popup popup;
+    private Timer hoverTimer;
+    private Timer scopeTimer;
 
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
@@ -100,11 +102,8 @@ public class WorkPanel extends BasePanel {
 
             hex = (List<List<String>>) hexExchanger.exchange(null);
             System.out.println("View: received hex");
-    
             model = TableViewer.getTable(hex);
             createAndAddTable(model);
-        
-    
             update();
             System.out.println("View: hex loaded");
         } catch (InterruptedException e) {
@@ -206,8 +205,6 @@ public class WorkPanel extends BasePanel {
             else break;
         }
 
-
-
         table.addMouseListener(new MouseListener() {
 
             @Override
@@ -222,61 +219,26 @@ public class WorkPanel extends BasePanel {
             }
 
             @Override
-            public void mouseEntered(MouseEvent event) {
-            }
+            public void mouseEntered(MouseEvent event) {}
 
             @Override
-            public void mouseExited(MouseEvent event) {
-                
-            }
+            public void mouseExited(MouseEvent event) {}
 
             @Override
-            public void mousePressed(MouseEvent event) {
-                
-            }
+            public void mousePressed(MouseEvent event) {}
 
             @Override
-            public void mouseReleased(MouseEvent event) {
-                
-            }
+            public void mouseReleased(MouseEvent event) {}
         });
 
         table.addMouseMotionListener(new MouseMotionListener() {
-            Timer hoverTimer;
-            Timer scopeTimer;
             @Override
             public void mouseMoved(MouseEvent event) {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
                 loadInfo(model, row, column - 1);
-
-
-                lastX = event.getXOnScreen();
-                lastY = event.getYOnScreen();
-
-                hoverTimer = new Timer(100, e -> {
-                    tooltip.setTipText(infoPanel.getInfo().getText());
-                    if (popup != null) {
-                        popup.hide();
-                    }
-                    popup = popupFactory.getPopup(table, tooltip, lastX + 10, lastY - 10);
-
-                    lastX = event.getXOnScreen();
-                    lastY = event.getYOnScreen();
-
-                    scopeTimer = new Timer(1000, x -> {
-                        if (lastX == event.getXOnScreen() && lastY == event.getYOnScreen()) {
-                            popup.show();
-                        }
-                    });
-                    scopeTimer.setRepeats(false);
-                    scopeTimer.start();
-
-                });
-                hoverTimer.setRepeats(false); 
-                hoverTimer.start();                               
+                showPopup(event);                               
             }
-
 
             @Override
             public void mouseDragged(MouseEvent arg0) {
@@ -293,20 +255,7 @@ public class WorkPanel extends BasePanel {
             @Override
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
-                        int[] selectedRows = table.getSelectedRows();
-                        int[] selectedColumns = table.getSelectedColumns();
-                        StringBuilder sb = new StringBuilder();
-                        for (int row : selectedRows) {
-                            for (int col : selectedColumns) {
-                                sb.append(model.getValueAt(row, col).toString());
-                                sb.append("\t");
-                            }
-                            sb.append("\n");
-                        }
-                        StringSelection stringSelection = new StringSelection(sb.toString());
-                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        clipboard.setContents(stringSelection, null);
-                        System.out.println("Copied to clipboard");
+                    copyToClipBoard(model);
                 }
 
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
@@ -321,27 +270,9 @@ public class WorkPanel extends BasePanel {
 
                             int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
                             if (result == JOptionPane.YES_OPTION) {
-                                
+                                insertWithShiftToModel(model, values, selectedRows, selectedColumns, valueIndex);
                             } else {
-                                for (int row : selectedRows) {
-                                    for (int col : selectedColumns) {
-                                        if (col == 0) continue;
-                                        if (values.length < selectedColumns.length * selectedRows.length) {
-                                            String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
-                                            for(int i = 0; i < tmpValues.length; i++) {
-                                                if (i < values.length) {
-                                                    tmpValues[i] = values[i];
-                                                } else {
-                                                    tmpValues[i] = "";
-                                                }
-                                            }
-                                            values = tmpValues;
-                                        }
-                                        if (valueIndex < values.length) {
-                                            model.setValueAt(values[valueIndex++], row, col);
-                                        }
-                                    }
-                                }
+                                insertToModel(model, values, selectedRows, selectedColumns, valueIndex);
                             }
                             System.out.println("Data pasted with validation");
                         } else {
@@ -356,28 +287,7 @@ public class WorkPanel extends BasePanel {
                     int[] selectedRows = table.getSelectedRows();
                     int[] selectedColumns = table.getSelectedColumns();
                     
-                    if (selectedRows.length > 0 && selectedColumns.length > 0) {
-                        int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
-                        if (result == JOptionPane.YES_OPTION) {
-                            for (int row : selectedRows) {
-                                for (int col : selectedColumns) {
-                                    if (col == 0) continue;
-                                    for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
-                                        table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
-                                    }
-                                    table.setValueAt("", row, table.getColumnCount() - 1);
-                                }
-                            }
-                        }
-                        else {
-                            for (int row : selectedRows) {
-                                for (int col : selectedColumns) {
-                                    if (col == 0) continue;
-                                    model.setValueAt("", row, col);
-                                }
-                            }
-                        }
-                    }
+                    deleteFromModel(model, selectedRows, selectedColumns);
                     update();
                 }
             }
@@ -438,5 +348,118 @@ public class WorkPanel extends BasePanel {
             SwingUtilities.updateComponentTreeUI(infoPanel);
         } catch (InterruptedException e) {
         }
+    }
+
+    private void showPopup(MouseEvent event) {
+        lastX = event.getXOnScreen();
+        lastY = event.getYOnScreen();
+
+        hoverTimer = new Timer(100, e -> {
+            tooltip.setTipText(infoPanel.getInfo().getText());
+            if (popup != null) {
+                popup.hide();
+            }
+            popup = popupFactory.getPopup(table, tooltip, lastX + 10, lastY - 10);
+
+            lastX = event.getXOnScreen();
+            lastY = event.getYOnScreen();
+
+            scopeTimer = new Timer(1000, x -> {
+                if (lastX == event.getXOnScreen() && lastY == event.getYOnScreen()) {
+                    popup.show();
+                }
+            });
+            scopeTimer.setRepeats(false);
+            scopeTimer.start();
+
+        });
+        hoverTimer.setRepeats(false); 
+        hoverTimer.start();
+    }
+
+    private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
+        if (selectedRows.length > 0 && selectedColumns.length > 0) {
+            int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION) {
+                for (int row : selectedRows) {
+                    for (int col : selectedColumns) {
+                        if (col == 0) continue;
+                        for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
+                            table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
+                        }
+                        table.setValueAt("", row, table.getColumnCount() - 1);
+                    }
+                }
+            }
+            else {
+                for (int row : selectedRows) {
+                    for (int col : selectedColumns) {
+                        if (col == 0) continue;
+                        model.setValueAt("", row, col);
+                    }
+                }
+            }
+        }
+    }
+
+    private void insertWithShiftToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
+        for (int row : selectedRows) {
+            for (int col : selectedColumns) {
+                if (col == 0) continue;
+                if (values.length < selectedColumns.length * selectedRows.length) {
+                    String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
+                    for(int i = 0; i < tmpValues.length; i++) {
+                        if (i < values.length) {
+                            tmpValues[i] = values[i];
+                        } else {
+                            tmpValues[i] = "";
+                        }
+                    }
+                    values = tmpValues;
+                }
+                if (valueIndex < values.length) {
+                    model.setValueAt(values[valueIndex++], row, col);
+                }
+            }
+        }
+    }
+
+    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
+        for (int row : selectedRows) {
+            for (int col : selectedColumns) {
+                if (col == 0) continue;
+                if (values.length < selectedColumns.length * selectedRows.length) {
+                    String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
+                    for(int i = 0; i < tmpValues.length; i++) {
+                        if (i < values.length) {
+                            tmpValues[i] = values[i];
+                        } else {
+                            tmpValues[i] = "";
+                        }
+                    }
+                    values = tmpValues;
+                }
+                if (valueIndex < values.length) {
+                    model.setValueAt(values[valueIndex++], row, col);
+                }
+            }
+        }
+    }
+
+    private void copyToClipBoard(DefaultTableModel model) {
+        int[] selectedRows = table.getSelectedRows();
+        int[] selectedColumns = table.getSelectedColumns();
+        StringBuilder sb = new StringBuilder();
+        for (int row : selectedRows) {
+            for (int col : selectedColumns) {
+                sb.append(model.getValueAt(row, col).toString());
+                sb.append("\t");
+            }
+            sb.append("\n");
+        }
+        StringSelection stringSelection = new StringSelection(sb.toString());
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+        System.out.println("Copied to clipboard");
     }
 } 
