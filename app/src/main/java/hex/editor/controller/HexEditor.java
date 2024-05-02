@@ -9,7 +9,7 @@ import hex.editor.services.FileViewer;
 import hex.editor.services.HexService;
 
 public class HexEditor {
-    private List<String> strings;
+    private List<String> strings = null;
 
     public List<String> getStrings() {
         return strings;
@@ -76,6 +76,9 @@ public class HexEditor {
     } 
 
     public List<List<Integer>> find(List<String> searchingHex) {
+        if (strings == null) {
+            throw new NullPointerException();
+        }
         if (searchingHex.isEmpty()) {
             throw new IllegalArgumentException("Array has null length"); 
         }
@@ -105,6 +108,9 @@ public class HexEditor {
     }
 
     public List<List<Integer>> findByMask(String mask) {
+        if (strings == null) {
+            throw new NullPointerException();
+        }
         if (mask.length() == 0) {
             throw new IllegalArgumentException("Mask is empty"); 
         }

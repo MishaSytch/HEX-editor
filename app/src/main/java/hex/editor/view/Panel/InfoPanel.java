@@ -11,6 +11,8 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.swing.JPanel;
 import javax.swing.JButton;
@@ -76,15 +78,36 @@ public class InfoPanel extends BasePanel {
         
         this.add(panel, BorderLayout.SOUTH);
         SwingUtilities.updateComponentTreeUI(this);
-        System.out.println("View: ready to search");
     }
 
     private void updateSearch() {
         if (search != null) this.removeAll();
         
-        search = new JTextField("To search press: Ctrl + S");
+        search = new JTextField("To search type there");
         search.setEditable(false);
         search.setBorder(new EmptyBorder(10, 10, 10, 10));
+        search.addMouseListener((MouseListener) new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showSearchWindow();
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent arg0) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent arg0) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent arg0) {
+            }
+        });
     }
 
     private JButton getSearchButton(String title) {
@@ -138,6 +161,7 @@ public class InfoPanel extends BasePanel {
 
                     @Override
                     public void mousePressed(MouseEvent arg0) {
+                        System.out.println("View: ready to search");
                         search.setEditable(true);
                         search.setText("");
                     }
@@ -147,6 +171,7 @@ public class InfoPanel extends BasePanel {
                     }
                     
                 });
+
                 search.addKeyListener(new KeyListener() {
 
                     @Override
@@ -161,17 +186,17 @@ public class InfoPanel extends BasePanel {
                         }
                         if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {  
                             if (!search.getText().isEmpty()) {
-                                if (button == maskButton){
+                                if (button.getText().equals(maskButton.getText())){
                                     try {
-                                        SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim());
-                                    } catch (InterruptedException e) {
-                                    }
+                                        SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim(), 1500, TimeUnit.MILLISECONDS);
+                                    } catch (InterruptedException | TimeoutException e) {}
     
-                                } else {
+                                } 
+                                System.out.println(button.getText());
+                                if (button.getText().equals(hexButton.getText())) {
                                     try {
-                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" ")).toList());
-                                    } catch (InterruptedException e) {
-                                    }
+                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" ")).toList(), 1500, TimeUnit.MILLISECONDS);
+                                    } catch (InterruptedException | TimeoutException e) {}
                                     
                                 }     
                                 if (workPanel != null) {
@@ -179,6 +204,7 @@ public class InfoPanel extends BasePanel {
                                     workPanel.waitPosition();
                                 }
                             }
+                            SwingUtilities.updateComponentTreeUI(panel);
                         }
                     }
 

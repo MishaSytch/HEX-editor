@@ -121,10 +121,13 @@ public class WorkPanel extends BasePanel {
         System.out.println("View: Position wait");
         try {
                 positions = (List<List<Integer>>) integerExchanger.exchange(null);
+                if (positions.size() == 0) positions = null;
+                else {
+                    System.out.println("View: Position got");
+                    selectCell(positions);
+                }
         } catch (InterruptedException e) {
         }
-        System.out.println("View: Position got");
-        selectCell(positions);
     }
 
     public void selectCell(List<List<Integer>> pos) {
@@ -214,7 +217,7 @@ public class WorkPanel extends BasePanel {
                     int row = table.getSelectedRow();
                     int column = table.getSelectedColumn();
     
-                    loadInfo(model, row, column);
+                    loadInfo(model, row, column - 1);
                 }
             }
 
@@ -245,7 +248,7 @@ public class WorkPanel extends BasePanel {
             public void mouseMoved(MouseEvent event) {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
-                loadInfo(model, row, column);
+                loadInfo(model, row, column - 1);
 
 
                 lastX = event.getXOnScreen();
@@ -289,10 +292,6 @@ public class WorkPanel extends BasePanel {
 
             @Override
             public void keyReleased(KeyEvent arg0) {
-                if (arg0.getKeyCode() == KeyEvent.VK_S && arg0.isControlDown()) {
-                    infoPanel.showSearchWindow();
-                }
-
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
                         int[] selectedRows = table.getSelectedRows();
                         int[] selectedColumns = table.getSelectedColumns();
@@ -319,22 +318,28 @@ public class WorkPanel extends BasePanel {
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();
                             int valueIndex = 0;
-                            for (int row : selectedRows) {
-                                for (int col : selectedColumns) {
-                                    if (col == 0) continue;
-                                    if (values.length < selectedColumns.length * selectedRows.length) {
-                                        String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
-                                        for(int i = 0; i < tmpValues.length; i++) {
-                                            if (i < values.length) {
-                                                tmpValues[i] = values[i];
-                                            } else {
-                                                tmpValues[i] = "";
+
+                            int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
+                            if (result == JOptionPane.YES_OPTION) {
+                                
+                            } else {
+                                for (int row : selectedRows) {
+                                    for (int col : selectedColumns) {
+                                        if (col == 0) continue;
+                                        if (values.length < selectedColumns.length * selectedRows.length) {
+                                            String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
+                                            for(int i = 0; i < tmpValues.length; i++) {
+                                                if (i < values.length) {
+                                                    tmpValues[i] = values[i];
+                                                } else {
+                                                    tmpValues[i] = "";
+                                                }
                                             }
+                                            values = tmpValues;
                                         }
-                                        values = tmpValues;
-                                    }
-                                    if (valueIndex < values.length) {
-                                        model.setValueAt(values[valueIndex++], row, col);
+                                        if (valueIndex < values.length) {
+                                            model.setValueAt(values[valueIndex++], row, col);
+                                        }
                                     }
                                 }
                             }
@@ -357,11 +362,9 @@ public class WorkPanel extends BasePanel {
                             for (int row : selectedRows) {
                                 for (int col : selectedColumns) {
                                     if (col == 0) continue;
-                                    // Смещаем значения вправо от удаленной ячейки влево
                                     for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
                                         table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
                                     }
-                                    // Очищаем значение в последней ячейке строки
                                     table.setValueAt("", row, table.getColumnCount() - 1);
                                 }
                             }
