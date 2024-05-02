@@ -16,4 +16,6 @@ public interface IStyleSheet {
     Color getMainTextColor();
     Color getSecondaryTextColor();
     Color getSelectedColor();
+    Color getToolTipBackColor();
+    Color getToolTipTextColor();
 }

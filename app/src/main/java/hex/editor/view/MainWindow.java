@@ -2,7 +2,11 @@ package hex.editor.view;
 
 import javax.swing.*;
 import hex.editor.view.Frame.BaseFrame;
+import hex.editor.view.Panel.InfoPanel;
+
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 
 
@@ -12,6 +16,7 @@ public class MainWindow extends BaseFrame {
     private static int screenHeight = (int) toolkit.getScreenSize().getHeight();
     private String TITLE = "Hex editor";
     private ImageIcon icon = new ImageIcon("app\\src\\main\\resources\\img\\MainIcon.png");
+
 
     public MainWindow() {
         super((int)(screenHeight * 0.8), (int)(screenWidth * 0.6));

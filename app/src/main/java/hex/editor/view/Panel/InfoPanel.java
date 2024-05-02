@@ -28,6 +28,10 @@ import hex.editor.view.Panel.origin.WorkPanel;
 public class InfoPanel extends BasePanel {
     private JTextField search;
     private JLabel info;
+    public JLabel getInfo() {
+        return info;
+    }
+
     private JPanel panel;
     private JButton maskButton;
     private JButton hexButton;

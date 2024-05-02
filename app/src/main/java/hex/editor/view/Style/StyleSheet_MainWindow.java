@@ -16,6 +16,8 @@ public class StyleSheet_MainWindow implements IStyleSheet {
     private static final Color MainTextColor = new Color(240, 240, 240);
     private static final Color NotMainTextColor = new Color(150, 150, 150);
     private static final Color SelectedColor = new Color(200, 200, 0);
+    private static final Color ToolTipBackColor = new Color(50, 0, 0);
+    private static final Color ToolTipTextColor = new Color(255, 255, 0);
     @Override
     public double getLeftPanelSize() {
         return LEFT_SIZE;    
@@ -59,5 +61,13 @@ public class StyleSheet_MainWindow implements IStyleSheet {
     @Override
     public Color getSelectedColor() {
         return SelectedColor;
+    }
+    @Override
+    public Color getToolTipBackColor() {
+        return ToolTipBackColor;
+    }
+    @Override
+    public Color getToolTipTextColor() {
+        return ToolTipTextColor;
     }
 }

@@ -85,7 +85,7 @@ public class HexEditor {
         for (int row = 0; row < hexFromString.size(); row++) {
             List<Integer> pos_column = new ArrayList<>();
 
-            for (int column = 0; column < hexFromString.get(row).size(); column++) {
+            for (int column = 1; column < hexFromString.get(row).size(); column++) {
                 int i_byte = 0;
                 int start = column;
                 while(hexFromString.get(row).get(column++).equalsIgnoreCase(searchingHex.get(i_byte))) {
@@ -117,7 +117,7 @@ public class HexEditor {
             List<Integer> pos_column = new ArrayList<>();
 
             if (!hex.get(row).isEmpty()) {
-                for (int column = 0; column < hex.get(row).size(); column++) {
+                for (int column = 1; column < hex.get(row).size(); column++) {
                     Matcher match = regexp.matcher(hex.get(row).get(column));
                     if (match.find()) pos_column.add(column);
                 }

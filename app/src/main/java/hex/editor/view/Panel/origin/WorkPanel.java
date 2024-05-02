@@ -1,24 +1,14 @@
 package hex.editor.view.Panel.origin;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Exchanger;
+import hex.editor.view.MainWindow;
+import hex.editor.view.Panel.InfoPanel;
+import hex.editor.view.Style.IStyleSheet;
+import hex.editor.model.Info;
+import hex.editor.model.Types;
+import hex.editor.services.TableViewer;
+
 import javax.swing.BorderFactory;
+import javax.swing.Timer;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -26,18 +16,35 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import hex.editor.model.Info;
-import hex.editor.model.Types;
-import hex.editor.services.TableViewer;
-import hex.editor.view.MainWindow;
-import hex.editor.view.Panel.InfoPanel;
-import hex.editor.view.Style.IStyleSheet;
+import org.checkerframework.checker.units.qual.Time;
+
+import javax.swing.JToolTip;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+
+import java.awt.Component;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.Toolkit;
+import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Exchanger;
 
 public class WorkPanel extends BasePanel {
     private JTable table;
@@ -51,6 +58,12 @@ public class WorkPanel extends BasePanel {
     private InfoPanel infoPanel;
     private List<List<Integer>> positions;
     private DefaultTableModel model;
+    private JToolTip tooltip = new JToolTip();
+    private Integer lastX;
+    private Integer lastY;
+    private PopupFactory popupFactory = PopupFactory.getSharedInstance();
+    private Popup popup;
+
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.8));
@@ -63,6 +76,10 @@ public class WorkPanel extends BasePanel {
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getBackBaseColor());
+
+        this.tooltip.setBackground(styleSheet.getToolTipBackColor());
+        this.tooltip.setForeground(styleSheet.getToolTipTextColor());
+        this.tooltip.setBorder(new EmptyBorder(5, 5, 5, 5));
     }
 
     public void setTitle(String title) {
@@ -129,21 +146,27 @@ public class WorkPanel extends BasePanel {
         table = new JTable(model);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table1, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
-                Component c = super.getTableCellRendererComponent(table1, value, isSelected, hasFocus, rowIndex, columnIndex);
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
 
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
 
-                // Disable editing for the first column
                 c.setEnabled(columnIndex > 0);
 
                 if (positions != null) {
-                    for (List<Integer> columns : positions) {
-                        if (columns.contains(columnIndex)) {
-                            c.setBackground(styleSheet.getSelectedColor());
-                            break;
+                    for (List<Integer> rows : positions) {
+                        if (rowIndex == positions.indexOf(rows)) {
+                            for (Integer column : rows) {
+                                if (columnIndex == column) {
+                                    c.setBackground(styleSheet.getSelectedColor());
+                                        
+                                    return c;
+                                } 
+                           }
+                            
                         }
+                        
                     }
                 }
 
@@ -180,35 +203,23 @@ public class WorkPanel extends BasePanel {
             else break;
         }
 
+
+
         table.addMouseListener(new MouseListener() {
 
             @Override
             public void mouseClicked(MouseEvent event) {
-                System.out.println("Info: wait info");
-                int row = table.getSelectedRow();
-                int column = table.getSelectedColumn();
-
-                String ch = "empty";
-                try {
-                    if (model.getValueAt(row, column) != "") {
-                        List<List<String>> cells = new ArrayList<>();
-                        List<String> cell = new ArrayList<>();
-                        cell.add((String)model.getValueAt(row, column));
-                        cells.add(cell);
-                        hexExchanger.exchange(cells);
-                        ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
-                    }
-
-                    infoPanel.setInfo(new Info(row, column, ch, (String)model.getValueAt(row, column)));
-                    SwingUtilities.updateComponentTreeUI(infoPanel);
-                } catch (InterruptedException e) {
+                if (table.getSelectedColumn() > 0) {
+                    System.out.println("Info: wait info");
+                    int row = table.getSelectedRow();
+                    int column = table.getSelectedColumn();
+    
+                    loadInfo(model, row, column);
                 }
             }
 
             @Override
             public void mouseEntered(MouseEvent event) {
-                
-                
             }
 
             @Override
@@ -227,9 +238,49 @@ public class WorkPanel extends BasePanel {
             }
         });
 
-        table.addKeyListener(new KeyListener() {
+        table.addMouseMotionListener(new MouseMotionListener() {
+            Timer hoverTimer;
+            Timer scopeTimer;
+            @Override
+            public void mouseMoved(MouseEvent event) {
+                int row = table.rowAtPoint(event.getPoint());
+                int column = table.columnAtPoint(event.getPoint());
+                loadInfo(model, row, column);
 
-            private boolean isControlDown;
+
+                lastX = event.getXOnScreen();
+                lastY = event.getYOnScreen();
+
+                hoverTimer = new Timer(100, e -> {
+                    tooltip.setTipText(infoPanel.getInfo().getText());
+                    if (popup != null) {
+                        popup.hide();
+                    }
+                    popup = popupFactory.getPopup(table, tooltip, lastX + 10, lastY - 10);
+
+                    lastX = event.getXOnScreen();
+                    lastY = event.getYOnScreen();
+
+                    scopeTimer = new Timer(1000, x -> {
+                        if (lastX == event.getXOnScreen() && lastY == event.getYOnScreen()) {
+                            popup.show();
+                        }
+                    });
+                    scopeTimer.setRepeats(false);
+                    scopeTimer.start();
+
+                });
+                hoverTimer.setRepeats(false); 
+                hoverTimer.start();                               
+            }
+
+
+            @Override
+            public void mouseDragged(MouseEvent arg0) {
+            }
+        });
+
+        table.addKeyListener(new KeyListener() {
 
             @Override
             public void keyPressed(KeyEvent arg0) {
@@ -238,15 +289,8 @@ public class WorkPanel extends BasePanel {
 
             @Override
             public void keyReleased(KeyEvent arg0) {
-                if (arg0.isControlDown()) {
-                    isControlDown = true;
-                } else {
-                    isControlDown = false;
-                }
-
-                if (arg0.getKeyCode() == KeyEvent.VK_S && isControlDown) {
+                if (arg0.getKeyCode() == KeyEvent.VK_S && arg0.isControlDown()) {
                     infoPanel.showSearchWindow();
-                    update();
                 }
 
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
@@ -373,5 +417,23 @@ public class WorkPanel extends BasePanel {
         }
         
         return true;
+    }
+
+    private void loadInfo(DefaultTableModel model, int row, int column) {
+        String ch = "empty";
+        try {
+            if (model.getValueAt(row, column) != "") {
+                List<List<String>> cells = new ArrayList<>();
+                List<String> cell = new ArrayList<>();
+                cell.add((String)model.getValueAt(row, column));
+                cells.add(cell);
+                hexExchanger.exchange(cells);
+                ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
+            }
+
+            infoPanel.setInfo(new Info(row, column, ch, (String)model.getValueAt(row, column)));
+            SwingUtilities.updateComponentTreeUI(infoPanel);
+        } catch (InterruptedException e) {
+        }
     }
 } 
