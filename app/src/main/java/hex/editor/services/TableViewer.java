@@ -31,7 +31,7 @@ public class TableViewer {
             List<String> line = lines.get(i);
             Vector<String> inner = new Vector<String>();
             inner.add(String.valueOf(i));
-            for (int k = 1; k < columns_count; k++) {
+            for (int k = 0; k < columns_count; k++) {
                 if (k >= line.size()) {
                     inner.add("");
                 } else {

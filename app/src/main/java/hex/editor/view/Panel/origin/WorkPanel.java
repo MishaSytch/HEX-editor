@@ -112,6 +112,8 @@ public class WorkPanel extends BasePanel {
     }
 
     private void update() {
+        SwingUtilities.updateComponentTreeUI(table);
+        SwingUtilities.updateComponentTreeUI(pane);
         SwingUtilities.updateComponentTreeUI(this);
     }
 
@@ -169,17 +171,12 @@ public class WorkPanel extends BasePanel {
             }
 
         });
-
-        
         table.setForeground(styleSheet.getMainTextColor());
         table.setBackground(styleSheet.getBackBaseColor());
-
         table.setBorder(BorderFactory.createBevelBorder(0));
         table.setShowVerticalLines(true);
         table.setShowHorizontalLines(true);
-        table.setGridColor(styleSheet.getMainTextColor());
-
-        
+        table.setGridColor(styleSheet.getMainTextColor());  
         table.setAutoscrolls(true);
         table.getTableHeader().setReorderingAllowed(false);
         table.setRowSelectionAllowed(true);
@@ -193,18 +190,13 @@ public class WorkPanel extends BasePanel {
             }
             else break;
         }
-
-
-
         table.addMouseListener(new MouseListener() {
-
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
                     System.out.println("Info: wait info");
                     int row = table.getSelectedRow();
                     int column = table.getSelectedColumn();
-    
                     loadInfo(model, row, column - 1);
                 }
             }
@@ -228,7 +220,6 @@ public class WorkPanel extends BasePanel {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
                 loadInfo(model, row, column - 1);
-
                 showPopup(event);                               
             }
 
@@ -237,20 +228,17 @@ public class WorkPanel extends BasePanel {
         });
 
         table.addKeyListener(new KeyListener() {
-
             @Override
             public void keyPressed(KeyEvent arg0) {}
 
             @Override
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
-                        copiInClipboard(model);
+                    copiInClipboard(model);
                 }
-
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
                     insertFunction(model);
                 }
-
                 if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
                     deleteOperation(model);
                     update();
@@ -285,9 +273,8 @@ public class WorkPanel extends BasePanel {
         }
         
         for (String data : dataArray) {
-            if (data.trim().isEmpty()) {
-                return true;
-            }
+            if (data.trim().isEmpty()) return true;
+            
             if (!data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*$")) {
                 System.out.println("Invalid data: contains non-alphanumeric characters");
                 return false;
