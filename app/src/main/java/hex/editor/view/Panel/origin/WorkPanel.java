@@ -267,7 +267,7 @@ public class WorkPanel extends BasePanel {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                         String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        String[] values = data.split("\n|\t");
+                        String[] values = data.split("[\\t\\s\\W+]");
                         if (validateData(data) || validateDataArray(values)) {
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();

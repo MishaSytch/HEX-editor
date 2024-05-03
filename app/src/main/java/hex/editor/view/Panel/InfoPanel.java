@@ -195,7 +195,7 @@ public class InfoPanel extends BasePanel {
                                 System.out.println(button.getText());
                                 if (button.getText().equals(hexButton.getText())) {
                                     try {
-                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" ")).toList(), 1500, TimeUnit.MILLISECONDS);
+                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).toList(), 1500, TimeUnit.MILLISECONDS);
                                     } catch (InterruptedException | TimeoutException e) {}
                                     
                                 }     
