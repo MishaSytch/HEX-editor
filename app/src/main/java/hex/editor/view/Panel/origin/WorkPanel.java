@@ -22,8 +22,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import org.checkerframework.checker.units.qual.Time;
-
 import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
@@ -44,6 +42,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Deque;
+import java.util.ArrayDeque;
 import java.util.concurrent.Exchanger;
 
 public class WorkPanel extends BasePanel {
@@ -145,6 +145,11 @@ public class WorkPanel extends BasePanel {
     }
 
     private void createAndAddTable(DefaultTableModel model) {
+        if (table != null) {
+            pane.remove(table);
+            this.remove(pane);
+        }
+
         table = new JTable(model);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -257,13 +262,13 @@ public class WorkPanel extends BasePanel {
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
                     copyToClipBoard(model);
                 }
-
+                    
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                         String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        if (validateData(data)) {
-                            String[] values = data.split("[\t\n]+");
+                        String[] values = data.split("\n|\t");
+                        if (validateData(data) || validateDataArray(values)) {
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();
                             int valueIndex = 0;
@@ -310,7 +315,7 @@ public class WorkPanel extends BasePanel {
 
     private boolean validateData(String data) {
         // Проверка, что строка не пуста и соответствует определенному формату:
-        return data != null && (validateDataArray(data.split("[\t\n]+")) || data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*"));
+        return data != null && data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*");
     }
 
     private boolean validateDataArray(String[] dataArray) {
@@ -403,25 +408,42 @@ public class WorkPanel extends BasePanel {
     }
 
     private void insertWithShiftToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
+        List<List<String>> copyHEX = new ArrayList<>();
+        for (List<String> line : hex) {
+            List<String> list = new ArrayList<>();
+            for (String cell : line) {
+                list.add(cell);
+            }
+            copyHEX.add(list);
+        }
+
         for (int row : selectedRows) {
-            for (int col : selectedColumns) {
-                if (col == 0) continue;
-                if (values.length < selectedColumns.length * selectedRows.length) {
-                    String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
-                    for(int i = 0; i < tmpValues.length; i++) {
-                        if (i < values.length) {
-                            tmpValues[i] = values[i];
-                        } else {
-                            tmpValues[i] = "";
-                        }
-                    }
-                    values = tmpValues;
+            Deque<String> queue = new ArrayDeque<>();
+            List<String> tmpHex = copyHEX.get(row);
+
+            int i_column = 0;
+            for (int i = selectedColumns[i_column]; true; i++) {
+                if (i == 0) continue;
+                
+                while (i > tmpHex.size() - 1) {
+                    tmpHex.add("");
                 }
-                if (valueIndex < values.length) {
-                    model.setValueAt(values[valueIndex++], row, col);
+                if (i_column < selectedColumns.length && i == selectedColumns[i_column++]) {
+                    queue.addLast(tmpHex.get(i));
+                    tmpHex.set(i, valueIndex < values.length ? values[valueIndex++] : "");
+                } else {
+                    tmpHex.set(i, queue.removeFirst());
+                    if (queue.isEmpty() && i_column == selectedColumns.length) {
+                        break;
+                    }
                 }
             }
+            copyHEX.set(row, tmpHex);
         }
+        hex = copyHEX;
+        model = TableViewer.getTable(hex);
+        createAndAddTable(model);
+        update();
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
@@ -444,6 +466,7 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
+        update();
     }
 
     private void copyToClipBoard(DefaultTableModel model) {
