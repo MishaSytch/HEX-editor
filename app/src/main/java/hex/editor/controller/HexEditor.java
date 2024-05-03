@@ -132,4 +132,12 @@ public class HexEditor {
         }
         return pos_rows;
     }
+
+    public void updateByHex(List<List<String>> newHex) {
+        strings = newHex.stream()
+            .map( list -> list.stream()
+                    .map(h -> getCharFromHex(h))
+                    .collect(Collectors.joining(""))
+            ).toList();
+    }
 }

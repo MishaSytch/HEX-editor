@@ -16,8 +16,6 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -45,6 +43,8 @@ import java.util.Map;
 import java.util.Deque;
 import java.util.ArrayDeque;
 import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class WorkPanel extends BasePanel {
     private JTable table;
@@ -52,6 +52,7 @@ public class WorkPanel extends BasePanel {
     private Exchanger<Object> hexExchanger;
     private Exchanger<Object> charsExchanger;
     private Exchanger<Object> integerExchanger;
+    private Exchanger<Object> UPDATE_BY_HEXExchanger;
     private JScrollPane pane;
     private JLabel text;
     private List<List<String>> hex;
@@ -73,6 +74,7 @@ public class WorkPanel extends BasePanel {
         this.hexExchanger = exchangers.get(Types.HEX);
         this.charsExchanger = exchangers.get(Types.CHARS);
         this.integerExchanger = exchangers.get(Types.INTEGER);
+        this.UPDATE_BY_HEXExchanger = exchangers.get(Types.UPDATE_BY_HEX);
 
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
@@ -104,16 +106,12 @@ public class WorkPanel extends BasePanel {
             System.out.println("View: received hex");
             model = TableViewer.getTable(hex);
             createAndAddTable(model);
-            update();
+            SwingUtilities.updateComponentTreeUI(this);
             System.out.println("View: hex loaded");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.out.println("View: hex loading interrupted");
         }
-    }
-
-    private void update() {
-        SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void waitPosition() {
@@ -130,10 +128,7 @@ public class WorkPanel extends BasePanel {
     }
 
     public void selectCell(List<List<Integer>> pos) {
-        positions = pos; 
-        this.remove(pane);
-        pane.remove(table);
-        createAndAddTable(model);
+        positions = pos;
         SwingUtilities.updateComponentTreeUI(this);
         System.out.println("View: Cell selected");
     }
@@ -149,18 +144,14 @@ public class WorkPanel extends BasePanel {
             pane.remove(table);
             this.remove(pane);
         }
-
         table = new JTable(model);
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
-
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
-
                 c.setEnabled(columnIndex > 0);
-
                 if (positions != null) {
                     for (List<Integer> rows : positions) {
                         if (rowIndex == positions.indexOf(rows)) {
@@ -170,32 +161,23 @@ public class WorkPanel extends BasePanel {
                                         
                                     return c;
                                 } 
-                           }
-                            
-                        }
-                        
+                           }  
+                        }            
                     }
                 }
-
                 if (isSelected) {
                     c.setBackground(styleSheet.getSelectedColor());
                 }
 
                 return c;
             }
-
         });
-
-        
         table.setForeground(styleSheet.getMainTextColor());
         table.setBackground(styleSheet.getBackBaseColor());
-
         table.setBorder(BorderFactory.createBevelBorder(0));
         table.setShowVerticalLines(true);
         table.setShowHorizontalLines(true);
         table.setGridColor(styleSheet.getMainTextColor());
-
-        
         table.setAutoscrolls(true);
         table.getTableHeader().setReorderingAllowed(false);
         table.setRowSelectionAllowed(true);
@@ -241,7 +223,7 @@ public class WorkPanel extends BasePanel {
             public void mouseMoved(MouseEvent event) {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
-                loadInfo(model, row, column - 1);
+                loadInfo(model, row, column);
                 showPopup(event);                               
             }
 
@@ -279,7 +261,8 @@ public class WorkPanel extends BasePanel {
                             } else {
                                 insertToModel(model, values, selectedRows, selectedColumns, valueIndex);
                             }
-                            System.out.println("Data pasted with validation");
+                            System.out.println("Data pasted with validation");   
+                            updateService();
                         } else {
                             System.out.println("Invalid data");
                         }
@@ -293,7 +276,7 @@ public class WorkPanel extends BasePanel {
                     int[] selectedColumns = table.getSelectedColumns();
                     
                     deleteFromModel(model, selectedRows, selectedColumns);
-                    update();
+                    updateService();
                 }
             }
 
@@ -338,6 +321,10 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadInfo(DefaultTableModel model, int row, int column) {
+        if (column == 0) {
+            return;
+        }
+
         String ch = "empty";
         try {
             if (model.getValueAt(row, column) != "") {
@@ -405,6 +392,7 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private void insertWithShiftToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
@@ -443,7 +431,7 @@ public class WorkPanel extends BasePanel {
         hex = copyHEX;
         model = TableViewer.getTable(hex);
         createAndAddTable(model);
-        update();
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
@@ -466,7 +454,7 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        update();
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private void copyToClipBoard(DefaultTableModel model) {
@@ -475,8 +463,10 @@ public class WorkPanel extends BasePanel {
         StringBuilder sb = new StringBuilder();
         for (int row : selectedRows) {
             for (int col : selectedColumns) {
+                if (col == 0) continue;
+
                 sb.append(model.getValueAt(row, col).toString());
-                sb.append("\t");
+                sb.append(";");
             }
             sb.append("\n");
         }
@@ -484,5 +474,14 @@ public class WorkPanel extends BasePanel {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(stringSelection, null);
         System.out.println("Copied to clipboard");
+    }
+
+    private void updateService() {
+        try {
+            System.out.println("View: Update by hex");
+            UPDATE_BY_HEXExchanger.exchange(hex, 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+            System.err.println(e.getMessage());
+        }
     }
 } 
