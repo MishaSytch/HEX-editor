@@ -2,6 +2,7 @@ package hex.editor.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,11 +19,21 @@ public class TestHexEditor {
     static HexEditor hexEditor;
 
     @BeforeAll
-    static void getter() {
+    static void setup() {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
         oneCharPath = FilePaths.getOneChar();
-        heXservice = new HexService();
+        // HexService instantiation is not needed since its methods are static
+    }
+
+    @Test
+    void testGetHexStringCorrectly() {
+        hexEditor = new HexEditor(verySmallFilePath);
+        List<List<String>> hex = hexEditor.getHexLines();
+        List<List<String>> expected = new ArrayList<>();
+        expected.add(Arrays.asList("50", "75", "6C", "76", "69", "6E", "61", "72", "20", "65", "6C", "65", "6D", "65", "6E", "74", "75", "6D", "20", "69", "6E", "74", "65", "67", "65", "72", "2E"));
+
+        Assertions.assertEquals(expected, hex);
     }
 
     @Test
