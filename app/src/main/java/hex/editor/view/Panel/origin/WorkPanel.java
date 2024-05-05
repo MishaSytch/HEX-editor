@@ -16,6 +16,8 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -23,6 +25,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 
 import java.awt.Component;
 import java.awt.datatransfer.Clipboard;
@@ -42,9 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Deque;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.concurrent.Exchanger;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class WorkPanel extends BasePanel {
     private JTable table;
@@ -94,6 +97,7 @@ public class WorkPanel extends BasePanel {
         this.add(text, BorderLayout.NORTH);
     }
 
+    @SuppressWarnings("unchecked")
     public void showData() {
         System.out.println("View: wait hex");
         try {
@@ -105,6 +109,7 @@ public class WorkPanel extends BasePanel {
             hex = (List<List<String>>) hexExchanger.exchange(null);
             System.out.println("View: received hex");
             model = TableViewer.getTable(hex);
+
             createAndAddTable(model);
             SwingUtilities.updateComponentTreeUI(this);
             System.out.println("View: hex loaded");
@@ -114,7 +119,10 @@ public class WorkPanel extends BasePanel {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void waitPosition() {
+        if (hex == null) return;
+
         System.out.println("View: Position wait");
         try {
                 positions = (List<List<Integer>>) integerExchanger.exchange(null);
@@ -139,8 +147,15 @@ public class WorkPanel extends BasePanel {
         System.out.println("View: Cell unselected");
     }
 
+    public void updateData() {
+        if (hex == null) return;
+
+        updateService();
+    }
+
     private void createAndAddTable(DefaultTableModel model) {
         if (table != null) {
+            table.removeAll();
             pane.remove(table);
             this.remove(pane);
         }
@@ -156,7 +171,7 @@ public class WorkPanel extends BasePanel {
                     for (List<Integer> rows : positions) {
                         if (rowIndex == positions.indexOf(rows)) {
                             for (Integer column : rows) {
-                                if (columnIndex == column) {
+                                if (columnIndex == column + 1) {
                                     c.setBackground(styleSheet.getSelectedColor());
                                         
                                     return c;
@@ -184,6 +199,9 @@ public class WorkPanel extends BasePanel {
         table.setColumnSelectionAllowed(true);
         table.setRowHeight(40);
 
+        table.setRowSelectionInterval(0, 0);
+        table.setColumnSelectionInterval(1, 1); 
+
         TableColumnModel columnModel = table.getColumnModel();
         for (int i = 0; i < columnModel.getColumnCount(); i++) {
             if (i < columnModel.getColumnCount()) {
@@ -191,6 +209,7 @@ public class WorkPanel extends BasePanel {
             }
             else break;
         }
+
 
         table.addMouseListener(new MouseListener() {
 
@@ -201,7 +220,7 @@ public class WorkPanel extends BasePanel {
                     int row = table.getSelectedRow();
                     int column = table.getSelectedColumn();
     
-                    loadInfo(model, row, column - 1);
+                    loadInfo(model, row, column);
                 }
             }
 
@@ -232,6 +251,20 @@ public class WorkPanel extends BasePanel {
             }
         });
 
+        table.getDefaultEditor(String.class).addCellEditorListener( new CellEditorListener() {
+            @Override
+            public void editingStopped(ChangeEvent e) {
+                int row = table.getSelectedRow();
+                int column = table.getSelectedColumn();
+                String newValue = (String) table.getValueAt(row, column);
+                updateModel(row, column, newValue);
+            }
+        
+            @Override
+            public void editingCanceled(ChangeEvent e) {
+            }
+        });
+
         table.addKeyListener(new KeyListener() {
 
             @Override
@@ -242,27 +275,32 @@ public class WorkPanel extends BasePanel {
             @Override
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
-                    copyToClipBoard(model);
+                    int[] selectedRows = table.getSelectedRows();
+                    int[] selectedColumns = table.getSelectedColumns();
+                    copyToClipBoard(model, selectedRows, selectedColumns);
+                }
+
+                if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_X) {
+                    int[] selectedRows = table.getSelectedRows();
+                    int[] selectedColumns = table.getSelectedColumns();
+                    int result = JOptionPane.showConfirmDialog(null, "Do you want to cut with shift", "Cut", JOptionPane.YES_NO_OPTION);
+                    cutToClipboard(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
                 }
                     
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                         String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        String[] values = data.split("[\\t\\s\\W+]");
+                        String[] values = data.replace("\n", "").replace("\t", ";").split(";");
                         if (validateData(data) || validateDataArray(values)) {
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();
                             int valueIndex = 0;
 
                             int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
-                            if (result == JOptionPane.YES_OPTION) {
-                                insertWithShiftToModel(model, values, selectedRows, selectedColumns, valueIndex);
-                            } else {
-                                insertToModel(model, values, selectedRows, selectedColumns, valueIndex);
-                            }
-                            System.out.println("Data pasted with validation");   
-                            updateService();
+                            insertToModel(model, values, selectedRows, selectedColumns, valueIndex, result == JOptionPane.YES_OPTION);
+                            
+                            System.out.println("Data pasted with validation");
                         } else {
                             System.out.println("Invalid data");
                         }
@@ -274,9 +312,11 @@ public class WorkPanel extends BasePanel {
                 if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
                     int[] selectedRows = table.getSelectedRows();
                     int[] selectedColumns = table.getSelectedColumns();
-                    
-                    deleteFromModel(model, selectedRows, selectedColumns);
-                    updateService();
+                    if (selectedRows.length > 0 && selectedColumns.length > 0) {
+                        int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
+                        deleteFromModel(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
+                        System.out.println("View: deleted selected cells");
+                    }
                 }
             }
 
@@ -297,8 +337,7 @@ public class WorkPanel extends BasePanel {
     }
 
     private boolean validateData(String data) {
-        // Проверка, что строка не пуста и соответствует определенному формату:
-        return data != null && data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*");
+        return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.length() == 0);
     }
 
     private boolean validateDataArray(String[] dataArray) {
@@ -306,25 +345,18 @@ public class WorkPanel extends BasePanel {
             System.out.println("Data array is null");
             return false;
         }
-        
+
+        boolean valid = true;
         for (String data : dataArray) {
-            if (data.trim().isEmpty()) {
-                return true;
-            }
-            if (!data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$|[\\s]*$")) {
-                System.out.println("Invalid data: contains non-alphanumeric characters");
-                return false;
-            }
+            valid &=  validateData(data);
         }
         
-        return true;
+        return valid;
     }
 
+    @SuppressWarnings("unchecked")
     private void loadInfo(DefaultTableModel model, int row, int column) {
-        if (column == 0) {
-            return;
-        }
-
+        if (column == 0) return;
         String ch = "empty";
         try {
             if (model.getValueAt(row, column) != "") {
@@ -336,10 +368,35 @@ public class WorkPanel extends BasePanel {
                 ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
             }
 
-            infoPanel.setInfo(new Info(row, column, ch, (String)model.getValueAt(row, column)));
+            infoPanel.setInfo(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
             SwingUtilities.updateComponentTreeUI(infoPanel);
         } catch (InterruptedException e) {
         }
+    }
+
+    private void loadInfo(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
+        List<List<Info>> blockValues = new ArrayList<>();
+        for (int row : selectedRows) {
+            List<Info> rowData = new ArrayList<>();
+            for (int column : selectedColumns) {
+                String ch = "empty";
+                try {
+                    if (model.getValueAt(row, column) != "") {
+                    List<List<String>> cells = new ArrayList<>();
+                    List<String> cell = new ArrayList<>();
+                    cell.add((String)model.getValueAt(row, column));
+                    cells.add(cell);
+                    hexExchanger.exchange(cells);
+                    ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
+                    }
+                    SwingUtilities.updateComponentTreeUI(infoPanel);
+                } catch (InterruptedException e) {
+                }
+                rowData.add(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
+                blockValues.add(rowData);       
+            }
+        }
+        SwingUtilities.updateComponentTreeUI(infoPanel);
     }
 
     private void showPopup(MouseEvent event) {
@@ -369,97 +426,87 @@ public class WorkPanel extends BasePanel {
         hoverTimer.start();
     }
 
-    private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
-        if (selectedRows.length > 0 && selectedColumns.length > 0) {
-            int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                for (int row : selectedRows) {
-                    for (int col : selectedColumns) {
-                        if (col == 0) continue;
-                        for (int shiftCol = col; shiftCol < table.getColumnCount() - 1; shiftCol++) {
-                            table.setValueAt(table.getValueAt(row, shiftCol + 1), row, shiftCol);
-                        }
-                        table.setValueAt("", row, table.getColumnCount() - 1);
-                    }
-                }
-            }
-            else {
-                for (int row : selectedRows) {
-                    for (int col : selectedColumns) {
-                        if (col == 0) continue;
-                        model.setValueAt("", row, col);
-                    }
-                }
-            }
-        }
-        SwingUtilities.updateComponentTreeUI(this);
-    }
-
-    private void insertWithShiftToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
+    private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {
+        int i_selectedRows = 0;
         List<List<String>> copyHEX = new ArrayList<>();
-        for (List<String> line : hex) {
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int k_selectedColumn = selectedColumns[0] == 0 ? 1 : 0;
             List<String> list = new ArrayList<>();
-            for (String cell : line) {
-                list.add(cell);
+            for (int k = 1; k < model.getColumnCount(); k++) {
+                if (is_shifted) {
+                    if(i_selectedRows >= selectedRows.length || i_selectedRows < selectedRows.length && i != selectedRows[i_selectedRows] 
+                    || k_selectedColumn >= selectedColumns.length || k_selectedColumn < selectedColumns.length && k != selectedColumns[k_selectedColumn]
+                    ) {
+                        list.add((String)model.getValueAt(i, k));
+                    } else {
+                        k_selectedColumn++;
+                    }
+                } else {
+                    if (k == selectedColumns[k_selectedColumn] && i == selectedRows[i_selectedRows]) {
+                        k_selectedColumn++;
+                        list.add("");
+                    } else {
+                        list.add((String)model.getValueAt(i, k));
+                    }
+                }
             }
             copyHEX.add(list);
+            i_selectedRows++;
         }
-
-        for (int row : selectedRows) {
-            Deque<String> queue = new ArrayDeque<>();
-            List<String> tmpHex = copyHEX.get(row);
-
-            int i_column = 0;
-            for (int i = selectedColumns[i_column]; true; i++) {
-                if (i == 0) continue;
-                
-                while (i > tmpHex.size() - 1) {
-                    tmpHex.add("");
-                }
-                if (i_column < selectedColumns.length && i == selectedColumns[i_column++]) {
-                    queue.addLast(tmpHex.get(i));
-                    tmpHex.set(i, valueIndex < values.length ? values[valueIndex++] : "");
-                } else {
-                    tmpHex.set(i, queue.removeFirst());
-                    if (queue.isEmpty() && i_column == selectedColumns.length) {
-                        break;
-                    }
-                }
-            }
-            copyHEX.set(row, tmpHex);
-        }
+        
         hex = copyHEX;
         model = TableViewer.getTable(hex);
         createAndAddTable(model);
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex) {
-        for (int row : selectedRows) {
-            for (int col : selectedColumns) {
-                if (col == 0) continue;
-                if (values.length < selectedColumns.length * selectedRows.length) {
-                    String[] tmpValues = new String[selectedColumns.length * selectedRows.length];
-                    for(int i = 0; i < tmpValues.length; i++) {
-                        if (i < values.length) {
-                            tmpValues[i] = values[i];
-                        } else {
-                            tmpValues[i] = "";
-                        }
+    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex, boolean is_shifted) {
+        List<List<String>> copyHEX = new ArrayList<>();
+        int i_selectedRows = 0;
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int k_selectedColumn = selectedColumns[0] == 0 ? 1 : 0;
+            boolean visited = false;
+            List<String> list = new ArrayList<>();
+            Deque<String> queue = new ArrayDeque<>();
+            for (int k = 1; k < model.getColumnCount(); k++) {
+                if (
+                    k_selectedColumn < selectedColumns.length && k == selectedColumns[k_selectedColumn]
+                    && i_selectedRows < selectedRows.length && i == selectedRows[i_selectedRows]
+                ) {
+                    k_selectedColumn++;
+                    visited = true;
+
+                    if (is_shifted) queue.addLast((String)model.getValueAt(i, k));
+                    list.add(
+                        valueIndex < values.length 
+                        ? values[valueIndex++] 
+                        : is_shifted 
+                            ? "" 
+                            : (String)model.getValueAt(i, k)
+                    );
+                } else {
+                    if (!queue.isEmpty()) {
+                        list.add(queue.removeFirst());
+                        k--;
                     }
-                    values = tmpValues;
-                }
-                if (valueIndex < values.length) {
-                    model.setValueAt(values[valueIndex++], row, col);
+                    else {
+                        list.add((String)model.getValueAt(i, k));
+                    }
+
                 }
             }
+            if (visited) i_selectedRows++;
+            copyHEX.add(list);
         }
+        
+        hex = copyHEX;
+        model = TableViewer.getTable(hex);
+        createAndAddTable(model);
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void copyToClipBoard(DefaultTableModel model) {
-        int[] selectedRows = table.getSelectedRows();
-        int[] selectedColumns = table.getSelectedColumns();
+
+    private void copyToClipBoard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
         StringBuilder sb = new StringBuilder();
         for (int row : selectedRows) {
             for (int col : selectedColumns) {
@@ -479,9 +526,37 @@ public class WorkPanel extends BasePanel {
     private void updateService() {
         try {
             System.out.println("View: Update by hex");
-            UPDATE_BY_HEXExchanger.exchange(hex, 1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | TimeoutException e) {
+            UPDATE_BY_HEXExchanger.exchange(hex);
+        } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
     }
+
+    private void updateModel(int row, int column, String newValue) {
+        if (model != null && row >= 0 && column > 0 && row < model.getRowCount() && column < model.getColumnCount()) {
+            model.setValueAt(newValue, row, column);
+        
+            List<List<String>> copyHEX = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            List<String> list = new ArrayList<>();
+            for (int k = 1; k < model.getColumnCount(); k++) {
+                list.add((String)model.getValueAt(i, k));
+            }
+            copyHEX.add(list);
+        }
+        
+        hex = copyHEX;
+        model = TableViewer.getTable(hex);
+        createAndAddTable(model);
+        SwingUtilities.updateComponentTreeUI(this);
+        System.out.println("Model updated at row: " + row + " column: " + (column - 1));
+        }
+    }
+
+    private void cutToClipboard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {
+        copyToClipBoard(model, selectedRows, selectedColumns);
+        deleteFromModel(model, selectedRows, selectedColumns, is_shifted);    
+    }
+
+    
 } 

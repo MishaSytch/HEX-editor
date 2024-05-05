@@ -32,6 +32,7 @@ public class ServiceThread implements Runnable {
         this.UPDATE_BY_HEXExchanger = exchangers.get(Types.UPDATE_BY_HEX);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
         boolean isWaiting = true;
@@ -116,22 +117,26 @@ public class ServiceThread implements Runnable {
     }  
 
     private void gotUPDATE_BY_HEX(List<List<String>> UPDATE_BY_HEX) {
-        System.out.println("Service: Data updating...");
-        hexEditor.updateByHex(UPDATE_BY_HEX);
-        System.out.println("Service: Data updated");
+        System.out.println("Service: Data is updating...");
+        hexEditor.editOpenedFileByHex(UPDATE_BY_HEX);
+        try {
+            UPDATE_BY_HEXExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+        }
+        System.out.println("Service: Data was updated");
     }
 
     // Получение файла, его чтение, отправка строк в форме HEX 
     private void gotFile(File file) {
         try {
-            System.out.println("Service: File added");
+            System.out.println("Service: File was added");
             hexEditor = new HexEditor(file.getAbsolutePath());
 
             System.out.println("Service: File to Hex");
 
             hexExchanger.exchange(hexEditor.getHexLines());
             
-            System.out.println("Service: Hex sent");
+            System.out.println("Service: Hex was sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -140,10 +145,10 @@ public class ServiceThread implements Runnable {
     // Получение строк в форме HEX, перевод в CHAR, отправка 
     private void gotHex(List<List<String>> data) {
         try {
-            System.out.println("Service: Hex added");
+            System.out.println("Service: Hex were added");
             
             charsExchanger.exchange(data.stream().map(x -> hexEditor.getCharsFromHex(x)).toList());
-            System.out.println("Service: Chars sent");
+            System.out.println("Service: Chars were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -152,10 +157,10 @@ public class ServiceThread implements Runnable {
     // Получение строк CHAR, перевод в HEX, отправка
     private void gotChars(List<List<String>> data) {
         try {
-            System.out.println("Service: Chars added");
+            System.out.println("Service: Chars were added");
             
             hexExchanger.exchange(data.stream().map(x -> hexEditor.getHexFromChars(x)).toList());
-            System.out.println("Service: Hex sent");
+            System.out.println("Service: Hex were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -163,10 +168,10 @@ public class ServiceThread implements Runnable {
 
     private void gotSEARCH_BY_STRING(String mask) {
         try {
-            System.out.println("Service: mask added");
+            System.out.println("Service: mask was added");
             if (hexEditor.getStrings() != null) {
                 integerExchanger.exchange(hexEditor.findByMask(mask));
-                System.out.println("Service: Position sent");
+                System.out.println("Service: Position was sent");
             } else {
                 integerExchanger.exchange((Object)(new ArrayList<>()));
                 System.out.println("Service: File is null");
@@ -179,10 +184,10 @@ public class ServiceThread implements Runnable {
 
     private void gotSEARCH_BY_HEX(List<String> hex) {
         try {
-            System.out.println("Service: hex for search added");
+            System.out.println("Service: hex for search was added");
             if (hexEditor.getStrings() != null) {
                 integerExchanger.exchange(hexEditor.find(hex));
-                System.out.println("Service: Position sent");
+                System.out.println("Service: Position was sent");
             } else {
                 integerExchanger.exchange((Object)(new ArrayList<>()));
                 System.out.println("Service: File is null");

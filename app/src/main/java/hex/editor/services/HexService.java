@@ -27,14 +27,14 @@ public class HexService {
         return hex.stream()
             .filter(x -> {
                 if (
-                    x != "" 
+                    x.equals(" ") || x.length() == 0
                     || (byte)(x.toUpperCase().charAt(0)) >= (byte)'A' && (byte)(x.toUpperCase().charAt(0)) <= (byte)'F'
                     || (byte)(x.toUpperCase().charAt(0)) >= (byte)'0' && (byte)(x.toUpperCase().charAt(0)) <= (byte)'9'
                 )
                     return true;
                 throw new NumberFormatException();
             })
-            .map(hx -> ((char)Integer.parseInt(hx, 16)))
+            .map(hx -> hx.length() == 0 ? "" : (char)Integer.parseInt(hx, 16))
             .map(ch -> String.valueOf(ch))
             .toList();
     }
@@ -43,11 +43,6 @@ public class HexService {
         if (chars.isEmpty()) throw new ArrayIndexOutOfBoundsException();
 
         return chars.stream()
-            .filter(x -> {
-                if (x != "") return true;
-
-                throw new NullPointerException();
-            })
             .map(str -> str.charAt(0))
             .map(ch -> {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
