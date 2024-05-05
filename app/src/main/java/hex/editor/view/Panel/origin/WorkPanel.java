@@ -21,6 +21,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import javax.swing.JSlider;
 
 import javax.swing.JToolTip;
 import javax.swing.Popup;
@@ -234,7 +235,8 @@ public class WorkPanel extends BasePanel {
             public void mousePressed(MouseEvent event) {}
 
             @Override
-            public void mouseReleased(MouseEvent event) {}
+            public void mouseReleased(MouseEvent event) {
+            }
         });
 
         table.addMouseMotionListener(new MouseMotionListener() {
@@ -374,37 +376,26 @@ public class WorkPanel extends BasePanel {
         }
     }
 
-    private void loadInfo(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
-        List<List<Info>> blockValues = new ArrayList<>();
-        for (int row : selectedRows) {
-            List<Info> rowData = new ArrayList<>();
-            for (int column : selectedColumns) {
-                String ch = "empty";
-                try {
-                    if (model.getValueAt(row, column) != "") {
-                    List<List<String>> cells = new ArrayList<>();
-                    List<String> cell = new ArrayList<>();
-                    cell.add((String)model.getValueAt(row, column));
-                    cells.add(cell);
-                    hexExchanger.exchange(cells);
-                    ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
-                    }
-                    SwingUtilities.updateComponentTreeUI(infoPanel);
-                } catch (InterruptedException e) {
-                }
-                rowData.add(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
-                blockValues.add(rowData);       
-            }
-        }
-        SwingUtilities.updateComponentTreeUI(infoPanel);
-    }
-
     private void showPopup(MouseEvent event) {
+        int[] selectedColumns = table.getSelectedColumns();
+
         lastX = event.getXOnScreen();
         lastY = event.getYOnScreen();
 
+        JSlider infoSlider = new JSlider(JSlider.HORIZONTAL, 0, selectedColumns.length - 1, 0);
+        infoSlider.setMajorTickSpacing(1);
+        infoSlider.setPaintTicks(true);
+        infoSlider.setPaintLabels(true);
+
         hoverTimer = new Timer(100, e -> {
-            tooltip.setTipText(infoPanel.getInfo().getText());
+            if (selectedColumns.length > 1) {
+                for (int column : selectedColumns) {
+                    infoSlider.add(getText(new Info(table.getSelectedRow(), column, "", table.getValueAt(table.getSelectedRow(), column).toString()).getInfo()));
+                }
+                tooltip.add(infoSlider);
+            } else {
+                tooltip.setTipText(infoPanel.getInfo().getText());
+            }
             if (popup != null) {
                 popup.hide();
             }
