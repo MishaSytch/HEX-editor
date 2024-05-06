@@ -2,11 +2,7 @@ package hex.editor.view;
 
 import javax.swing.*;
 import hex.editor.view.Frame.BaseFrame;
-import hex.editor.view.Panel.InfoPanel;
-
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 
 
