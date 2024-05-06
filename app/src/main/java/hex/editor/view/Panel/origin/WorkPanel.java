@@ -26,9 +26,6 @@ import javax.swing.JSlider;
 import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
-import javax.swing.JPopupMenu;
-import javax.swing.JMenuItem;
-
 import java.awt.Component;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -47,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Deque;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.concurrent.Exchanger;
 
 public class WorkPanel extends BasePanel {
