@@ -31,7 +31,7 @@ public class TestFileViewer {
 
     @Test
     void testFileViewer_verySmallFilePath() {
-        FileViewer fileViewer = new FileViewer("C:\\Users\\misha\\Documents\\nicetu\\HEX-editor\\app\\src\\test\\java\\hex\\editor\\filesForTest\\verySmallText.txt");
+        FileViewer fileViewer = new FileViewer(verySmallFilePath);
         List<String> lines = fileViewer.getLines();
         List<String> list = new ArrayList<String>();
         list.add("Pulvinar elementum integer.");

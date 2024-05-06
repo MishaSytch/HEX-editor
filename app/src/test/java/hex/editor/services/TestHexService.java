@@ -33,9 +33,9 @@ public class TestHexService {
 
     @Test 
     void testGetHex_none() {
-        List<String> hex = HexService.getHexFromString("\n");
+        List<String> hex = HexService.getHexFromString("B");
         List<String> res = new ArrayList<>();
-        res.add(Integer.toHexString((byte)'\n'));
+        res.add(Integer.toHexString((byte)'B'));
 
         Assertions.assertEquals(res, hex);
     }
@@ -55,7 +55,8 @@ public class TestHexService {
     @Test
     void testGetCharsFromString_small() {
         List<String> res = new ArrayList<>();
-        res.add("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!");
+        for (String str : new String("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!").split(""))
+            res.add(str);
         Assertions.assertEquals(res, HexService.getCharsFromString("Pulvinar elementum integer.\n\nЗаморозки наступили 3-го числа!"));
     }
 
