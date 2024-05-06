@@ -3,6 +3,7 @@ package hex.editor.services;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HexService {
 
@@ -14,11 +15,11 @@ public class HexService {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
                 return String.format("%02x", (int)ch).toUpperCase();
             })
-            .toList();
+            .collect(Collectors.toList());
     }
 
     public static List<String> getCharsFromString(String line) throws NullPointerException {
-        return Arrays.stream(line.split("")).toList();
+        return Arrays.stream(line.split("")).collect(Collectors.toList());
     }
 
     public static List<String> getCharsFromHex(List<String> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
@@ -36,7 +37,7 @@ public class HexService {
             })
             .map(hx -> hx.length() == 0 ? "" : (char)Integer.parseInt(hx, 16))
             .map(ch -> String.valueOf(ch))
-            .toList();
+            .collect(Collectors.toList());
     }
 
     public static List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
@@ -48,6 +49,6 @@ public class HexService {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
                 return String.format("%02x", (int)ch).toUpperCase();
             })
-            .toList();
+            .collect(Collectors.toList());
     }
 }

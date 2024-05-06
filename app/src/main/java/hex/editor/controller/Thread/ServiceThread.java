@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.model.Types;
@@ -147,7 +148,7 @@ public class ServiceThread implements Runnable {
         try {
             System.out.println("Service: Hex were added");
             
-            charsExchanger.exchange(data.stream().map(x -> hexEditor.getCharsFromHex(x)).toList());
+            charsExchanger.exchange(data.stream().map(x -> hexEditor.getCharsFromHex(x)).collect(Collectors.toList()));
             System.out.println("Service: Chars were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
@@ -159,7 +160,7 @@ public class ServiceThread implements Runnable {
         try {
             System.out.println("Service: Chars were added");
             
-            hexExchanger.exchange(data.stream().map(x -> hexEditor.getHexFromChars(x)).toList());
+            hexExchanger.exchange(data.stream().map(x -> hexEditor.getHexFromChars(x)).collect(Collectors.toList()));
             System.out.println("Service: Hex were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
