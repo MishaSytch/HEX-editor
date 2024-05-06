@@ -11,6 +11,18 @@ plugins {
     id 'application'
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+        vendor = JvmVendorSpec.ADOPTOPENJDK
+    }
+}
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -19,6 +31,8 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    implementation 'org.junit:junit5-engine:5.0.0-ALPHA'
+
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:31.1-jre'
