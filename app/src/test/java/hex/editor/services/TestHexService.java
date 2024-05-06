@@ -1,6 +1,7 @@
 package hex.editor.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +21,27 @@ public class TestHexService {
         bigFilePath = FilePaths.getBigFilePath();
         verySmallFilePath = FilePaths.getVerySmallFilePath();
         oneChar = FilePaths.getOneChar();
+    }
+
+    @Test
+    public void testGetHexFromStringReturnsHexList() {
+
+        String line = "Hello World";
+    
+        List<String> result = HexService.getHexFromString(line);
+
+        List<String> expected = Arrays.asList("48", "65", "6C", "6C", "6F", "20", "57", "6F", "72", "6C", "64");
+        Assertions.assertEquals(expected, result);
+    }
+
+    // getHexFromString method handles null input string
+    @Test
+    public void testGetHexFromStringHandlesNullInput() {
+        String line = null;
+
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            HexService.getHexFromString(line);
+        });
     }
 
     @Test 

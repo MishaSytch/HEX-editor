@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.swing.JPanel;
 import javax.swing.JButton;
@@ -20,7 +21,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-
 import hex.editor.model.Info;
 import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
@@ -50,16 +50,18 @@ public class InfoPanel extends BasePanel {
         this.setLayout(new BorderLayout());
         this.setBorder(new EmptyBorder(10, 5, 10, 0));
 
-
         updateSearch();        
         this.add(search, BorderLayout.SOUTH);
     }
 
     public void setInfo(Info info_Info) {
         updateSearch();
-        info = getText(info_Info.getInfo());
-        this.add(info, BorderLayout.WEST); 
         this.add(search, BorderLayout.SOUTH); 
+
+        info = getText(info_Info.getInfo());
+        this.add(info, BorderLayout.WEST);
+
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void showSearchWindow() {
@@ -130,6 +132,7 @@ public class InfoPanel extends BasePanel {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
+                workPanel.updateData();
                 if (button == maskButton){
                     maskButton.setEnabled(false);
                     hexButton.setEnabled(true);
@@ -195,7 +198,7 @@ public class InfoPanel extends BasePanel {
                                 System.out.println(button.getText());
                                 if (button.getText().equals(hexButton.getText())) {
                                     try {
-                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().replaceAll(",", " ").replaceAll(";", " ").split(" ")).toList(), 1500, TimeUnit.MILLISECONDS);
+                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()), 1500, TimeUnit.MILLISECONDS);
                                     } catch (InterruptedException | TimeoutException e) {}
                                     
                                 }     
@@ -224,6 +227,8 @@ public class InfoPanel extends BasePanel {
 
         return button;
     }
+
+
 
     public void setWorkPanel(WorkPanel workPanel) {
         this.workPanel = workPanel;

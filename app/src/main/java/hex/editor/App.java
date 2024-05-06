@@ -33,6 +33,8 @@ public class App {
         exchangers.put(Types.SEARCH_BY_STRING, new Exchanger<Object>());
         exchangers.put(Types.SEARCH_BY_HEX, new Exchanger<Object>());
         exchangers.put(Types.INTEGER, new Exchanger<Object>());
+        exchangers.put(Types.UPDATE_BY_HEX, new Exchanger<Object>());
+
 
         ViewThread view = new ViewThread(exchangers);
         ServiceThread service = new ServiceThread(exchangers);

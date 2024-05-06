@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.model.Types;
@@ -18,6 +19,7 @@ public class ServiceThread implements Runnable {
     private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
     private Exchanger<Object> integerExchanger;
+    private Exchanger<Object> UPDATE_BY_HEXExchanger;
 
     private HexEditor hexEditor;
 
@@ -28,8 +30,10 @@ public class ServiceThread implements Runnable {
         this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING);
         this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
         this.integerExchanger = exchangers.get(Types.INTEGER);
+        this.UPDATE_BY_HEXExchanger = exchangers.get(Types.UPDATE_BY_HEX);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
         boolean isWaiting = true;
@@ -39,13 +43,14 @@ public class ServiceThread implements Runnable {
             List<List<String>> chars = null;
             String SEARCH_BY_STRING = null;
             List<String> SEARCH_BY_HEX = null;
+            List<List<String>> UPDATE_BY_HEX = null;
             try {
                 if (isWaiting)
                     System.out.println("Service: wait");
                 isWaiting = false;
 
                 try {
-                    file = (File)fileExchanger.exchange(null, 10, TimeUnit.MILLISECONDS);
+                    file = (File)fileExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
                 } catch (TimeoutException e) {
                 }
 
@@ -56,7 +61,7 @@ public class ServiceThread implements Runnable {
                 
                 if (hexEditor != null) {
                     try {
-                        hex = (List<List<String>>)hexExchanger.exchange(null, 10, TimeUnit.MILLISECONDS);
+                        hex = (List<List<String>>)hexExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException e) {
                     }
     
@@ -66,7 +71,7 @@ public class ServiceThread implements Runnable {
                     };
     
                     try {
-                        chars = (List<List<String>>)charsExchanger.exchange(null, 10, TimeUnit.MILLISECONDS);
+                        chars = (List<List<String>>)charsExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException e) {
                     }
     
@@ -76,7 +81,7 @@ public class ServiceThread implements Runnable {
                     }
     
                     try {
-                        SEARCH_BY_STRING = (String)SEARCH_BY_STRING_Exchanger.exchange(null, 10, TimeUnit.MILLISECONDS);
+                        SEARCH_BY_STRING = (String)SEARCH_BY_STRING_Exchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException e) {
                     }
     
@@ -86,12 +91,22 @@ public class ServiceThread implements Runnable {
                     }
     
                     try {
-                        SEARCH_BY_HEX = (List<String>)SEARCH_BY_HEX_Exchanger.exchange(null, 10, TimeUnit.MILLISECONDS);
+                        SEARCH_BY_HEX = (List<String>)SEARCH_BY_HEX_Exchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException e) {
                     }
     
                     if (SEARCH_BY_HEX != null) {
                         gotSEARCH_BY_HEX(SEARCH_BY_HEX);
+                        isWaiting = true;
+                    }
+
+                    try {
+                        UPDATE_BY_HEX = (List<List<String>>)UPDATE_BY_HEXExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
+                    } catch (TimeoutException e) {
+                    }
+    
+                    if (UPDATE_BY_HEX != null) {
+                        gotUPDATE_BY_HEX(UPDATE_BY_HEX);
                         isWaiting = true;
                     }
     
@@ -102,17 +117,27 @@ public class ServiceThread implements Runnable {
         }
     }  
 
+    private void gotUPDATE_BY_HEX(List<List<String>> UPDATE_BY_HEX) {
+        System.out.println("Service: Data is updating...");
+        hexEditor.editOpenedFileByHex(UPDATE_BY_HEX);
+        try {
+            UPDATE_BY_HEXExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+        }
+        System.out.println("Service: Data was updated");
+    }
+
     // Получение файла, его чтение, отправка строк в форме HEX 
     private void gotFile(File file) {
         try {
-            System.out.println("Service: File added");
+            System.out.println("Service: File was added");
             hexEditor = new HexEditor(file.getAbsolutePath());
 
             System.out.println("Service: File to Hex");
 
             hexExchanger.exchange(hexEditor.getHexLines());
             
-            System.out.println("Service: Hex sent");
+            System.out.println("Service: Hex was sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -121,10 +146,10 @@ public class ServiceThread implements Runnable {
     // Получение строк в форме HEX, перевод в CHAR, отправка 
     private void gotHex(List<List<String>> data) {
         try {
-            System.out.println("Service: Hex added");
+            System.out.println("Service: Hex were added");
             
-            charsExchanger.exchange(data.stream().map(x -> hexEditor.getCharsFromHex(x)).toList());
-            System.out.println("Service: Chars sent");
+            charsExchanger.exchange(data.stream().map(x -> hexEditor.getCharsFromHex(x)).collect(Collectors.toList()));
+            System.out.println("Service: Chars were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -133,10 +158,10 @@ public class ServiceThread implements Runnable {
     // Получение строк CHAR, перевод в HEX, отправка
     private void gotChars(List<List<String>> data) {
         try {
-            System.out.println("Service: Chars added");
+            System.out.println("Service: Chars were added");
             
-            hexExchanger.exchange(data.stream().map(x -> hexEditor.getHexFromChars(x)).toList());
-            System.out.println("Service: Hex sent");
+            hexExchanger.exchange(data.stream().map(x -> hexEditor.getHexFromChars(x)).collect(Collectors.toList()));
+            System.out.println("Service: Hex were sent");
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
@@ -144,10 +169,10 @@ public class ServiceThread implements Runnable {
 
     private void gotSEARCH_BY_STRING(String mask) {
         try {
-            System.out.println("Service: mask added");
+            System.out.println("Service: mask was added");
             if (hexEditor.getStrings() != null) {
                 integerExchanger.exchange(hexEditor.findByMask(mask));
-                System.out.println("Service: Position sent");
+                System.out.println("Service: Position was sent");
             } else {
                 integerExchanger.exchange((Object)(new ArrayList<>()));
                 System.out.println("Service: File is null");
@@ -160,10 +185,10 @@ public class ServiceThread implements Runnable {
 
     private void gotSEARCH_BY_HEX(List<String> hex) {
         try {
-            System.out.println("Service: hex for search added");
+            System.out.println("Service: hex for search was added");
             if (hexEditor.getStrings() != null) {
                 integerExchanger.exchange(hexEditor.find(hex));
-                System.out.println("Service: Position sent");
+                System.out.println("Service: Position was sent");
             } else {
                 integerExchanger.exchange((Object)(new ArrayList<>()));
                 System.out.println("Service: File is null");

@@ -29,11 +29,11 @@ public class HexEditor {
     }
 
     public List<List<String>> getHexLines() throws NullPointerException {
-        return strings.stream().map(HexService::getHexFromString).toList();
+        return strings.stream().map(HexService::getHexFromString).collect(Collectors.toList());
     }
 
     public List<List<String>> getCharLines() throws NullPointerException {
-        return strings.stream().map(HexService::getCharsFromString).toList();
+        return strings.stream().map(HexService::getCharsFromString).collect(Collectors.toList());
     }
 
     public String getCharFromHex(String hex) throws NumberFormatException, NullPointerException  {
@@ -42,16 +42,17 @@ public class HexEditor {
         return HexService.getCharsFromHex(list).get(0);
     }
 
-    public String getHexFromChar(String ch) throws ArrayIndexOutOfBoundsException, NullPointerException {
-        String res;
-        try {
-            List<String> list = new ArrayList<>();
-            list.add(ch);
-            res = HexService.getHexFromChars(list).get(0);
-        } catch (ArrayIndexOutOfBoundsException exception) {
-            throw new NullPointerException();
+    public String getHexFromChar(String ch) {
+        if (ch == null || ch.isEmpty()) {
+            throw new IllegalArgumentException("Input character string is null or empty");
         }
-        return res;
+        List<String> list = new ArrayList<>();
+        list.add(ch);
+        try {
+            return HexService.getHexFromChars(list).get(0);
+        } catch (IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Failed to convert character to hex");
+        }
     }
 
     public List<String> getCharsFromHex(List<String> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
@@ -66,13 +67,13 @@ public class HexEditor {
         strings = hex.stream()
             .map(HexService::getCharsFromHex)
             .map(x -> x.stream().collect(Collectors.joining("")))
-            .toList();
+            .collect(Collectors.toList());
     } 
 
     public void editOpenedFileByChars(List<List<String>> chars) {
         strings = chars.stream()
             .map(x -> x.stream().collect(Collectors.joining("")))
-            .toList();
+            .collect(Collectors.toList());
     } 
 
     public List<List<Integer>> find(List<String> searchingHex) {
@@ -88,7 +89,7 @@ public class HexEditor {
         for (int row = 0; row < hexFromString.size(); row++) {
             List<Integer> pos_column = new ArrayList<>();
 
-            for (int column = 1; column < hexFromString.get(row).size(); column++) {
+            for (int column = 0; column < hexFromString.get(row).size(); column++) {
                 int i_byte = 0;
                 int start = column;
                 while(hexFromString.get(row).get(column++).equalsIgnoreCase(searchingHex.get(i_byte))) {
@@ -123,7 +124,7 @@ public class HexEditor {
             List<Integer> pos_column = new ArrayList<>();
 
             if (!hex.get(row).isEmpty()) {
-                for (int column = 1; column < hex.get(row).size(); column++) {
+                for (int column = 0; column < hex.get(row).size(); column++) {
                     Matcher match = regexp.matcher(hex.get(row).get(column));
                     if (match.find()) pos_column.add(column);
                 }

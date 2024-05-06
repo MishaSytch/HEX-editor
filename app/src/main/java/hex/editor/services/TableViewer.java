@@ -20,20 +20,20 @@ public class TableViewer {
         };
 
         Vector<String> columnNames = new Vector<String>();
-        columnNames.add(String.valueOf(""));
-        for (int i = 0; i < columns_count - 1 ; i++) columnNames.add(String.valueOf(i));
+        columnNames.add(String.valueOf(' '));
+        for (int i = 0; i < columns_count; i++) columnNames.add(String.valueOf(i));
 
         tableModel.setColumnIdentifiers(columnNames);
 
         int rows_count = lines.size();
-
         for(int i = 0; i < rows_count; i++) {
             List<String> line = lines.get(i);
             Vector<String> inner = new Vector<String>();
             inner.add(String.valueOf(i));
+            
             for (int k = 0; k < columns_count; k++) {
                 if (k >= line.size()) {
-                    inner.add("");
+                    inner.add(String.valueOf(""));
                 } else {
                     inner.add(line.get(k));
                 }

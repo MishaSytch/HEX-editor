@@ -10,10 +10,4 @@ public class TestApp {
 
         Assertions.assertNotNull(app);
     }
-
-    @Test
-    void startApp() {
-        
-
-    }
 }

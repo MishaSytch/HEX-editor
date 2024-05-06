@@ -15,8 +15,6 @@ public class Info {
     }
 
     public String getInfo() {
-
-
         return new String(
             "<html>"
             + "Row: " + row + "<br>"
