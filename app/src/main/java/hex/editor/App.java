@@ -35,7 +35,6 @@ public class App {
         exchangers.put(Types.INTEGER, new Exchanger<Object>());
         exchangers.put(Types.UPDATE_BY_HEX, new Exchanger<Object>());
 
-
         ViewThread view = new ViewThread(exchangers);
         ServiceThread service = new ServiceThread(exchangers);
         threadPool.submit(service);
