@@ -1,8 +1,6 @@
 package hex.editor.view.Panel.origin;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -49,23 +47,27 @@ import hex.editor.view.Style.IStyleSheet;
 
 public class WorkPanel extends BasePanel {
     private JTable table;
-    private IStyleSheet styleSheet = super.getStyleSheet();
-    private Exchanger<Object> hexExchanger;
-    private Exchanger<Object> charsExchanger;
-    private Exchanger<Object> integerExchanger;
-    private Exchanger<Object> UPDATE_BY_HEXExchanger;
+    private final IStyleSheet styleSheet = super.getStyleSheet();
+    private final Exchanger<Object> hexExchanger;
+    private final Exchanger<Object> charsExchanger;
+    private final Exchanger<Object> integerExchanger;
+    private final Exchanger<Object> UPDATE_BY_HEXExchanger;
     private JScrollPane pane;
     private JLabel text;
+
+    public List<List<String>> getHex() {
+        return hex;
+    }
+
     private List<List<String>> hex;
-    private InfoPanel infoPanel;
+    private final InfoPanel infoPanel;
     private List<List<Integer>> positions;
     private DefaultTableModel model;
-    private JToolTip tooltip = new JToolTip();
+    private final JToolTip tooltip = new JToolTip();
     private Integer lastX;
     private Integer lastY;
-    private PopupFactory popupFactory = PopupFactory.getSharedInstance();
+    private final PopupFactory popupFactory = PopupFactory.getSharedInstance();
     private Popup popup;
-    private Timer hoverTimer;
     private Timer scopeTimer;
     private int countOfColumn;
 
@@ -106,12 +108,14 @@ public class WorkPanel extends BasePanel {
             }
             hex = (List<List<String>>) hexExchanger.exchange(null);
             System.out.println("View: received hex");
-            try {
-                String text = JOptionPane.showInputDialog(null, "Type count of column:");
-                countOfColumn = Integer.parseInt(text);
-                setModel(hex, countOfColumn);
-            } catch (Exception e) {
-                return;
+            while (true) {
+                try {
+                    String text = JOptionPane.showInputDialog(null, "Type count of column:").trim();
+                    countOfColumn = Integer.parseInt(text);
+                    setModel(hex, countOfColumn);
+                    break;
+                } catch (Exception ignored) {
+                }
             }
             SwingUtilities.updateComponentTreeUI(this);
             System.out.println("View: hex loaded");
@@ -133,7 +137,7 @@ public class WorkPanel extends BasePanel {
         System.out.println("View: Position wait");
         try {
             positions = (List<List<Integer>>) integerExchanger.exchange(null);
-            if (positions.size() == 0) positions = null;
+            if (positions.isEmpty()) positions = null;
             else {
                 System.out.println("View: Position got");
                 selectCell(positions);
@@ -170,7 +174,7 @@ public class WorkPanel extends BasePanel {
             @Override
             public boolean getScrollableTracksViewportWidth() {
                 return getPreferredSize().width < getParent().getWidth();
-            };
+            }
         };
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -344,13 +348,13 @@ public class WorkPanel extends BasePanel {
         pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         pane.setBackground(styleSheet.getBackBaseColor());
         pane.setForeground(styleSheet.getBackBaseColor());
-        pane.setHorizontalScrollBar(new JScrollBar(0));
+        pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
 
         this.add(pane, BorderLayout.CENTER);
     }
 
     private boolean validateData(String data) {
-        return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.length() == 0);
+        return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.isEmpty());
     }
 
     private boolean validateDataArray(String[] dataArray) {
@@ -398,7 +402,7 @@ public class WorkPanel extends BasePanel {
         infoSlider.setPaintTicks(true);
         infoSlider.setPaintLabels(true);
 
-        hoverTimer = new Timer(100, e -> {
+        Timer hoverTimer = new Timer(100, e -> {
             if (selectedColumns.length > 1) {
                 for (int column : selectedColumns) {
                     infoSlider.add(getText(new Info(table.getSelectedRow(), column, "", table.getValueAt(table.getSelectedRow(), column).toString()).getInfo()));
@@ -436,8 +440,7 @@ public class WorkPanel extends BasePanel {
             List<String> list = new ArrayList<>();
             for (int k = 1; k < model.getColumnCount(); k++) {
                 if (is_shifted) {
-                    if(i_selectedRows >= selectedRows.length || i_selectedRows < selectedRows.length && i != selectedRows[i_selectedRows] 
-                    || k_selectedColumn >= selectedColumns.length || k_selectedColumn < selectedColumns.length && k != selectedColumns[k_selectedColumn]
+                    if(i_selectedRows >= selectedRows.length || i != selectedRows[i_selectedRows] || k_selectedColumn >= selectedColumns.length || k != selectedColumns[k_selectedColumn]
                     ) {
                         list.add((String)model.getValueAt(i, k));
                     } else {

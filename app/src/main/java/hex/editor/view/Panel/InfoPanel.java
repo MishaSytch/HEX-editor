@@ -17,6 +17,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
 import hex.editor.model.Info;
 import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
@@ -81,7 +83,6 @@ public class InfoPanel extends BasePanel {
 
         add(panel, BorderLayout.SOUTH);
         start();
-
         search.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -97,20 +98,22 @@ public class InfoPanel extends BasePanel {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
-                    search.setText("Chose method");
-                    hexButton.setEnabled(true);
-                    maskButton.setEnabled(true);
-                    hexButton.setVisible(true);
-                    maskButton.setVisible(true);
-                } else {
-                    System.out.println("View: ready to search");
-                    search.setEditable(true);
-                    search.setBackground(getStyleSheet().getMainTextColor());
-                    search.setForeground(Color.BLACK);
-                    search.setText("");
+                if (workPanel.getHex() != null) {
+                    if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
+                        search.setText("Chose method");
+                        hexButton.setEnabled(true);
+                        maskButton.setEnabled(true);
+                        hexButton.setVisible(true);
+                        maskButton.setVisible(true);
+                    } else {
+                        System.out.println("View: ready to search");
+                        search.setEditable(true);
+                        search.setBackground(getStyleSheet().getMainTextColor());
+                        search.setForeground(Color.BLACK);
+                        search.setText("");
+                    }
+                    SwingUtilities.updateComponentTreeUI(panel);
                 }
-                SwingUtilities.updateComponentTreeUI(panel);
             }
 
             @Override
@@ -134,7 +137,9 @@ public class InfoPanel extends BasePanel {
                             if (!hexButton.isEnabled()) {
                                 SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()), 1500, TimeUnit.MILLISECONDS);
                             }
-                        } catch (InterruptedException | TimeoutException e) {}
+                        } catch (InterruptedException | TimeoutException e) {
+                            System.out.println("View: searching error");
+                        }
                         if (workPanel != null) {
                             System.out.println("View: smt sent");
                             workPanel.waitPosition();
