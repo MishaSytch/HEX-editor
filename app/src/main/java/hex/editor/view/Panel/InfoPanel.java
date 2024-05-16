@@ -17,7 +17,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import hex.editor.model.Info;
 import hex.editor.model.Types;
@@ -33,9 +32,9 @@ public class InfoPanel extends BasePanel {
     }
 
     private final JPanel panel = new JPanel();
-    private JButton maskButton;
-    private JButton hexButton;
-    private JButton clearButton;
+    private JButton maskButton = new JButton();
+    private JButton hexButton = new JButton();
+    private JButton clearButton = new JButton();
     private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
     private final Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private WorkPanel workPanel;
@@ -56,14 +55,12 @@ public class InfoPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-
-
     private void initComponents() {
         add(info, BorderLayout.WEST);
         search.setBorder(new EmptyBorder(10, 10, 10, 10));
-        maskButton = getSearchButton("Search by mask");
-        hexButton = getSearchButton("Search by Hex");
-        clearButton = getSearchButton("Clear");
+        maskButton = getButton( "Search by mask");
+        hexButton = getButton( "Search by Hex");
+        clearButton = getButton("Clear");
         clearButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -172,7 +169,7 @@ public class InfoPanel extends BasePanel {
         clearButton.setEnabled(false);
     }
 
-    private JButton getSearchButton(String title) {
+    private JButton getButton(String title) {
         JButton button = new JButton(title);
         button.setBackground(getBackground());
         button.setForeground(getStyleSheet().getMainTextColor());

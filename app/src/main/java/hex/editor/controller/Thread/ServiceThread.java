@@ -13,13 +13,14 @@ import hex.editor.controller.HexEditor;
 import hex.editor.model.Types;
 
 public class ServiceThread implements Runnable {
-    private Exchanger<Object> fileExchanger;
-    private Exchanger<Object> charsExchanger;
-    private Exchanger<Object> hexExchanger;
-    private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
-    private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
-    private Exchanger<Object> integerExchanger;
-    private Exchanger<Object> UPDATE_BY_HEXExchanger;
+    private final Exchanger<Object> fileExchanger;
+    private final Exchanger<Object> charsExchanger;
+    private final Exchanger<Object> hexExchanger;
+    private final Exchanger<Object> SEARCH_BY_STRING_Exchanger;
+    private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
+    private final Exchanger<Object> integerExchanger;
+    private final Exchanger<Object> UPDATE_BY_HEXExchanger;
+    private boolean close = false;
 
     private HexEditor hexEditor;
 
@@ -38,6 +39,8 @@ public class ServiceThread implements Runnable {
     public void run() {
         boolean isWaiting = true;
         while (true) {
+            if (close) return;
+
             File file = null;
             List<List<String>> hex = null;
             List<List<String>> chars = null;
@@ -51,50 +54,50 @@ public class ServiceThread implements Runnable {
 
                 try {
                     file = (File)fileExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                } catch (TimeoutException e) {
+                } catch (TimeoutException ignored) {
                 }
 
                 if (file != null) {
                     gotFile(file);
                     isWaiting = true;
-                };
-                
+                }
+
                 if (hexEditor != null) {
                     try {
                         hex = (List<List<String>>)hexExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
+                    } catch (TimeoutException ignored) {
                     }
-    
+
                     if (hex != null) {
                         gotHex(hex);
                         isWaiting = true;
-                    };
-    
+                    }
+
                     try {
                         chars = (List<List<String>>)charsExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
+                    } catch (TimeoutException ignored) {
                     }
-    
+
                     if (chars != null) {
                         gotChars(chars);
                         isWaiting = true;
                     }
-    
+
                     try {
                         SEARCH_BY_STRING = (String)SEARCH_BY_STRING_Exchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
+                    } catch (TimeoutException ignored) {
                     }
-    
+
                     if (SEARCH_BY_STRING != null) {
                         gotSEARCH_BY_STRING(SEARCH_BY_STRING);
                         isWaiting = true;
                     }
-    
+
                     try {
                         SEARCH_BY_HEX = (List<String>)SEARCH_BY_HEX_Exchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
+                    } catch (TimeoutException ignored) {
                     }
-    
+
                     if (SEARCH_BY_HEX != null) {
                         gotSEARCH_BY_HEX(SEARCH_BY_HEX);
                         isWaiting = true;
@@ -102,14 +105,14 @@ public class ServiceThread implements Runnable {
 
                     try {
                         UPDATE_BY_HEX = (List<List<String>>)UPDATE_BY_HEXExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-                    } catch (TimeoutException e) {
+                    } catch (TimeoutException ignored) {
                     }
-    
+
                     if (UPDATE_BY_HEX != null) {
                         gotUPDATE_BY_HEX(UPDATE_BY_HEX);
                         isWaiting = true;
                     }
-    
+
                 }
             } catch (InterruptedException e) {
                 System.err.println(e.getMessage());
@@ -122,7 +125,7 @@ public class ServiceThread implements Runnable {
         hexEditor.editOpenedFileByHex(UPDATE_BY_HEX);
         try {
             UPDATE_BY_HEXExchanger.exchange(null, 1, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | TimeoutException e) {
+        } catch (InterruptedException | TimeoutException ignored) {
         }
         System.out.println("Service: Data was updated");
     }
@@ -174,7 +177,7 @@ public class ServiceThread implements Runnable {
                 integerExchanger.exchange(hexEditor.findByMask(mask));
                 System.out.println("Service: Position was sent");
             } else {
-                integerExchanger.exchange((Object)(new ArrayList<>()));
+                integerExchanger.exchange(new ArrayList<>());
                 System.out.println("Service: File is null");
             }
             
@@ -190,12 +193,16 @@ public class ServiceThread implements Runnable {
                 integerExchanger.exchange(hexEditor.find(hex));
                 System.out.println("Service: Position was sent");
             } else {
-                integerExchanger.exchange((Object)(new ArrayList<>()));
+                integerExchanger.exchange(new ArrayList<>());
                 System.out.println("Service: File is null");
             }
 
             } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
+    }
+
+    public void close() {
+        close = true;
     }
 }
