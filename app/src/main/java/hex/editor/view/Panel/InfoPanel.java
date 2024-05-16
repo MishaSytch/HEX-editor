@@ -2,11 +2,7 @@ package hex.editor.view.Panel;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.Dimension;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Map;
@@ -28,7 +24,7 @@ import hex.editor.view.Panel.origin.BasePanel;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class InfoPanel extends BasePanel {
-    private final JTextField search = new JTextField("To search type there");
+    private final JTextField search = new JTextField();
     private final JLabel info = getText("");
     public JLabel getInfo() {
         return info;
@@ -37,6 +33,7 @@ public class InfoPanel extends BasePanel {
     private final JPanel panel = new JPanel();
     private JButton maskButton;
     private JButton hexButton;
+    private JButton clearButton;
     private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
     private final Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private WorkPanel workPanel;
@@ -62,30 +59,32 @@ public class InfoPanel extends BasePanel {
     private void initComponents() {
         add(info, BorderLayout.WEST);
         search.setBorder(new EmptyBorder(10, 10, 10, 10));
-        search.setEnabled(false);
-        search.setVisible(true);
-        search.setBackground(getBackground());
-        search.setForeground(getStyleSheet().getMainTextColor());
-
         maskButton = getSearchButton("Search by mask");
         hexButton = getSearchButton("Search by Hex");
+        clearButton = getSearchButton("Clear");
+        clearButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (workPanel != null) workPanel.unselectCell();
+                if (panel.getComponents().length != 0) start();
+            }
+        });
 
-        panel.add(search, BorderLayout.SOUTH);
-        panel.add(maskButton, BorderLayout.CENTER);
-        panel.add(hexButton, BorderLayout.NORTH);
+        panel.setLayout(new GridLayout(4, 1));
+        panel.add(hexButton);
+        panel.add(maskButton);
+        panel.add(search);
 
-        panel.setPreferredSize(new Dimension(getWidth(), (int)(getHeight() * 0.3)));
+        panel.setBackground(getBackground());
+        panel.setForeground(getBackground());
         panel.setVisible(true);
 
         add(panel, BorderLayout.SOUTH);
+        start();
 
         search.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                hexButton.setEnabled(true);
-                maskButton.setEnabled(true);
-                hexButton.setVisible(true);
-                maskButton.setVisible(true);
             }
 
             @Override
@@ -98,18 +97,80 @@ public class InfoPanel extends BasePanel {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
+                if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
+                    search.setText("Chose method");
+                    hexButton.setEnabled(true);
+                    maskButton.setEnabled(true);
+                    hexButton.setVisible(true);
+                    maskButton.setVisible(true);
+                } else {
+                    System.out.println("View: ready to search");
+                    search.setEditable(true);
+                    search.setBackground(getStyleSheet().getMainTextColor());
+                    search.setForeground(Color.BLACK);
+                    search.setText("");
+                }
+                SwingUtilities.updateComponentTreeUI(panel);
             }
 
             @Override
             public void mouseReleased(MouseEvent arg0) {
             }
         });
+
+        search.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent arg0) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+                if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!search.getText().trim().isEmpty()) {
+                        try {
+                            if (!maskButton.isEnabled()){
+                                SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim(), 1500, TimeUnit.MILLISECONDS);
+                            }
+                            if (!hexButton.isEnabled()) {
+                                SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()), 1500, TimeUnit.MILLISECONDS);
+                            }
+                        } catch (InterruptedException | TimeoutException e) {}
+                        if (workPanel != null) {
+                            System.out.println("View: smt sent");
+                            workPanel.waitPosition();
+                        }
+                    }
+                    clearButton.setVisible(true);
+                    clearButton.setEnabled(true);
+                    SwingUtilities.updateComponentTreeUI(panel);
+                }
+            }
+
+            @Override
+            public void keyTyped(KeyEvent arg0) {
+            }
+        });
+    }
+
+    private void start() {
+        hexButton.setVisible(false);
+        hexButton.setEnabled(false);
+        maskButton.setVisible(false);
+        maskButton.setEnabled(false);
+        search.setText("Searching...");
+        search.setEnabled(false);
+        search.setVisible(true);
+        search.setBackground(getBackground());
+        search.setForeground(getStyleSheet().getMainTextColor());
+
+        clearButton.setVisible(false);
+        clearButton.setEnabled(false);
     }
 
     private JButton getSearchButton(String title) {
         JButton button = new JButton(title);
         button.setBackground(getBackground());
-        button.setForeground(Color.WHITE);
+        button.setForeground(getStyleSheet().getMainTextColor());
         button.setVisible(false);
         button.setEnabled(false);
 
@@ -130,101 +191,29 @@ public class InfoPanel extends BasePanel {
             @Override
             public void mousePressed(MouseEvent arg0) {
                 workPanel.updateData();
+                String methodInfo;
                 if (button == maskButton){
                     maskButton.setEnabled(false);
                     hexButton.setEnabled(true);
+                    methodInfo = "Mask method";
                 } else {
                     hexButton.setEnabled(false);
                     maskButton.setEnabled(true);
+                    methodInfo = "Hex method";
                 }
-                panel.setLayout(new GridLayout(3, 1));
-                search.removeAll();
-                search.setEditable(false);
-                search.setText("Type to search...");
-                search.setBorder(getBorder());
-                panel.add(search);
-
+                search.setText("Type to use " + methodInfo);
+                search.setBackground(getBackground());
+                search.setForeground(getStyleSheet().getMainTextColor());
                 SwingUtilities.updateComponentTreeUI(panel);
-                search.addMouseListener(new MouseListener() {
-
-                    @Override
-                    public void mouseClicked(MouseEvent arg0) {
-                    }
-
-                    @Override
-                    public void mouseEntered(MouseEvent arg0) {
-                    }
-
-                    @Override
-                    public void mouseExited(MouseEvent arg0) {
-                    }
-
-                    @Override
-                    public void mousePressed(MouseEvent arg0) {
-                        System.out.println("View: ready to search");
-                        search.setEditable(true);
-                        search.setText("");
-                    }
-
-                    @Override
-                    public void mouseReleased(MouseEvent arg0) {
-                    }
-                    
-                });
-
-                search.addKeyListener(new KeyListener() {
-
-                    @Override
-                    public void keyPressed(KeyEvent arg0) {
-                    }
-
-                    @Override
-                    public void keyReleased(KeyEvent arg0) {
-                        if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                            workPanel.unselectCell();
-                        }
-                        if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {  
-                            if (!search.getText().isEmpty()) {
-                                if (button.getText().equals(maskButton.getText())){
-                                    try {
-                                        SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim(), 1500, TimeUnit.MILLISECONDS);
-                                    } catch (InterruptedException | TimeoutException e) {}
-    
-                                } 
-                                System.out.println(button.getText());
-                                if (button.getText().equals(hexButton.getText())) {
-                                    try {
-                                        SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()), 1500, TimeUnit.MILLISECONDS);
-                                    } catch (InterruptedException | TimeoutException e) {}
-                                    
-                                }     
-                                if (workPanel != null) {
-                                    System.out.println("View: smt sent");
-                                    workPanel.waitPosition();
-                                }
-                            }
-                            SwingUtilities.updateComponentTreeUI(panel);
-                        }
-                    }
-
-                    @Override
-                    public void keyTyped(KeyEvent arg0) {
-                    }
-                    
-                });
 
             }
 
             @Override
             public void mouseReleased(MouseEvent arg0) {
             }
-            
         });
-
         return button;
     }
-
-
 
     public void setWorkPanel(WorkPanel workPanel) {
         this.workPanel = workPanel;
