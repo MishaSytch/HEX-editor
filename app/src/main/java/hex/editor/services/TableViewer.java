@@ -7,7 +7,7 @@ import javax.swing.table.DefaultTableModel;
 import hex.editor.controller.HexEditor;
 
 public class TableViewer {
-    private static final HexEditor hexEditor = new HexEditor(null);
+    private static final HexEditor hexEditor = new HexEditor();
 
     public static DefaultTableModel getTable(List<List<String>> lines, int columns, boolean isHex) {
         DefaultTableModel tableModel = new DefaultTableModel() {

@@ -19,6 +19,10 @@ public class HexEditor {
         openFile(path);
     }
 
+    public HexEditor() {
+
+    }
+
     public void openNewFile(String path) {
         openFile(path);
     }

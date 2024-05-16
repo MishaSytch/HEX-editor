@@ -24,7 +24,6 @@ public class App {
     }
 
     private static void setup() {
-        ExecutorService threadPool = Executors.newFixedThreadPool(2);
 
         Map<Types, Exchanger<Object>> exchangers = new HashMap<>();
         exchangers.put(Types.FILE, new Exchanger<Object>());
@@ -36,9 +35,18 @@ public class App {
         exchangers.put(Types.UPDATE_BY_HEX, new Exchanger<Object>());
 
         ViewThread view = new ViewThread(exchangers);
+        Thread viewThread = new Thread(view);
+        viewThread.start();
         ServiceThread service = new ServiceThread(exchangers);
-        threadPool.submit(service);
+        Thread serviceThread = new Thread(service);
+        serviceThread.start();
+
         System.out.println("Main");
-        threadPool.submit(view);
+        try {
+            viewThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        service.close();
     }
 }
