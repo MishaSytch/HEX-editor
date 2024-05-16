@@ -28,17 +28,17 @@ import hex.editor.view.Panel.origin.BasePanel;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class InfoPanel extends BasePanel {
-    private JTextField search;
-    private JLabel info;
+    private final JTextField search = new JTextField("To search type there");
+    private final JLabel info = getText("");
     public JLabel getInfo() {
         return info;
     }
 
-    private JPanel panel;
+    private final JPanel panel = new JPanel();
     private JButton maskButton;
     private JButton hexButton;
-    private Exchanger<Object> SEARCH_BY_HEX_Exchanger;
-    private Exchanger<Object> SEARCH_BY_STRING_Exchanger;
+    private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
+    private final Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private WorkPanel workPanel;
 
     public InfoPanel(MainWindow mainWindow, Map<Types, Exchanger<Object>> exchangers) {
@@ -47,51 +47,45 @@ public class InfoPanel extends BasePanel {
         this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
         this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING); 
 
-        this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(10, 5, 10, 0));
-
-        updateSearch();        
-        this.add(search, BorderLayout.SOUTH);
+        setLayout(new BorderLayout());
+        setBorder(new EmptyBorder(10, 5, 10, 0));
+        initComponents();
     }
 
     public void setInfo(Info info_Info) {
-        updateSearch();
-        this.add(search, BorderLayout.SOUTH); 
-
-        info = getText(info_Info.getInfo());
-        this.add(info, BorderLayout.WEST);
-
+        info.setText(info_Info.getInfo());
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    public void showSearchWindow() {
-        this.remove(search);
-        
-        panel = new JPanel(); 
-        panel.setLayout(new GridLayout(2, 1)); 
-        panel.setPreferredSize(new Dimension(getWidth(), (int)(getHeight() * 0.2)));
-        
-        maskButton = getSearchButton("Search by mask");
 
+
+    private void initComponents() {
+        add(info, BorderLayout.WEST);
+        search.setBorder(new EmptyBorder(10, 10, 10, 10));
+        search.setEnabled(false);
+        search.setVisible(true);
+        search.setBackground(getBackground());
+        search.setForeground(getStyleSheet().getMainTextColor());
+
+        maskButton = getSearchButton("Search by mask");
         hexButton = getSearchButton("Search by Hex");
 
-        panel.add(maskButton);
-        panel.add(hexButton);
-        
-        this.add(panel, BorderLayout.SOUTH);
-        SwingUtilities.updateComponentTreeUI(this);
-    }
+        panel.add(search, BorderLayout.SOUTH);
+        panel.add(maskButton, BorderLayout.CENTER);
+        panel.add(hexButton, BorderLayout.NORTH);
 
-    private void updateSearch() {
-        if (search != null) this.removeAll();
-        
-        search = new JTextField("To search type there");
-        search.setEditable(false);
-        search.setBorder(new EmptyBorder(10, 10, 10, 10));
-        search.addMouseListener((MouseListener) new MouseListener() {
+        panel.setPreferredSize(new Dimension(getWidth(), (int)(getHeight() * 0.3)));
+        panel.setVisible(true);
+
+        add(panel, BorderLayout.SOUTH);
+
+        search.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                showSearchWindow();
+                hexButton.setEnabled(true);
+                maskButton.setEnabled(true);
+                hexButton.setVisible(true);
+                maskButton.setVisible(true);
             }
 
             @Override
@@ -116,6 +110,9 @@ public class InfoPanel extends BasePanel {
         JButton button = new JButton(title);
         button.setBackground(getBackground());
         button.setForeground(Color.WHITE);
+        button.setVisible(false);
+        button.setEnabled(false);
+
         button.addMouseListener(new MouseListener() {
 
             @Override
@@ -184,7 +181,6 @@ public class InfoPanel extends BasePanel {
                     @Override
                     public void keyReleased(KeyEvent arg0) {
                         if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                            updateSearch();
                             workPanel.unselectCell();
                         }
                         if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {  

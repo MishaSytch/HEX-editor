@@ -4,13 +4,12 @@ import java.util.*;
 
 import javax.swing.table.DefaultTableModel;
 
-public class TableViewer {
+import hex.editor.controller.HexEditor;
 
-    public static DefaultTableModel getTable(List<List<String>> lines) {
-        int columns_count = 0;
-        for (List<String> line : lines) {
-            columns_count = Math.max(columns_count, line.size());
-        }
+public class TableViewer {
+    private static HexEditor hexEditor = new HexEditor(null);
+
+    public static DefaultTableModel getTable(List<List<String>> lines, int columns, boolean isHex) {
         DefaultTableModel tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -21,7 +20,7 @@ public class TableViewer {
 
         Vector<String> columnNames = new Vector<String>();
         columnNames.add(String.valueOf(' '));
-        for (int i = 0; i < columns_count; i++) columnNames.add(String.valueOf(i));
+        for (int i = 0; i < columns; i++) columnNames.add(String.valueOf(i));
 
         tableModel.setColumnIdentifiers(columnNames);
 
@@ -31,11 +30,12 @@ public class TableViewer {
             Vector<String> inner = new Vector<String>();
             inner.add(String.valueOf(i));
             
-            for (int k = 0; k < columns_count; k++) {
+            for (int k = 0; k < columns; k++) {
                 if (k >= line.size()) {
                     inner.add(String.valueOf(""));
                 } else {
-                    inner.add(line.get(k));
+                    if (isHex)inner.add(hexEditor.getHexFromChar(line.get(k)));
+                    else inner.add(line.get(k));
                 }
             }
             tableModel.addRow(inner);

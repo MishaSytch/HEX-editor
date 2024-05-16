@@ -67,6 +67,7 @@ public class WorkPanel extends BasePanel {
     private Popup popup;
     private Timer hoverTimer;
     private Timer scopeTimer;
+    private int countOfColumn;
 
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
@@ -105,7 +106,13 @@ public class WorkPanel extends BasePanel {
             }
             hex = (List<List<String>>) hexExchanger.exchange(null);
             System.out.println("View: received hex");
-            setModel(hex);
+            try {
+                String text = JOptionPane.showInputDialog(null, "Type count of column:");
+                countOfColumn = Integer.parseInt(text);
+                setModel(hex, countOfColumn);
+            } catch (Exception e) {
+                return;
+            }
             SwingUtilities.updateComponentTreeUI(this);
             System.out.println("View: hex loaded");
         } catch (InterruptedException e) {
@@ -114,8 +121,8 @@ public class WorkPanel extends BasePanel {
         }
     }
 
-    private void setModel(List<List<String>> hex) {
-        model = TableViewer.getTable(hex);
+    private void setModel(List<List<String>> hex, int countOfColumn) {
+        model = TableViewer.getTable(hex, countOfColumn, true);
         createAndAddTable(model);
     }
 
@@ -450,7 +457,7 @@ public class WorkPanel extends BasePanel {
         }
         
         hex = copyHEX;
-        setModel(hex);
+        setModel(hex, countOfColumn);
         SwingUtilities.updateComponentTreeUI(this);
     }
 
