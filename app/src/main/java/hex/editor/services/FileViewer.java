@@ -35,9 +35,7 @@ public class FileViewer {
             }
             lines.add(row);
         } catch (IOException exception) {
-            // Consider logging the exception or rethrowing it as a custom checked exception
             System.err.println("Error processing file: " + exception.getMessage());
-            return Collections.emptyList(); // Return an empty list or null depending on how you want to handle errors
         }
         System.out.println("File road");
         return lines;

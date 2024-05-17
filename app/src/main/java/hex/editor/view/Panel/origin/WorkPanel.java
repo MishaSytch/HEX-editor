@@ -13,7 +13,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Exchanger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -37,7 +36,6 @@ import javax.swing.table.TableColumnModel;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.model.Info;
-import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Style.IStyleSheet;
@@ -58,7 +56,8 @@ public class WorkPanel extends BasePanel {
     private final DefaultTableModel model = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column != 0;
+//            return column != 0;
+            return false;
         }
     };
     private final JToolTip tooltip = new JToolTip();
@@ -69,6 +68,7 @@ public class WorkPanel extends BasePanel {
     private Timer scopeTimer;
     private String title;
     private HexEditor hexEditor;
+    private boolean modifide = false;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -79,14 +79,44 @@ public class WorkPanel extends BasePanel {
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getBackBaseColor());
 
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
+                c.setBackground(styleSheet.getBackBaseColor());
+                ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
+                c.setEnabled(columnIndex > 0);
+                if (positions != null) {
+                    for (List<Integer> rows : positions) {
+                        if (rowIndex == positions.indexOf(rows)) {
+                            for (Integer column : rows) {
+                                if (columnIndex == column + 1) {
+                                    c.setBackground(styleSheet.getSelectedColor());
+                                    return c;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (isSelected) {
+                    c.setBackground(styleSheet.getSelectedColor());
+                }
+                return c;
+            }
+        });
+
         pane.setVisible(false);
         this.add(pane, BorderLayout.CENTER);
         this.add(fileName, BorderLayout.NORTH);
     }
 
     public List<List<String>> getHex() {
+        if (modifide) {
+            hex = model.getDataVector();
+        }
         return hex;
     }
+
     public void setHex(List<List<String>> hex) {
         this.hex = hex;
         hexEditor = new HexEditor(hex);
@@ -109,31 +139,6 @@ public class WorkPanel extends BasePanel {
         }
 
         table.setModel(model);
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
-            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
-            c.setBackground(styleSheet.getBackBaseColor());
-            ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
-            c.setEnabled(columnIndex > 0);
-            if (positions != null) {
-                for (List<Integer> rows : positions) {
-                    if (rowIndex == positions.indexOf(rows)) {
-                        for (Integer column : rows) {
-                            if (columnIndex == column + 1) {
-                                c.setBackground(styleSheet.getSelectedColor());
-                                return c;
-                            }
-                        }
-                    }
-                }
-            }
-            if (isSelected) {
-                c.setBackground(styleSheet.getSelectedColor());
-            }
-            return c;
-            }
-        });
         table.setForeground(styleSheet.getMainTextColor());
         table.setBackground(styleSheet.getBackBaseColor());
         table.setBorder(BorderFactory.createBevelBorder(0));
@@ -166,6 +171,14 @@ public class WorkPanel extends BasePanel {
                     int column = table.getSelectedColumn();
 
                     loadInfo(model, row, column);
+                }
+                if (event.getClickCount() == 2) {
+                    event.consume();
+                    int row = table.rowAtPoint(event.getPoint());
+                    int column = table.columnAtPoint(event.getPoint());
+                    if (column != 0) { // Проверяем, что это не колонка с номерами строк
+                        table.editCellAt(row, column);
+                    }
                 }
             }
 
@@ -282,12 +295,6 @@ public class WorkPanel extends BasePanel {
         pane.setVisible(true);
     }
 
-    public void selectCell(List<List<Integer>> pos) {
-        positions = pos;
-        SwingUtilities.updateComponentTreeUI(this);
-        System.out.println("View: Cell selected");
-    }
-
     public void unselectCell() {
         positions = null;    
         SwingUtilities.updateComponentTreeUI(this);
@@ -296,10 +303,12 @@ public class WorkPanel extends BasePanel {
 
     public void searchByMask(String mask) {
         positions = hexEditor.findByMask(mask);
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void searchByHex(List<String> searchingHex){
         positions = hexEditor.find(searchingHex);
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private boolean validateData(String data) {
@@ -320,7 +329,6 @@ public class WorkPanel extends BasePanel {
         return valid;
     }
 
-    @SuppressWarnings("unchecked")
     private void loadInfo(DefaultTableModel model, int row, int column) {
         if (column == 0) return;
         String ch = "empty";
@@ -373,7 +381,55 @@ public class WorkPanel extends BasePanel {
         hoverTimer.start();
     }
 
-    private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {
+    private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
+        if (isShifted) {
+            for (int row : selectedRows) {
+                for (int i = selectedColumns[0]; i < model.getColumnCount() - 1; i++) {
+                    if (i > 0) {
+                        model.setValueAt(model.getValueAt(row, i + 1), row, i);
+                    }
+                }
+                model.setValueAt(null, row, model.getColumnCount() - 1);
+            }
+        } else {
+            for (int row : selectedRows) {
+                for (int col : selectedColumns) {
+                    if (col > 0) {
+                        model.setValueAt(null, row, col);
+                    }
+                }
+            }
+        }
+        modifide = true;
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+
+    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
+        if (isShifted) {
+            for (int row : selectedRows) {
+                for (int col : selectedColumns) {
+                    if (col > 0) {
+                        for (int i = model.getRowCount() - 1; i > row; i--) {
+                            model.setValueAt(model.getValueAt(i - 1, col), i, col);
+                        }
+                        model.setValueAt(values[valueIndex++ % values.length], row, col);
+                    }
+                }
+            }
+        } else {
+            for (int row : selectedRows) {
+                for (int col : selectedColumns) {
+                    if (col > 0 && valueIndex < values.length) {
+                        model.setValueAt(values[valueIndex++], row, col);
+                    }
+                }
+            }
+        }
+        modifide = true;
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+
+    private void deleteFromHex(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {
         int i_selectedRows = 0;
         List<List<String>> copyHEX = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -399,13 +455,12 @@ public class WorkPanel extends BasePanel {
             copyHEX.add(list);
             i_selectedRows++;
         }
-        
         hex = copyHEX;
         initComponents();
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex, boolean is_shifted) {
+    private void insertToHex(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex, boolean is_shifted) {
         List<List<String>> copyHEX = new ArrayList<>();
         int i_selectedRows = 0;
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -481,7 +536,6 @@ public class WorkPanel extends BasePanel {
         
         hex = copyHEX;
         SwingUtilities.updateComponentTreeUI(this);
-        System.out.println("Model updated at row: " + row + " column: " + (column - 1));
         }
     }
 
@@ -489,7 +543,6 @@ public class WorkPanel extends BasePanel {
         copyToClipBoard(model, selectedRows, selectedColumns);
         deleteFromModel(model, selectedRows, selectedColumns, is_shifted);    
     }
-
 
     public void setTitle(String title) {
         this.title = title;

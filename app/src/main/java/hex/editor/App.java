@@ -3,12 +3,7 @@ package hex.editor;
 
 import java.awt.EventQueue;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Exchanger;
-
 import hex.editor.controller.Thread.ViewThread;
-import hex.editor.model.Types;
 
 
 public class App {
