@@ -25,7 +25,6 @@ public class MenuBar extends JMenuBar {
         fileMenu.setForeground(styleSheet.getMainTextColor());
         {
             JMenuItem openFile = new JMenuItem("Open file");
-
             openFile.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {

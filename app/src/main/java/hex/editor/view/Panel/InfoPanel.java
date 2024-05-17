@@ -5,10 +5,6 @@ import java.awt.GridLayout;
 import java.awt.event.*;
 import java.awt.Color;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.Exchanger;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.swing.JPanel;
@@ -19,7 +15,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import hex.editor.model.Info;
-import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.BasePanel;
 import hex.editor.view.Panel.origin.WorkPanel;

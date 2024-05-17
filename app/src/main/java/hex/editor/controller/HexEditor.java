@@ -5,7 +5,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.*;
 
-import hex.editor.services.FileViewer;
 import hex.editor.services.HexService;
 
 public class HexEditor {
@@ -56,8 +55,8 @@ public class HexEditor {
 
     public void editOpenedFileByChars(List<List<String>> chars) {
         hex = chars.stream()
-                .map(HexService::getHexFromChars)
-                .collect(Collectors.toList());
+            .map(HexService::getHexFromChars)
+            .collect(Collectors.toList());
     } 
 
     public List<List<Integer>> find(List<String> searchingHex) {
