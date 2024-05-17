@@ -28,15 +28,15 @@ public class HexService {
         return hex.stream()
             .filter(x -> {
                 if (
-                    x.equals(" ") || x.length() == 0
+                    x.equals(" ") || x.isEmpty()
                     || (byte)(x.toUpperCase().charAt(0)) >= (byte)'A' && (byte)(x.toUpperCase().charAt(0)) <= (byte)'F'
                     || (byte)(x.toUpperCase().charAt(0)) >= (byte)'0' && (byte)(x.toUpperCase().charAt(0)) <= (byte)'9'
                 )
                     return true;
                 throw new NumberFormatException();
             })
-            .map(hx -> hx.length() == 0 ? "" : (char)Integer.parseInt(hx, 16))
-            .map(ch -> String.valueOf(ch))
+            .map(hx -> hx.isEmpty() ? "" : (char)Integer.parseInt(hx, 16))
+            .map(String::valueOf)
             .collect(Collectors.toList());
     }
 
