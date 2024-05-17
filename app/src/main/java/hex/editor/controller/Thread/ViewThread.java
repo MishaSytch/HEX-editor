@@ -13,19 +13,17 @@ import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class ViewThread implements Runnable {
-    private final Map<Types, Exchanger<Object>> exchangers;
 
 
 
-    public ViewThread(Map<Types, Exchanger<Object>> exchangers) {
-        this.exchangers = exchangers;
+    public ViewThread() {
     }
 
     private void init() {
         MainWindow mainWindow = new MainWindow();
         mainWindow.setVisible(false);
-        InfoPanel infoPanel = new InfoPanel(mainWindow, exchangers);
-        WorkPanel editPanel = new WorkPanel(mainWindow, infoPanel, exchangers);
+        InfoPanel infoPanel = new InfoPanel(mainWindow);
+        WorkPanel editPanel = new WorkPanel(mainWindow, infoPanel);
         infoPanel.setWorkPanel(editPanel);
 
         JPanel baseWorkPanel = new JPanel(new BorderLayout());

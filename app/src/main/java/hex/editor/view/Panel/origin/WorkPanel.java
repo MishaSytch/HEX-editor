@@ -35,6 +35,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+import hex.editor.controller.HexEditor;
 import hex.editor.model.Info;
 import hex.editor.model.Types;
 import hex.editor.view.MainWindow;
@@ -49,10 +50,6 @@ public class WorkPanel extends BasePanel {
         }
     };
     private final IStyleSheet styleSheet = super.getStyleSheet();
-    private final Exchanger<Object> hexExchanger;
-    private final Exchanger<Object> charsExchanger;
-    private final Exchanger<Object> integerExchanger;
-    private final Exchanger<Object> UPDATE_BY_HEXExchanger;
     private final JScrollPane pane = new JScrollPane();
     private final JLabel fileName = getText("");
     private List<List<String>> hex;
@@ -71,14 +68,11 @@ public class WorkPanel extends BasePanel {
     private Popup popup;
     private Timer scopeTimer;
     private String title;
+    private HexEditor hexEditor;
 
-    public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
+    public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
         this.infoPanel = infoPanel;
-        this.hexExchanger = exchangers.get(Types.HEX);
-        this.charsExchanger = exchangers.get(Types.CHARS);
-        this.integerExchanger = exchangers.get(Types.INTEGER);
-        this.UPDATE_BY_HEXExchanger = exchangers.get(Types.UPDATE_BY_HEX);
 
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
@@ -95,6 +89,7 @@ public class WorkPanel extends BasePanel {
     }
     public void setHex(List<List<String>> hex) {
         this.hex = hex;
+        hexEditor = new HexEditor(hex);
         initComponents();
     }
 
@@ -233,7 +228,6 @@ public class WorkPanel extends BasePanel {
                     int[] selectedColumns = table.getSelectedColumns();
                     int result = JOptionPane.showConfirmDialog(null, "Do you want to cut with shift", "Cut", JOptionPane.YES_NO_OPTION);
                     cutToClipboard(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
-                    updateService();
                 }
 
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
@@ -248,7 +242,6 @@ public class WorkPanel extends BasePanel {
 
                             int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
                             insertToModel(model, values, selectedRows, selectedColumns, valueIndex, result == JOptionPane.YES_OPTION);
-                            updateService();
                             System.out.println("Data pasted with validation");
                         } else {
                             System.out.println("Invalid data");
@@ -264,7 +257,6 @@ public class WorkPanel extends BasePanel {
                     if (selectedRows.length > 0 && selectedColumns.length > 0) {
                         int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
                         deleteFromModel(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
-                        updateService();
                         System.out.println("View: deleted selected cells");
                     }
                 }
@@ -290,22 +282,6 @@ public class WorkPanel extends BasePanel {
         pane.setVisible(true);
     }
 
-    @SuppressWarnings("unchecked")
-    public void waitPosition() {
-        if (hex == null) return;
-
-        System.out.println("View: Position wait");
-        try {
-            positions = (List<List<Integer>>) integerExchanger.exchange(null);
-            if (positions.isEmpty()) positions = null;
-            else {
-                System.out.println("View: Position got");
-                selectCell(positions);
-            }
-        } catch (InterruptedException ignored) {
-        }
-    }
-
     public void selectCell(List<List<Integer>> pos) {
         positions = pos;
         SwingUtilities.updateComponentTreeUI(this);
@@ -318,11 +294,13 @@ public class WorkPanel extends BasePanel {
         System.out.println("View: Cell unselected");
     }
 
-    public void updateData() {
-        if (hex == null) return;
-        updateService();
+    public void searchByMask(String mask) {
+        positions = hexEditor.findByMask(mask);
     }
 
+    public void searchByHex(List<String> searchingHex){
+        positions = hexEditor.find(searchingHex);
+    }
 
     private boolean validateData(String data) {
         return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.isEmpty());
@@ -346,20 +324,12 @@ public class WorkPanel extends BasePanel {
     private void loadInfo(DefaultTableModel model, int row, int column) {
         if (column == 0) return;
         String ch = "empty";
-        try {
-            if (model.getValueAt(row, column) != "") {
-                List<List<String>> cells = new ArrayList<>();
-                List<String> cell = new ArrayList<>();
-                cell.add((String)model.getValueAt(row, column));
-                cells.add(cell);
-                hexExchanger.exchange(cells);
-                ch = ((List<List<String>>)(charsExchanger.exchange(null))).get(0).get(0);
-            }
-
-            infoPanel.setInfo(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
-            SwingUtilities.updateComponentTreeUI(infoPanel);
-        } catch (InterruptedException ignored) {
+        if (model.getValueAt(row, column) != "") {
+            ch = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
         }
+
+        infoPanel.setInfo(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
+        SwingUtilities.updateComponentTreeUI(infoPanel);
     }
 
     private void showPopup(MouseEvent event) {
@@ -474,8 +444,7 @@ public class WorkPanel extends BasePanel {
             copyHEX.add(list);
         }
         
-        hex = copyHEX;                    
-        updateService();
+        hex = copyHEX;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
@@ -497,15 +466,6 @@ public class WorkPanel extends BasePanel {
         System.out.println("Copied to clipboard");
     }
 
-    private void updateService() {
-        try {
-            System.out.println("View: Update by hex");
-            UPDATE_BY_HEXExchanger.exchange(hex);
-        } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
-        }
-    }
-
     private void updateModel(int row, int column, String newValue) {
         if (model != null && row >= 0 && column > 0 && row < model.getRowCount() && column < model.getColumnCount()) {
             model.setValueAt(newValue, row, column);
@@ -520,7 +480,6 @@ public class WorkPanel extends BasePanel {
         }
         
         hex = copyHEX;
-        updateService();
         SwingUtilities.updateComponentTreeUI(this);
         System.out.println("Model updated at row: " + row + " column: " + (column - 1));
         }

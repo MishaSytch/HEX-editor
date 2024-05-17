@@ -35,15 +35,10 @@ public class InfoPanel extends BasePanel {
     private JButton maskButton = new JButton();
     private JButton hexButton = new JButton();
     private JButton clearButton = new JButton();
-    private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
-    private final Exchanger<Object> SEARCH_BY_STRING_Exchanger;
     private WorkPanel workPanel;
 
-    public InfoPanel(MainWindow mainWindow, Map<Types, Exchanger<Object>> exchangers) {
+    public InfoPanel(MainWindow mainWindow) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.2));
-
-        this.SEARCH_BY_HEX_Exchanger = exchangers.get(Types.SEARCH_BY_HEX);
-        this.SEARCH_BY_STRING_Exchanger = exchangers.get(Types.SEARCH_BY_STRING); 
 
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(10, 5, 10, 0));
@@ -127,19 +122,11 @@ public class InfoPanel extends BasePanel {
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
                     if (!search.getText().trim().isEmpty()) {
-                        try {
-                            if (!maskButton.isEnabled()){
-                                SEARCH_BY_STRING_Exchanger.exchange(search.getText().trim(), 1500, TimeUnit.MILLISECONDS);
-                            }
-                            if (!hexButton.isEnabled()) {
-                                SEARCH_BY_HEX_Exchanger.exchange(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()), 1500, TimeUnit.MILLISECONDS);
-                            }
-                        } catch (InterruptedException | TimeoutException e) {
-                            System.out.println("View: searching error");
+                        if (!maskButton.isEnabled()){
+                            workPanel.searchByMask(search.getText().trim());
                         }
-                        if (workPanel != null) {
-                            System.out.println("View: smt sent");
-                            workPanel.waitPosition();
+                        if (!hexButton.isEnabled()) {
+                            workPanel.searchByHex(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()));
                         }
                     }
                     clearButton.setVisible(true);
@@ -192,7 +179,6 @@ public class InfoPanel extends BasePanel {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                workPanel.updateData();
                 String methodInfo;
                 if (button == maskButton){
                     maskButton.setEnabled(false);
