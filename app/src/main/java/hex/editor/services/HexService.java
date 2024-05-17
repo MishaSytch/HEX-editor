@@ -9,7 +9,7 @@ public class HexService {
 
     public static List<String> getHexFromString(String line) throws NullPointerException {
         return Arrays.stream(line.split(""))
-            .filter(x -> x.length() > 0)
+            .filter(x -> !x.isEmpty())
             .map(str -> str.charAt(0))
             .map(ch -> {
                 if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();

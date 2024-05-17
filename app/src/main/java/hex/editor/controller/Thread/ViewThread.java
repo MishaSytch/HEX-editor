@@ -32,7 +32,7 @@ public class ViewThread implements Runnable {
         baseWorkPanel.add(editPanel, BorderLayout.CENTER);
         baseWorkPanel.add(infoPanel, BorderLayout.WEST);
 
-        MenuBar menuBar = new MenuBar(exchangers.get(Types.FILE), editPanel);
+        MenuBar menuBar = new MenuBar(editPanel);
 
         mainWindow.add(menuBar, BorderLayout.NORTH);
         mainWindow.add(baseWorkPanel, BorderLayout.CENTER);

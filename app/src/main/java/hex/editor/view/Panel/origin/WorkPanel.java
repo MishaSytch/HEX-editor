@@ -11,11 +11,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Exchanger;
 
 import javax.swing.BorderFactory;
@@ -40,37 +37,40 @@ import javax.swing.table.TableColumnModel;
 
 import hex.editor.model.Info;
 import hex.editor.model.Types;
-import hex.editor.services.TableViewer;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Style.IStyleSheet;
 
 public class WorkPanel extends BasePanel {
-    private JTable table;
+    private final JTable table = new JTable(){
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return getPreferredSize().width < getParent().getWidth();
+        }
+    };
     private final IStyleSheet styleSheet = super.getStyleSheet();
     private final Exchanger<Object> hexExchanger;
     private final Exchanger<Object> charsExchanger;
     private final Exchanger<Object> integerExchanger;
     private final Exchanger<Object> UPDATE_BY_HEXExchanger;
-    private JScrollPane pane;
-    private JLabel text;
-
-    public List<List<String>> getHex() {
-        return hex;
-    }
-
+    private final JScrollPane pane = new JScrollPane();
+    private final JLabel fileName = getText("");
     private List<List<String>> hex;
     private final InfoPanel infoPanel;
     private List<List<Integer>> positions;
-    private DefaultTableModel model;
+    private final DefaultTableModel model = new DefaultTableModel() {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column != 0;
+        }
+    };
     private final JToolTip tooltip = new JToolTip();
     private Integer lastX;
     private Integer lastY;
     private final PopupFactory popupFactory = PopupFactory.getSharedInstance();
     private Popup popup;
     private Timer scopeTimer;
-    private int countOfColumn;
-
+    private String title;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel, Map<Types, Exchanger<Object>> exchangers) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -85,49 +85,47 @@ public class WorkPanel extends BasePanel {
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getBackBaseColor());
 
+        pane.add(table);
+        pane.setVisible(false);
+        this.add(pane, BorderLayout.CENTER);
+        this.add(fileName, BorderLayout.NORTH);
+    }
+
+    public List<List<String>> getHex() {
+        return hex;
+    }
+    public void setHex(List<List<String>> hex) {
+        this.hex = hex;
+        initComponents();
+    }
+
+    private void initComponents() {
+        fileName.setBorder(new EmptyBorder(10, 0, 10, 0));
+        fileName.setText(title);
+
+        Vector<String> columnNames = new Vector<>();
+        columnNames.add(String.valueOf(' '));
+        for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
+        model.setColumnIdentifiers(columnNames);
+        model.addColumn(0);
+        for (List<String> lines : hex) {
+            Vector<String> row = new Vector<>();
+            row.add(String.valueOf(model.getRowCount()));
+            row.addAll(lines);
+            model.addRow(row);
+        }
+
+        table.setModel(model);
+        pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        pane.setBackground(styleSheet.getBackBaseColor());
+        pane.setForeground(styleSheet.getBackBaseColor());
+        pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
+
         this.tooltip.setBackground(styleSheet.getToolTipBackColor());
         this.tooltip.setForeground(styleSheet.getToolTipTextColor());
         this.tooltip.setBorder(new EmptyBorder(5, 5, 5, 5));
-    }
-
-    public void setTitle(String title) {
-        if (text != null) this.remove(text);
-
-        text = super.getText(title);
-        text.setBorder(new EmptyBorder(10, 0, 10, 0));
-        this.add(text, BorderLayout.NORTH);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void showData() {
-        System.out.println("View: wait hex");
-        try {
-            if (pane != null) {
-                pane.removeAll();
-                this.remove(pane);
-            }
-            hex = (List<List<String>>) hexExchanger.exchange(null);
-            System.out.println("View: received hex");
-            while (true) {
-                try {
-                    String text = JOptionPane.showInputDialog(null, "Type count of column:").trim();
-                    countOfColumn = Integer.parseInt(text);
-                    setModel(hex, countOfColumn);
-                    break;
-                } catch (Exception ignored) {
-                }
-            }
-            SwingUtilities.updateComponentTreeUI(this);
-            System.out.println("View: hex loaded");
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.out.println("View: hex loading interrupted");
-        }
-    }
-
-    private void setModel(List<List<String>> hex, int countOfColumn) {
-        model = TableViewer.getTable(hex, countOfColumn, true);
-        createAndAddTable(model);
+        pane.setVisible(true);
     }
 
     @SuppressWarnings("unchecked")
@@ -142,7 +140,7 @@ public class WorkPanel extends BasePanel {
                 System.out.println("View: Position got");
                 selectCell(positions);
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
     }
 
@@ -160,22 +158,10 @@ public class WorkPanel extends BasePanel {
 
     public void updateData() {
         if (hex == null) return;
-
         updateService();
     }
 
     private void createAndAddTable(DefaultTableModel model) {
-        if (table != null) {
-            table.removeAll();
-            pane.remove(table);
-            this.remove(pane);
-        }
-        table = new JTable(model){
-            @Override
-            public boolean getScrollableTracksViewportWidth() {
-                return getPreferredSize().width < getParent().getWidth();
-            }
-        };
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
@@ -340,17 +326,6 @@ public class WorkPanel extends BasePanel {
             }
             
         });
-
-
-        // Настройка панели с прокруткой
-        pane = new JScrollPane(table);
-        pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        pane.setBackground(styleSheet.getBackBaseColor());
-        pane.setForeground(styleSheet.getBackBaseColor());
-        pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
-
-        this.add(pane, BorderLayout.CENTER);
     }
 
     private boolean validateData(String data) {
@@ -460,7 +435,7 @@ public class WorkPanel extends BasePanel {
         }
         
         hex = copyHEX;
-        setModel(hex, countOfColumn);
+        initComponents();
         SwingUtilities.updateComponentTreeUI(this);
     }
 
@@ -560,5 +535,8 @@ public class WorkPanel extends BasePanel {
         deleteFromModel(model, selectedRows, selectedColumns, is_shifted);    
     }
 
-    
-} 
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+}

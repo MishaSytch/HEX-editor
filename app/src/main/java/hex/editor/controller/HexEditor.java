@@ -9,35 +9,18 @@ import hex.editor.services.FileViewer;
 import hex.editor.services.HexService;
 
 public class HexEditor {
-    private List<String> strings = null;
+    private List<List<String>> hex;
 
-    public List<String> getStrings() {
-        return strings;
-    }
-
-    public HexEditor(String path) {
-        openFile(path);
-    }
-
-    public HexEditor() {
-
-    }
-
-    public void openNewFile(String path) {
-        openFile(path);
-    }
-
-    private void openFile(String path) {
-        FileViewer fileViewer = new FileViewer(path);
-        strings = fileViewer.getLines();
+    public HexEditor(List<List<String>> hex) {
+        this.hex = hex;
     }
 
     public List<List<String>> getHexLines() throws NullPointerException {
-        return strings.stream().map(HexService::getHexFromString).collect(Collectors.toList());
+        return hex;
     }
 
     public List<List<String>> getCharLines() throws NullPointerException {
-        return strings.stream().map(HexService::getCharsFromString).collect(Collectors.toList());
+        return hex.stream().map(HexService::getCharsFromHex).collect(Collectors.toList());
     }
 
     public String getCharFromHex(String hex) throws NumberFormatException, NullPointerException  {
@@ -68,36 +51,32 @@ public class HexEditor {
     }
 
     public void editOpenedFileByHex(List<List<String>> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
-        strings = hex.stream()
-            .map(HexService::getCharsFromHex)
-            .map(x -> x.stream().collect(Collectors.joining("")))
-            .collect(Collectors.toList());
+        this.hex = hex;
     } 
 
     public void editOpenedFileByChars(List<List<String>> chars) {
-        strings = chars.stream()
-            .map(x -> x.stream().collect(Collectors.joining("")))
-            .collect(Collectors.toList());
+        hex = chars.stream()
+                .map(HexService::getHexFromChars)
+                .collect(Collectors.toList());
     } 
 
     public List<List<Integer>> find(List<String> searchingHex) {
-        if (strings == null) {
+        if (hex == null) {
             throw new NullPointerException();
         }
         if (searchingHex.isEmpty()) {
             throw new IllegalArgumentException("Array has null length"); 
         }
         List<List<Integer>> pos_row = new ArrayList<>();
-        List<List<String>> hexFromString = getHexLines();
-        
-        for (int row = 0; row < hexFromString.size(); row++) {
+
+        for (List<String> strings : hex) {
             List<Integer> pos_column = new ArrayList<>();
 
-            for (int column = 0; column < hexFromString.get(row).size(); column++) {
+            for (int column = 0; column < strings.size(); column++) {
                 int i_byte = 0;
                 int start = column;
-                while(hexFromString.get(row).get(column++).equalsIgnoreCase(searchingHex.get(i_byte))) {
-                    if (++i_byte == searchingHex.size()) 
+                while (strings.get(column++).equalsIgnoreCase(searchingHex.get(i_byte))) {
+                    if (++i_byte == searchingHex.size())
                         break;
                 }
                 if (i_byte == searchingHex.size()) {
@@ -113,23 +92,20 @@ public class HexEditor {
     }
 
     public List<List<Integer>> findByMask(String mask) {
-        if (strings == null) {
+        if (hex == null) {
             throw new NullPointerException();
         }
-        if (mask.length() == 0) {
+        if (mask.isEmpty()) {
             throw new IllegalArgumentException("Mask is empty"); 
         }
-
         List<List<Integer>> pos_rows = new ArrayList<>();
-        List<List<String>> hex = getHexLines();
-
-        for (int row = 0; row < hex.size(); row++) {
+        for (List<String> strings : hex) {
             Pattern regexp = Pattern.compile(mask.toUpperCase());
             List<Integer> pos_column = new ArrayList<>();
 
-            if (!hex.get(row).isEmpty()) {
-                for (int column = 0; column < hex.get(row).size(); column++) {
-                    Matcher match = regexp.matcher(hex.get(row).get(column));
+            if (!strings.isEmpty()) {
+                for (int column = 0; column < strings.size(); column++) {
+                    Matcher match = regexp.matcher(strings.get(column));
                     if (match.find()) pos_column.add(column);
                 }
             }
