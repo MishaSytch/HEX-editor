@@ -20,7 +20,6 @@ public class ServiceThread implements Runnable {
     private final Exchanger<Object> SEARCH_BY_HEX_Exchanger;
     private final Exchanger<Object> integerExchanger;
     private final Exchanger<Object> UPDATE_BY_HEXExchanger;
-    private boolean close = false;
 
     private HexEditor hexEditor;
 
@@ -39,7 +38,6 @@ public class ServiceThread implements Runnable {
     public void run() {
         boolean isWaiting = true;
         while (true) {
-//            if (close) return;
             List<List<String>> hex = null;
             List<List<String>> chars = null;
             String SEARCH_BY_STRING = null;
@@ -172,9 +170,5 @@ public class ServiceThread implements Runnable {
             } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }
-    }
-
-    public void close() {
-        close = true;
     }
 }

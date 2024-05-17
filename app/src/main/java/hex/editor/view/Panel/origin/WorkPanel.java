@@ -85,7 +85,6 @@ public class WorkPanel extends BasePanel {
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getBackBaseColor());
 
-        pane.add(table);
         pane.setVisible(false);
         this.add(pane, BorderLayout.CENTER);
         this.add(fileName, BorderLayout.NORTH);
@@ -107,7 +106,6 @@ public class WorkPanel extends BasePanel {
         columnNames.add(String.valueOf(' '));
         for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
         model.setColumnIdentifiers(columnNames);
-        model.addColumn(0);
         for (List<String> lines : hex) {
             Vector<String> row = new Vector<>();
             row.add(String.valueOf(model.getRowCount()));
@@ -116,77 +114,29 @@ public class WorkPanel extends BasePanel {
         }
 
         table.setModel(model);
-        pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        pane.setBackground(styleSheet.getBackBaseColor());
-        pane.setForeground(styleSheet.getBackBaseColor());
-        pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
-
-        this.tooltip.setBackground(styleSheet.getToolTipBackColor());
-        this.tooltip.setForeground(styleSheet.getToolTipTextColor());
-        this.tooltip.setBorder(new EmptyBorder(5, 5, 5, 5));
-        pane.setVisible(true);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void waitPosition() {
-        if (hex == null) return;
-
-        System.out.println("View: Position wait");
-        try {
-            positions = (List<List<Integer>>) integerExchanger.exchange(null);
-            if (positions.isEmpty()) positions = null;
-            else {
-                System.out.println("View: Position got");
-                selectCell(positions);
-            }
-        } catch (InterruptedException ignored) {
-        }
-    }
-
-    public void selectCell(List<List<Integer>> pos) {
-        positions = pos;
-        SwingUtilities.updateComponentTreeUI(this);
-        System.out.println("View: Cell selected");
-    }
-
-    public void unselectCell() {
-        positions = null;    
-        SwingUtilities.updateComponentTreeUI(this);
-        System.out.println("View: Cell unselected");
-    }
-
-    public void updateData() {
-        if (hex == null) return;
-        updateService();
-    }
-
-    private void createAndAddTable(DefaultTableModel model) {
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
-                c.setBackground(styleSheet.getBackBaseColor());
-                ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
-                c.setEnabled(columnIndex > 0);
-                if (positions != null) {
-                    for (List<Integer> rows : positions) {
-                        if (rowIndex == positions.indexOf(rows)) {
-                            for (Integer column : rows) {
-                                if (columnIndex == column + 1) {
-                                    c.setBackground(styleSheet.getSelectedColor());
-     
-                                    return c;
-                                } 
-                           }  
-                        }            
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
+            c.setBackground(styleSheet.getBackBaseColor());
+            ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
+            c.setEnabled(columnIndex > 0);
+            if (positions != null) {
+                for (List<Integer> rows : positions) {
+                    if (rowIndex == positions.indexOf(rows)) {
+                        for (Integer column : rows) {
+                            if (columnIndex == column + 1) {
+                                c.setBackground(styleSheet.getSelectedColor());
+                                return c;
+                            }
+                        }
                     }
                 }
-                if (isSelected) {
-                    c.setBackground(styleSheet.getSelectedColor());
-                }
-
-                return c;
+            }
+            if (isSelected) {
+                c.setBackground(styleSheet.getSelectedColor());
+            }
+            return c;
             }
         });
         table.setForeground(styleSheet.getMainTextColor());
@@ -202,7 +152,7 @@ public class WorkPanel extends BasePanel {
         table.setRowHeight(40);
 
         table.setRowSelectionInterval(0, 0);
-        table.setColumnSelectionInterval(1, 1); 
+        table.setColumnSelectionInterval(1, 1);
 
         TableColumnModel columnModel = table.getColumnModel();
         for (int i = 0; i < columnModel.getColumnCount(); i++) {
@@ -212,7 +162,6 @@ public class WorkPanel extends BasePanel {
             else break;
         }
 
-
         table.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent event) {
@@ -220,7 +169,7 @@ public class WorkPanel extends BasePanel {
                     System.out.println("Info: wait info");
                     int row = table.getSelectedRow();
                     int column = table.getSelectedColumn();
-    
+
                     loadInfo(model, row, column);
                 }
             }
@@ -245,7 +194,7 @@ public class WorkPanel extends BasePanel {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
                 loadInfo(model, row, column);
-                showPopup(event);                               
+                showPopup(event);
             }
 
             @Override
@@ -261,7 +210,7 @@ public class WorkPanel extends BasePanel {
                 String newValue = (String) table.getValueAt(row, column);
                 updateModel(row, column, newValue);
             }
-        
+
             @Override
             public void editingCanceled(ChangeEvent event) {
             }
@@ -286,7 +235,7 @@ public class WorkPanel extends BasePanel {
                     cutToClipboard(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
                     updateService();
                 }
-                    
+
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -324,9 +273,56 @@ public class WorkPanel extends BasePanel {
             @Override
             public void keyTyped(KeyEvent arg0) {
             }
-            
+
         });
+
+        pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        pane.setBackground(styleSheet.getBackBaseColor());
+        pane.setForeground(styleSheet.getBackBaseColor());
+        pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
+
+        this.tooltip.setBackground(styleSheet.getToolTipBackColor());
+        this.tooltip.setForeground(styleSheet.getToolTipTextColor());
+        this.tooltip.setBorder(new EmptyBorder(5, 5, 5, 5));
+        pane.setViewportView(table);
+        SwingUtilities.updateComponentTreeUI(this);
+        pane.setVisible(true);
     }
+
+    @SuppressWarnings("unchecked")
+    public void waitPosition() {
+        if (hex == null) return;
+
+        System.out.println("View: Position wait");
+        try {
+            positions = (List<List<Integer>>) integerExchanger.exchange(null);
+            if (positions.isEmpty()) positions = null;
+            else {
+                System.out.println("View: Position got");
+                selectCell(positions);
+            }
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    public void selectCell(List<List<Integer>> pos) {
+        positions = pos;
+        SwingUtilities.updateComponentTreeUI(this);
+        System.out.println("View: Cell selected");
+    }
+
+    public void unselectCell() {
+        positions = null;    
+        SwingUtilities.updateComponentTreeUI(this);
+        System.out.println("View: Cell unselected");
+    }
+
+    public void updateData() {
+        if (hex == null) return;
+        updateService();
+    }
+
 
     private boolean validateData(String data) {
         return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.isEmpty());
@@ -362,7 +358,7 @@ public class WorkPanel extends BasePanel {
 
             infoPanel.setInfo(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
             SwingUtilities.updateComponentTreeUI(infoPanel);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
     }
 

@@ -44,11 +44,5 @@ public class App {
         serviceThread.start();
 
         System.out.println("Main");
-        try {
-            viewThread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        service.close();
     }
 }
