@@ -172,12 +172,17 @@ public class WorkPanel extends BasePanel {
 
                     loadInfo(model, row, column);
                 }
+
                 if (event.getClickCount() == 2) {
-                    event.consume();
                     int row = table.rowAtPoint(event.getPoint());
                     int column = table.columnAtPoint(event.getPoint());
-                    if (column != 0) { // Проверяем, что это не колонка с номерами строк
-                        table.editCellAt(row, column);
+                    if (column != 0) {
+                        String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
+                        if (validateData(text)) {
+                            model.setValueAt(text.toUpperCase(), row, column);
+                        } else {
+                            JOptionPane.showConfirmDialog(null, "Not valid!");
+                        }
                     }
                 }
             }
@@ -192,8 +197,7 @@ public class WorkPanel extends BasePanel {
             public void mousePressed(MouseEvent event) {}
 
             @Override
-            public void mouseReleased(MouseEvent event) {
-            }
+            public void mouseReleased(MouseEvent event) {}
         });
 
         table.addMouseMotionListener(new MouseMotionListener() {
@@ -331,12 +335,10 @@ public class WorkPanel extends BasePanel {
 
     private void loadInfo(DefaultTableModel model, int row, int column) {
         if (column == 0) return;
-        String ch = "empty";
-        if (model.getValueAt(row, column) != "") {
-            ch = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
+        if (model.getValueAt(row, column) != null) {
+            String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
+            infoPanel.setInfo(new Info(row, column, data, (String) model.getValueAt(row, column)));
         }
-
-        infoPanel.setInfo(new Info(row, column - 1, ch, (String)model.getValueAt(row, column)));
         SwingUtilities.updateComponentTreeUI(infoPanel);
     }
 
@@ -384,12 +386,14 @@ public class WorkPanel extends BasePanel {
     private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
         if (isShifted) {
             for (int row : selectedRows) {
-                for (int i = selectedColumns[0]; i < model.getColumnCount() - 1; i++) {
-                    if (i > 0) {
-                        model.setValueAt(model.getValueAt(row, i + 1), row, i);
+                for (int column : selectedColumns) {
+                    for (int i = column; i < model.getColumnCount() - 1; i++) {
+                        if (i > 0) {
+                            model.setValueAt(model.getValueAt(row, i + 1), row, i);
+                        }
                     }
+                    model.setValueAt(null, row, model.getColumnCount() - 1);
                 }
-                model.setValueAt(null, row, model.getColumnCount() - 1);
             }
         } else {
             for (int row : selectedRows) {
@@ -407,25 +411,23 @@ public class WorkPanel extends BasePanel {
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
         if (isShifted) {
             for (int row : selectedRows) {
-                for (int col : selectedColumns) {
-                    if (col > 0) {
-                        for (int i = model.getRowCount() - 1; i > row; i--) {
-                            model.setValueAt(model.getValueAt(i - 1, col), i, col);
+                for (int column : selectedColumns) {
+                    if (column > 0) {
+                        for (int i = model.getColumnCount() - 1; i > column; i--) {
+                            model.setValueAt(model.getValueAt(row, i - 1), row, i);
                         }
-                        model.setValueAt(values[valueIndex++ % values.length], row, col);
-                    }
-                }
-            }
-        } else {
-            for (int row : selectedRows) {
-                for (int col : selectedColumns) {
-                    if (col > 0 && valueIndex < values.length) {
-                        model.setValueAt(values[valueIndex++], row, col);
+                        model.setValueAt(values[valueIndex++], row, column);
                     }
                 }
             }
         }
-        modifide = true;
+        else {
+            for (int row : selectedRows) {
+                for (int column : selectedColumns) {
+                    if (column > 0) model.setValueAt(values[valueIndex++], row, column);
+                }
+            }
+        }
         SwingUtilities.updateComponentTreeUI(this);
     }
 
@@ -446,7 +448,7 @@ public class WorkPanel extends BasePanel {
                 } else {
                     if (k == selectedColumns[k_selectedColumn] && i == selectedRows[i_selectedRows]) {
                         k_selectedColumn++;
-                        list.add("");
+                        list.add(null);
                     } else {
                         list.add((String)model.getValueAt(i, k));
                     }
@@ -481,7 +483,7 @@ public class WorkPanel extends BasePanel {
                         valueIndex < values.length 
                         ? values[valueIndex++] 
                         : is_shifted 
-                            ? "" 
+                            ? null
                             : (String)model.getValueAt(i, k)
                     );
                 } else {
@@ -509,8 +511,8 @@ public class WorkPanel extends BasePanel {
         for (int row : selectedRows) {
             for (int col : selectedColumns) {
                 if (col == 0) continue;
-
-                sb.append(model.getValueAt(row, col).toString());
+                String data = model.getValueAt(row, col) != null ? model.getValueAt(row, col).toString() : "";
+                sb.append(data);
                 sb.append(";");
             }
             sb.append("\n");
