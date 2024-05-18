@@ -45,6 +45,11 @@ public class InfoPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
+    public void setInfo(String info_info) {
+        info.setText(info_info);
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+
     private void initComponents() {
         add(info, BorderLayout.WEST);
         search.setBorder(new EmptyBorder(10, 10, 10, 10));

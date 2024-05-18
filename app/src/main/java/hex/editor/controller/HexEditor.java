@@ -112,4 +112,14 @@ public class HexEditor {
         }
         return pos_rows;
     }
+
+    public static byte[] hexStringToByteArray(String hexValue) {
+        int len = hexValue.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexValue.charAt(i), 16) << 4)
+                    + Character.digit(hexValue.charAt(i+1), 16));
+        }
+        return data;
+    }
 }
