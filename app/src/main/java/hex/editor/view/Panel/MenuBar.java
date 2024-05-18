@@ -18,13 +18,14 @@ import hex.editor.view.Style.StyleSheet_MainWindow;
 public class MenuBar extends JMenuBar {
     private IStyleSheet styleSheet = new StyleSheet_MainWindow();
     private File file = null;
+    private final JMenuItem openFile = new JMenuItem("Open file");
+    private final JMenuItem saveFile = new JMenuItem("Save file");
     
     public MenuBar(WorkPanel workPanel) {
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
         fileMenu.setForeground(styleSheet.getMainTextColor());
         {
-            JMenuItem openFile = new JMenuItem("Open file");
             openFile.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {
@@ -48,6 +49,7 @@ public class MenuBar extends JMenuBar {
                             } catch (Exception ignored) {
                             }
                         }
+                        saveFile.setEnabled(true);
                         workPanel.setTitle(file.getName());
                    }
                 }
@@ -55,7 +57,6 @@ public class MenuBar extends JMenuBar {
             fileMenu.add(openFile);
         }
         {
-            JMenuItem saveFile = new JMenuItem("Save file");
             saveFile.addActionListener(e -> {
                 if (file != null) {
                     JFileChooser fileChooser = new JFileChooser();
@@ -69,6 +70,7 @@ public class MenuBar extends JMenuBar {
                 }
             });
             fileMenu.add(saveFile);
+            saveFile.setEnabled(false);
         }
         this.add(fileMenu);
     }

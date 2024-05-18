@@ -5,11 +5,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -54,7 +50,6 @@ public class WorkPanel extends BasePanel {
     private List<List<String>> hex;
     private final InfoPanel infoPanel;
     private final Positions positions = new Positions();
-    private boolean isSearch = false;
     private final DefaultTableModel model = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -70,7 +65,7 @@ public class WorkPanel extends BasePanel {
     private Timer scopeTimer;
     private String title;
     private HexEditor hexEditor;
-    private boolean modifide = false;
+    private boolean modified = false;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -88,8 +83,8 @@ public class WorkPanel extends BasePanel {
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
                 c.setEnabled(columnIndex > 0);
-                if (isSearch) {
-                    if (positions.getCurrent().getRow() == rowIndex && positions.getCurrent().getColumn() == columnIndex) {
+                if (!positions.isEmpty()) {
+                    if (columnIndex > 0 && positions.getCurrent().getRow() == rowIndex && positions.getCurrent().getColumn() + 1 == columnIndex) {
                         c.setBackground(styleSheet.getSelectedColor());
                     }
                 }
@@ -107,7 +102,7 @@ public class WorkPanel extends BasePanel {
     }
 
     public List<List<String>> getHex() {
-        if (modifide) {
+        if (modified) {
             hex = model.getDataVector();
         }
         return hex;
@@ -158,7 +153,7 @@ public class WorkPanel extends BasePanel {
             else break;
         }
 
-        table.addMouseListener(new MouseListener() {
+        table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
@@ -182,31 +177,15 @@ public class WorkPanel extends BasePanel {
                     }
                 }
             }
-
-            @Override
-            public void mouseEntered(MouseEvent event) {}
-
-            @Override
-            public void mouseExited(MouseEvent event) {}
-
-            @Override
-            public void mousePressed(MouseEvent event) {}
-
-            @Override
-            public void mouseReleased(MouseEvent event) {}
         });
 
-        table.addMouseMotionListener(new MouseMotionListener() {
+        table.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent event) {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
                 loadInfo(model, row, column);
                 showPopup(event);
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent arg0) {
             }
         });
 
@@ -224,9 +203,7 @@ public class WorkPanel extends BasePanel {
             }
         });
 
-        table.addKeyListener(new KeyListener() {
-            @Override
-            public void keyPressed(KeyEvent arg0) {}
+        table.addKeyListener(new KeyAdapter() {
 
             @Override
             public void keyReleased(KeyEvent arg0) {
@@ -274,11 +251,6 @@ public class WorkPanel extends BasePanel {
                     }
                 }
             }
-
-            @Override
-            public void keyTyped(KeyEvent arg0) {
-            }
-
         });
 
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -297,30 +269,29 @@ public class WorkPanel extends BasePanel {
 
     public void unselectCell() {
         positions.removeAll();
-        isSearch = false;
         SwingUtilities.updateComponentTreeUI(this);
         System.out.println("View: Cell unselected");
     }
 
     public void searchByMask(String mask) {
         hexEditor.findByMask(positions, mask);
-        isSearch = true;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void searchByHex(List<String> searchingHex){
         hexEditor.find(positions, searchingHex);
-        isSearch = true;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void nextPosition() {
         positions.getNext();
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
 
     public void previousPosition() {
         positions.getPrevious();
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private boolean validateData(String data) {
@@ -412,7 +383,7 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        modifide = true;
+        modified = true;
         SwingUtilities.updateComponentTreeUI(this);
     }
 

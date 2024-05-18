@@ -69,10 +69,11 @@ public class HexEditor {
             if (!hex.get(row).isEmpty()) {
                 for (int column = 0; column < hex.get(row).size(); column++) {
                     int index = 0;
-                    while (searchingHex.get(index).equals(hex.get(row).get(column + index++))) {}
-
-                    if (index == searchingHex.size()) {
-                        positions.add(new Position(row, column));
+                    while (searchingHex.get(index).equals(hex.get(row).get(column + index++))) {
+                        if (index == searchingHex.size()) {
+                            positions.add(new Position(row, column));
+                            break;
+                        }
                     }
                     column += index - 1;
                 }

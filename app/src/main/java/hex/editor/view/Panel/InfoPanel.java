@@ -84,9 +84,11 @@ public class InfoPanel extends BasePanel {
         positionControlPanel.add(previousPosButton);
         positionControlPanel.add(clearButton);
         positionControlPanel.add(nextPosButton);
+        positionControlPanel.setVisible(true);
+        positionControlPanel.setBackground(getBackground());
 
-        searchingPanel.setBackground(getBackground());
-        searchingPanel.setForeground(getBackground());
+        searchingPanel.setBackground(getStyleSheet().getBackBaseColor());
+        searchingPanel.setForeground(getStyleSheet().getBackBaseColor());
 
         add(searchingPanel, BorderLayout.SOUTH);
         condition(Condition.START);
@@ -95,13 +97,10 @@ public class InfoPanel extends BasePanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (workPanel.getHex() != null) {
-                    condition(Condition.TYPE);
                     if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
-                        searchingField.setText("Chose method");
+                        condition(Condition.TYPE);
                     } else {
                         System.out.println("View: ready to search");
-                        searchingField.setBackground(getStyleSheet().getMainTextColor());
-                        searchingField.setForeground(Color.BLACK);
                         searchingField.setText("");
                     }
                     SwingUtilities.updateComponentTreeUI(searchingPanel);
@@ -137,14 +136,15 @@ public class InfoPanel extends BasePanel {
                 maskButton.setEnabled(false);
                 searchingField.setVisible(true);
                 searchingField.setEnabled(false);
+                searchingField.setText("Type to search...");
                 searchingField.setBackground(getBackground());
                 searchingField.setForeground(getStyleSheet().getMainTextColor());
 
-                positionControlPanel.setVisible(false);
                 previousPosButton.setVisible(false);
                 nextPosButton.setVisible(false);
                 clearButton.setVisible(false);
 
+                SwingUtilities.updateComponentTreeUI(this);
                 break;
             }
             case TYPE: {
@@ -154,14 +154,14 @@ public class InfoPanel extends BasePanel {
                 maskButton.setEnabled(true);
                 searchingField.setVisible(true);
                 searchingField.setEnabled(true);
-                searchingField.setForeground(getBackground());
+                searchingField.setForeground(getStyleSheet().getBackBaseColor());
                 searchingField.setBackground(getStyleSheet().getMainTextColor());
 
-                positionControlPanel.setVisible(false);
                 previousPosButton.setVisible(false);
                 nextPosButton.setVisible(false);
                 clearButton.setVisible(false);
 
+                SwingUtilities.updateComponentTreeUI(this);
                 break;
             }
             case SHOW: {
@@ -174,11 +174,11 @@ public class InfoPanel extends BasePanel {
                 searchingField.setBackground(getBackground());
                 searchingField.setForeground(getStyleSheet().getMainTextColor());
 
-                positionControlPanel.setVisible(true);
                 previousPosButton.setVisible(true);
                 nextPosButton.setVisible(true);
                 clearButton.setVisible(true);
 
+                SwingUtilities.updateComponentTreeUI(this);
                 break;
             }
         }

@@ -8,14 +8,25 @@ public class Positions {
     private static final List<Position> list = new LinkedList<>();
 
 
+    public boolean isEmpty() {
+        return list.isEmpty();
+    };
+
+
     public Positions() {
     }
 
-    public Position getNext() {
-        return list.get(index < list.size() - 1 ? ++index : index);
+    public void getNext() {
+        index++;
+        if (index >= list.size()) {
+            index = 0;
+        }
     }
-    public Position getPrevious() {
-        return list.get(index > 0 ? --index : index);
+    public void getPrevious() {
+        index--;
+        if (index < 0) {
+            index = list.size() - 1;
+        }
     }
 
     public Position getCurrent() {
@@ -23,14 +34,17 @@ public class Positions {
     }
 
     public void add(Position pos) {
+        index = 0;
         list.add(pos);
     }
 
     public void remove(Position pos) {
+        index = 0;
         list.remove(pos);
     }
 
     public void removeAll() {
-        list.forEach(list::remove);
+        index = 0;
+        list.clear();
     }
 }
