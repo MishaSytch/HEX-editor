@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.*;
 
+import hex.editor.model.Position;
+import hex.editor.model.Positions;
 import hex.editor.services.HexService;
 
 public class HexEditor {
@@ -59,58 +61,43 @@ public class HexEditor {
             .collect(Collectors.toList());
     } 
 
-    public List<List<Integer>> find(List<String> searchingHex) {
+    public void find(Positions positions, List<String> searchingHex) {
         if (hex == null) {
             throw new NullPointerException();
         }
-        if (searchingHex.isEmpty()) {
-            throw new IllegalArgumentException("Array has null length"); 
-        }
-        List<List<Integer>> pos_row = new ArrayList<>();
+        for (int row = 0; row < hex.size(); row++) {
+            if (!hex.get(row).isEmpty()) {
+                for (int column = 0; column < hex.get(row).size(); column++) {
+                    int index = 0;
+                    while (searchingHex.get(index).equals(hex.get(row).get(column + index++))) {}
 
-        for (List<String> strings : hex) {
-            List<Integer> pos_column = new ArrayList<>();
-
-            for (int column = 0; column < strings.size(); column++) {
-                int i_byte = 0;
-                int start = column;
-                while (strings.get(column++).equalsIgnoreCase(searchingHex.get(i_byte))) {
-                    if (++i_byte == searchingHex.size())
-                        break;
-                }
-                if (i_byte == searchingHex.size()) {
-                    for (int i = start; i < start + i_byte; i++) {
-                        pos_column.add(i);
+                    if (index == searchingHex.size()) {
+                        positions.add(new Position(row, column));
                     }
+                    column += index - 1;
                 }
-                column = start;
             }
-            pos_row.add(pos_column);
         }
-        return pos_row;
     }
 
-    public List<List<Integer>> findByMask(String mask) {
+    public void findByMask(Positions positions, String mask) {
         if (hex == null) {
             throw new NullPointerException();
         }
         if (mask.isEmpty()) {
             throw new IllegalArgumentException("Mask is empty"); 
         }
-        List<List<Integer>> pos_rows = new ArrayList<>();
-        for (List<String> strings : hex) {
+        for (int row = 0; row < hex.size(); row++) {
             Pattern regexp = Pattern.compile(mask.toUpperCase());
-            List<Integer> pos_column = new ArrayList<>();
-
-            if (!strings.isEmpty()) {
-                for (int column = 0; column < strings.size(); column++) {
-                    Matcher match = regexp.matcher(strings.get(column));
-                    if (match.find()) pos_column.add(column);
+            if (!hex.get(row).isEmpty()) {
+                for (int column = 0; column < hex.get(row).size(); column++) {
+                    if (hex.get(row).get(column) != null) {
+                        Matcher match = regexp.matcher(hex.get(row).get(column));
+                        if (match.find()) positions.add(new Position(row, column));
+                    }
                 }
             }
-            pos_rows.add(pos_column);
         }
-        return pos_rows;
     }
 
     public static byte[] hexStringToByteArray(String hexValue) {

@@ -14,23 +14,27 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import hex.editor.model.Condition;
 import hex.editor.model.Info;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.BasePanel;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class InfoPanel extends BasePanel {
-    private final JTextField search = new JTextField();
+    private final JTextField searchingField = new JTextField();
     private final JLabel info = getText("");
     public JLabel getInfo() {
         return info;
     }
 
-    private final JPanel panel = new JPanel();
-    private JButton maskButton = new JButton();
-    private JButton hexButton = new JButton();
-    private JButton clearButton = new JButton();
+    private final JPanel searchingPanel = new JPanel();
+    private JButton maskButton;
+    private JButton hexButton;
+    private JButton clearButton;
+    private JButton nextPosButton;
+    private JButton previousPosButton;
     private WorkPanel workPanel;
+    private final JPanel positionControlPanel = new JPanel();
 
     public InfoPanel(MainWindow mainWindow) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth() * 0.2));
@@ -52,153 +56,154 @@ public class InfoPanel extends BasePanel {
 
     private void initComponents() {
         add(info, BorderLayout.WEST);
-        search.setBorder(new EmptyBorder(10, 10, 10, 10));
+        searchingField.setBorder(new EmptyBorder(10, 10, 10, 10));
         maskButton = getButton( "Search by mask");
         hexButton = getButton( "Search by Hex");
         clearButton = getButton("Clear");
         clearButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (workPanel != null) workPanel.unselectCell();
-                if (panel.getComponents().length != 0) start();
-            }
-        });
-
-        panel.setLayout(new GridLayout(4, 1));
-        panel.add(hexButton);
-        panel.add(maskButton);
-        panel.add(search);
-
-        panel.setBackground(getBackground());
-        panel.setForeground(getBackground());
-        panel.setVisible(true);
-
-        add(panel, BorderLayout.SOUTH);
-        start();
-        search.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent arg0) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent arg0) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent arg0) {
-                if (workPanel.getHex() != null) {
-                    if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
-                        search.setText("Chose method");
-                        hexButton.setEnabled(true);
-                        maskButton.setEnabled(true);
-                        hexButton.setVisible(true);
-                        maskButton.setVisible(true);
-                    } else {
-                        System.out.println("View: ready to search");
-                        search.setEditable(true);
-                        search.setBackground(getStyleSheet().getMainTextColor());
-                        search.setForeground(Color.BLACK);
-                        search.setText("");
-                    }
-                    SwingUtilities.updateComponentTreeUI(panel);
+                if (workPanel != null) {
+                    workPanel.unselectCell();
+                    condition(Condition.START);
                 }
             }
+        });
+        nextPosButton = getButton("Next");
+        nextPosButton.addActionListener(e -> workPanel.nextPosition());
+        previousPosButton = getButton("Previous");
+        previousPosButton.addActionListener(e -> workPanel.previousPosition());
 
+        searchingPanel.setLayout(new GridLayout(4, 1));
+        searchingPanel.add(hexButton);
+        searchingPanel.add(maskButton);
+        searchingPanel.add(searchingField);
+        searchingPanel.add(positionControlPanel);
+
+        positionControlPanel.setLayout(new GridLayout(1, 3));
+        positionControlPanel.add(previousPosButton);
+        positionControlPanel.add(clearButton);
+        positionControlPanel.add(nextPosButton);
+
+        searchingPanel.setBackground(getBackground());
+        searchingPanel.setForeground(getBackground());
+
+        add(searchingPanel, BorderLayout.SOUTH);
+        condition(Condition.START);
+
+        searchingField.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseReleased(MouseEvent arg0) {
+            public void mousePressed(MouseEvent e) {
+                if (workPanel.getHex() != null) {
+                    condition(Condition.TYPE);
+                    if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
+                        searchingField.setText("Chose method");
+                    } else {
+                        System.out.println("View: ready to search");
+                        searchingField.setBackground(getStyleSheet().getMainTextColor());
+                        searchingField.setForeground(Color.BLACK);
+                        searchingField.setText("");
+                    }
+                    SwingUtilities.updateComponentTreeUI(searchingPanel);
+                }
             }
         });
 
-        search.addKeyListener(new KeyListener() {
-            @Override
-            public void keyPressed(KeyEvent arg0) {
-            }
-
+        searchingField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-                    if (!search.getText().trim().isEmpty()) {
+                    if (!searchingField.getText().trim().isEmpty()) {
+                        condition(Condition.SHOW);
                         if (!maskButton.isEnabled()){
-                            workPanel.searchByMask(search.getText().trim());
+                            workPanel.searchByMask(searchingField.getText().trim());
                         }
                         if (!hexButton.isEnabled()) {
-                            workPanel.searchByHex(Arrays.stream(search.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()));
+                            workPanel.searchByHex(Arrays.stream(searchingField.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()));
                         }
                     }
-                    clearButton.setVisible(true);
-                    clearButton.setEnabled(true);
-                    SwingUtilities.updateComponentTreeUI(panel);
+                    SwingUtilities.updateComponentTreeUI(searchingPanel);
                 }
-            }
-
-            @Override
-            public void keyTyped(KeyEvent arg0) {
             }
         });
     }
 
-    private void start() {
-        hexButton.setVisible(false);
-        hexButton.setEnabled(false);
-        maskButton.setVisible(false);
-        maskButton.setEnabled(false);
-        search.setText("Searching...");
-        search.setEnabled(false);
-        search.setVisible(true);
-        search.setBackground(getBackground());
-        search.setForeground(getStyleSheet().getMainTextColor());
+    private void condition(Condition condition) {
+        switch (condition) {
+            case START: {
+                hexButton.setVisible(false);
+                hexButton.setEnabled(false);
+                maskButton.setVisible(false);
+                maskButton.setEnabled(false);
+                searchingField.setVisible(true);
+                searchingField.setEnabled(false);
+                searchingField.setBackground(getBackground());
+                searchingField.setForeground(getStyleSheet().getMainTextColor());
 
-        clearButton.setVisible(false);
-        clearButton.setEnabled(false);
+                positionControlPanel.setVisible(false);
+                previousPosButton.setVisible(false);
+                nextPosButton.setVisible(false);
+                clearButton.setVisible(false);
+
+                break;
+            }
+            case TYPE: {
+                hexButton.setVisible(true);
+                hexButton.setEnabled(true);
+                maskButton.setVisible(true);
+                maskButton.setEnabled(true);
+                searchingField.setVisible(true);
+                searchingField.setEnabled(true);
+                searchingField.setForeground(getBackground());
+                searchingField.setBackground(getStyleSheet().getMainTextColor());
+
+                positionControlPanel.setVisible(false);
+                previousPosButton.setVisible(false);
+                nextPosButton.setVisible(false);
+                clearButton.setVisible(false);
+
+                break;
+            }
+            case SHOW: {
+                hexButton.setVisible(false);
+                hexButton.setEnabled(false);
+                maskButton.setVisible(false);
+                maskButton.setEnabled(false);
+                searchingField.setVisible(false);
+                searchingField.setEnabled(false);
+                searchingField.setBackground(getBackground());
+                searchingField.setForeground(getStyleSheet().getMainTextColor());
+
+                positionControlPanel.setVisible(true);
+                previousPosButton.setVisible(true);
+                nextPosButton.setVisible(true);
+                clearButton.setVisible(true);
+
+                break;
+            }
+        }
     }
 
     private JButton getButton(String title) {
         JButton button = new JButton(title);
         button.setBackground(getBackground());
         button.setForeground(getStyleSheet().getMainTextColor());
-        button.setVisible(false);
-        button.setEnabled(false);
 
-        button.addMouseListener(new MouseListener() {
-
-            @Override
-            public void mouseClicked(MouseEvent arg0) {
+        button.addActionListener(e -> {
+            String methodInfo;
+            if (button == maskButton){
+                maskButton.setEnabled(false);
+                hexButton.setEnabled(true);
+                methodInfo = "Mask method";
+            } else {
+                hexButton.setEnabled(false);
+                maskButton.setEnabled(true);
+                methodInfo = "Hex method";
             }
-
-            @Override
-            public void mouseEntered(MouseEvent arg0) {
-            }
-
-            @Override
-            public void mouseExited(MouseEvent arg0) {
-            }
-
-            @Override
-            public void mousePressed(MouseEvent arg0) {
-                String methodInfo;
-                if (button == maskButton){
-                    maskButton.setEnabled(false);
-                    hexButton.setEnabled(true);
-                    methodInfo = "Mask method";
-                } else {
-                    hexButton.setEnabled(false);
-                    maskButton.setEnabled(true);
-                    methodInfo = "Hex method";
-                }
-                search.setText("Type to use " + methodInfo);
-                search.setBackground(getBackground());
-                search.setForeground(getStyleSheet().getMainTextColor());
-                SwingUtilities.updateComponentTreeUI(panel);
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent arg0) {
-            }
+            searchingField.setText("Type to use " + methodInfo);
+            searchingField.setBackground(getBackground());
+            searchingField.setForeground(getStyleSheet().getMainTextColor());
+            SwingUtilities.updateComponentTreeUI(searchingPanel);
         });
         return button;
     }
