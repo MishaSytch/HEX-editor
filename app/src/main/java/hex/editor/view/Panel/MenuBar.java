@@ -33,28 +33,31 @@ public class MenuBar extends JMenuBar {
                     if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         file = new File(fileChooser.getSelectedFile().getAbsolutePath());
                         System.out.println("View: load File");
-                        int countOfColumn;
                         while (true) {
                             try {
-                                String text = JOptionPane.showInputDialog(null, "Type count of column:").trim();
-                                countOfColumn = Integer.parseInt(text);
+                                String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:").trim();
+                                int countOfColumn = Integer.parseInt(textColumns);
+                                String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
+                                if (textRows.isEmpty()) {
+                                    workPanel.setHex(FileViewer.getLines(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn));
+                                    break;
+                                }
+                                int countOfRows = Integer.parseInt(textRows);
+                                workPanel.setHex(FileViewer.getLines(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows));
                                 break;
                             } catch (Exception ignored) {
                             }
                         }
                         workPanel.setTitle(file.getName());
-                        workPanel.setHex(FileViewer.getLines(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn));
-                    }
+                   }
                 }
-
             });
             fileMenu.add(openFile);
         }
         {
             JMenuItem saveFile = new JMenuItem("Save file");
-            saveFile.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
+            saveFile.addActionListener(e -> {
+                if (file != null) {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showSaveDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         try {

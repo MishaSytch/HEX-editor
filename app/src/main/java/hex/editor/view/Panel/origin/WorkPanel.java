@@ -36,6 +36,7 @@ import javax.swing.table.TableColumnModel;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.model.Info;
+import hex.editor.model.Positions;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Style.IStyleSheet;
@@ -52,7 +53,8 @@ public class WorkPanel extends BasePanel {
     private final JLabel fileName = getText("");
     private List<List<String>> hex;
     private final InfoPanel infoPanel;
-    private List<List<Integer>> positions;
+    private final Positions positions = new Positions();
+    private boolean isSearch = false;
     private final DefaultTableModel model = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -86,18 +88,12 @@ public class WorkPanel extends BasePanel {
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
                 c.setEnabled(columnIndex > 0);
-                if (positions != null) {
-                    for (List<Integer> rows : positions) {
-                        if (rowIndex == positions.indexOf(rows)) {
-                            for (Integer column : rows) {
-                                if (columnIndex == column + 1) {
-                                    c.setBackground(styleSheet.getSelectedColor());
-                                    return c;
-                                }
-                            }
-                        }
+                if (isSearch) {
+                    if (positions.getCurrent().getRow() == rowIndex && positions.getCurrent().getColumn() == columnIndex) {
+                        c.setBackground(styleSheet.getSelectedColor());
                     }
                 }
+
                 if (isSelected) {
                     c.setBackground(styleSheet.getSelectedColor());
                 }
@@ -300,19 +296,31 @@ public class WorkPanel extends BasePanel {
     }
 
     public void unselectCell() {
-        positions = null;    
+        positions.removeAll();
+        isSearch = false;
         SwingUtilities.updateComponentTreeUI(this);
         System.out.println("View: Cell unselected");
     }
 
     public void searchByMask(String mask) {
-        positions = hexEditor.findByMask(mask);
+        hexEditor.findByMask(positions, mask);
+        isSearch = true;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void searchByHex(List<String> searchingHex){
-        positions = hexEditor.find(searchingHex);
+        hexEditor.find(positions, searchingHex);
+        isSearch = true;
         SwingUtilities.updateComponentTreeUI(this);
+    }
+
+    public void nextPosition() {
+        positions.getNext();
+    }
+
+
+    public void previousPosition() {
+        positions.getPrevious();
     }
 
     private boolean validateData(String data) {
