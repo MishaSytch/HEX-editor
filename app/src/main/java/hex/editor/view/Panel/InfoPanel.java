@@ -3,7 +3,6 @@ package hex.editor.view.Panel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
-import java.awt.Color;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 

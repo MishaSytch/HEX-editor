@@ -51,16 +51,6 @@ public class HexEditor {
         return HexService.getHexFromChars(chars);
     }
 
-    public void editOpenedFileByHex(List<List<String>> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
-        this.hex = hex;
-    } 
-
-    public void editOpenedFileByChars(List<List<String>> chars) {
-        hex = chars.stream()
-            .map(HexService::getHexFromChars)
-            .collect(Collectors.toList());
-    } 
-
     public void find(Positions positions, List<String> searchingHex) {
         if (hex == null) {
             throw new NullPointerException();
@@ -69,13 +59,28 @@ public class HexEditor {
             if (!hex.get(row).isEmpty()) {
                 for (int column = 0; column < hex.get(row).size(); column++) {
                     int index = 0;
-                    while (searchingHex.get(index).equals(hex.get(row).get(column + index++))) {
+                    int currentColumn = column;
+                    int currentRow = row;
+                    while (searchingHex.get(index).equalsIgnoreCase(hex.get(currentRow).get(currentColumn))) {
+                        currentColumn++;
+                        index++;
                         if (index == searchingHex.size()) {
-                            positions.add(new Position(row, column));
+                            while (column != currentColumn && row != currentRow) {
+                                positions.add(new Position(row, column++));
+                                if (column == hex.get(row).size()) {
+                                    column = 1;
+                                    row++;
+                                }
+                            }
                             break;
                         }
+                        if (currentColumn == hex.get(currentRow).size()) {
+                            currentColumn = 0;
+                            currentRow++;
+                        }
                     }
-                    column += index - 1;
+                    column = currentColumn;
+                    row = currentRow;
                 }
             }
         }
