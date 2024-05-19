@@ -32,6 +32,7 @@ import javax.swing.table.TableColumnModel;
 
 import hex.editor.controller.HexEditor;
 import hex.editor.model.Info;
+import hex.editor.model.Position;
 import hex.editor.model.Positions;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
@@ -85,12 +86,14 @@ public class WorkPanel extends BasePanel {
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
                 c.setEnabled(columnIndex > 0);
-                if (!positions.isEmpty() && addPositions < lengthOfPosition) {
-                    if (columnIndex > 0 && positions.getCurrent().getRow() == rowIndex && positions.getCurrent().getColumn() + 1 == columnIndex) {
-                        positions.getNext();
-                        c.setBackground(styleSheet.getSelectedColor());
-                        addPositions++;
-                    }
+                if (!positions.isEmpty() && addPositions < lengthOfPosition && columnIndex > 0) {
+                        if (lengthOfPosition > 1) {
+                            for (Position position : positions.getCurrent(lengthOfPosition)) {
+                                if (position.getRow() == rowIndex && position.getColumn() + 1 == columnIndex) {
+                                    c.setBackground(styleSheet.getSelectedColor());
+                                }
+                            }
+                        }
                 }
 
                 if (isSelected) {
@@ -294,14 +297,18 @@ public class WorkPanel extends BasePanel {
     }
 
     public void nextPosition() {
-        positions.getNext();
+        if (lengthOfPosition > 1)positions.getNext(lengthOfPosition);
+        else positions.getNext();
+
         addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
 
     public void previousPosition() {
-        positions.getPrevious();
+        if (lengthOfPosition > 1)positions.getPrevious(lengthOfPosition);
+        else positions.getPrevious();
+
         addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
