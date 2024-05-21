@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 
 import java.nio.file.Paths;
-import java.util.concurrent.Exchanger;
 
 import hex.editor.services.FileViewer;
 import hex.editor.services.FileWriter;
@@ -52,7 +51,8 @@ public class MenuBar extends JMenuBar {
                                     int countOfRows = Integer.parseInt(textRows);
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
-                                workPanel.setHex(FileViewer.getCurrentLines());
+                                workPanel.setHex(FileViewer.getCurrentFile());
+                                saveFile.setEnabled(true);
                                 break;
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
@@ -69,7 +69,9 @@ public class MenuBar extends JMenuBar {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showSaveDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         try {
-                            FileWriter.writeFileFromListOfLists(Paths.get(fileChooser.getSelectedFile().getAbsolutePath()), workPanel.getHex());
+                            JOptionPane.showConfirmDialog(null, "Wait for saving file", "Saving...", JOptionPane.YES_NO_OPTION);
+                            FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"), workPanel.getHex());
+                            JOptionPane.showConfirmDialog(null, "File saved!", "Saving...", JOptionPane.YES_NO_OPTION);
                         } catch (Exception ex) {
                             System.out.println("View: FileWriter error");
                         }
@@ -80,13 +82,6 @@ public class MenuBar extends JMenuBar {
             saveFile.setEnabled(false);
         }
         this.add(fileMenu);
-
-        fileMenu.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                saveFile.setEnabled(file != null);
-            }
-        });
     }
 
     public IStyleSheet getStyleSheet() {
