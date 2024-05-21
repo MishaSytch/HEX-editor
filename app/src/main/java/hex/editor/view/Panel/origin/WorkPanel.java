@@ -31,6 +31,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import hex.editor.controller.HexEditor;
+import hex.editor.model.CacheFile;
 import hex.editor.model.Info;
 import hex.editor.model.Position;
 import hex.editor.model.Positions;
@@ -68,6 +69,7 @@ public class WorkPanel extends BasePanel {
     private HexEditor hexEditor;
     private boolean modified = false;
     private int lengthOfPosition;
+    private CacheFile currentFile;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -119,8 +121,9 @@ public class WorkPanel extends BasePanel {
         return hex;
     }
 
-    public void setHex(List<List<String>> hex) {
-        this.hex = hex;
+    public void setHex(CacheFile fileLines) {
+        this.hex = fileLines.getData();
+        currentFile = fileLines;
         hexEditor = new HexEditor(hex);
         initComponents();
     }
@@ -135,7 +138,7 @@ public class WorkPanel extends BasePanel {
         model.setColumnIdentifiers(columnNames);
         for (List<String> lines : hex) {
             Vector<String> row = new Vector<>();
-            row.add(String.valueOf(model.getRowCount()));
+            row.add(String.valueOf(currentFile.getNumberOfFirstRow() + model.getRowCount()));
             row.addAll(lines);
             model.addRow(row);
         }
@@ -182,6 +185,7 @@ public class WorkPanel extends BasePanel {
                         String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
+                            currentFile.wasModified();
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
                         }
@@ -401,6 +405,7 @@ public class WorkPanel extends BasePanel {
         }
         modified = true;
         SwingUtilities.updateComponentTreeUI(this);
+        currentFile.wasModified();
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
@@ -424,6 +429,7 @@ public class WorkPanel extends BasePanel {
             }
         }
         SwingUtilities.updateComponentTreeUI(this);
+        currentFile.wasModified();
     }
 
     private void deleteFromHex(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {

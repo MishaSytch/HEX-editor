@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 
 import javax.swing.JPanel;
 
+import hex.editor.services.FileViewer;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Panel.MenuBar;
