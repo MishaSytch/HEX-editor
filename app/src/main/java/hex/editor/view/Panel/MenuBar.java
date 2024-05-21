@@ -39,7 +39,7 @@ public class MenuBar extends JMenuBar {
                         while (true) {
                             try {
                                 String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
-                                if (textColumns != null) {
+                                if (textColumns != null && !textColumns.trim().isEmpty()) {
                                     textColumns = textColumns.trim();
                                 } else {
                                     break;
@@ -47,14 +47,15 @@ public class MenuBar extends JMenuBar {
                                 int countOfColumn = Integer.parseInt(textColumns);
                                 String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
                                 if (textRows.isEmpty()) {
-                                    workPanel.setHex(FileViewer.getLines(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn));
-                                    break;
+                                    FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
+                                } else {
+                                    int countOfRows = Integer.parseInt(textRows);
+                                    FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
-                                int countOfRows = Integer.parseInt(textRows);
-                                workPanel.setHex(FileViewer.getLines(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows));
-                                workPanel.setTitle(file.getName());
+                                workPanel.setHex(FileViewer.getCurrentLines());
                                 break;
-                            } catch (Exception ignored) {
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
                             }
                         }
                    }

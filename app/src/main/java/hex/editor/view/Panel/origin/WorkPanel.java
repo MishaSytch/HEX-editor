@@ -68,7 +68,6 @@ public class WorkPanel extends BasePanel {
     private HexEditor hexEditor;
     private boolean modified = false;
     private int lengthOfPosition;
-    private int addPositions = 0;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -86,12 +85,17 @@ public class WorkPanel extends BasePanel {
                 c.setBackground(styleSheet.getBackBaseColor());
                 ((JLabel)c).setHorizontalAlignment(SwingConstants.CENTER);
                 c.setEnabled(columnIndex > 0);
-                if (!positions.isEmpty() && addPositions < lengthOfPosition && columnIndex > 0) {
+                if (!positions.isEmpty() && columnIndex > 0) {
                         if (lengthOfPosition > 1) {
                             for (Position position : positions.getCurrent(lengthOfPosition)) {
                                 if (position.getRow() == rowIndex && position.getColumn() + 1 == columnIndex) {
                                     c.setBackground(styleSheet.getSelectedColor());
+                                    break;
                                 }
+                            }
+                        } else {
+                            if (positions.getCurrent().getRow() == rowIndex && positions.getCurrent().getColumn() + 1 == columnIndex) {
+                                c.setBackground(styleSheet.getSelectedColor());
                             }
                         }
                 }
@@ -278,29 +282,24 @@ public class WorkPanel extends BasePanel {
         positions.removeAll();
         SwingUtilities.updateComponentTreeUI(this);
         lengthOfPosition = 0;
-        addPositions = 0;
         System.out.println("View: Cell unselected");
     }
 
     public void searchByMask(String mask) {
         hexEditor.findByMask(positions, mask);
         lengthOfPosition = 1;
-        addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void searchByHex(List<String> searchingHex){
         hexEditor.find(positions, searchingHex);
         lengthOfPosition = searchingHex.size();
-        addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void nextPosition() {
         if (lengthOfPosition > 1)positions.getNext(lengthOfPosition);
         else positions.getNext();
-
-        addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
@@ -308,8 +307,6 @@ public class WorkPanel extends BasePanel {
     public void previousPosition() {
         if (lengthOfPosition > 1)positions.getPrevious(lengthOfPosition);
         else positions.getPrevious();
-
-        addPositions = 0;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
