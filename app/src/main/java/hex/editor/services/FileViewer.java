@@ -1,77 +1,169 @@
 package hex.editor.services;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FileViewer {
+    private static final long CACHE_SIZE = 1024;
+    private static final String CACHE_DIR = "cache";
+    private static final List<File> cacheFiles = new LinkedList<>();
+    private static int index = 0;
+    private static Integer countOfColumn = null;
+    private static Integer countOfRow = null;
+    private static final ReentrantLock lock = new ReentrantLock();
+    private static final Condition canAccessCacheFiles = lock.newCondition();
+    private static boolean isCacheFilesBeingAccessed = false;
 
-    public static List<List<String>> getLines(String path, int countOfColumn, int countOfRow) {
+
+    public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
+        File file = new File(path);
+        FileViewer.countOfColumn = countOfColumn;
+        FileViewer.countOfRow = countOfRow;
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        CompletableFuture<Void> cacheFuture = CompletableFuture.runAsync(() -> {
+            try {
+                cacheFile(file);
+            } catch (IOException e) {
+                System.err.println("Error caching file: " + e.getMessage());
+            }
+        }, executor);
+
+        cacheFuture.thenRun(() -> {
+            System.out.println("Cache complete");
+        }).exceptionally(e -> {
+            System.err.println("Error during caching: " + e.getMessage());
+            return null;
+        });
+
+
+        executor.shutdown();
+    }
+
+    public static void openFile(String path, Integer countOfColumn) {
+        openFile(path, countOfColumn, null);
+    }
+
+    public static List<List<String>> getCurrentLines() {
         List<List<String>> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            String line;
-            Deque<String> queue = new ArrayDeque<>();
-            int rows = 0;
-            exit: while ((line = reader.readLine()) != null) {
-                HexService.getHexFromString(line).forEach(queue::addLast);
-                if (queue.size() >= countOfColumn) {
-                    List<String> row = new LinkedList<>();
-                    while (!queue.isEmpty()) {
-                        row.add(queue.removeFirst());
-                        if (row.size() == countOfColumn) {
-                            lines.add(row);
-                            row = new LinkedList<>();
-                            rows++;
-                            if (rows == countOfRow) break exit;
-                        }
-                    }
-                }
+        lock.lock();
+        try {
+            while (isCacheFilesBeingAccessed) {
+                canAccessCacheFiles.await();
             }
-            List<String> row = new LinkedList<>();
-            if (rows != countOfRow) {
-                while (!queue.isEmpty()) {
-                    row.add(queue.removeFirst());
-                }
-                lines.add(row);
+            isCacheFilesBeingAccessed = true;
+            while (cacheFiles.isEmpty()) {
             }
-        } catch (IOException exception) {
-            System.err.println("Error processing file: " + exception.getMessage());
+
+            File currentFile = cacheFiles.get(index);
+
+            try (Scanner scanner = new Scanner(currentFile, StandardCharsets.UTF_8.name())) {
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    List<String> data = Arrays.asList(line.split(";"));
+                    lines.add(data.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading file: " + e.getMessage());
+                return Collections.emptyList();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            isCacheFilesBeingAccessed = false;
+            canAccessCacheFiles.signalAll();
+            lock.unlock();
         }
-        System.out.println("File road");
+
         return lines;
     }
-    public static List<List<String>> getLines(String path, int countOfColumn) {
-        List<List<String>> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            String line;
-            Deque<String> queue = new ArrayDeque<>();
-            while ((line = reader.readLine()) != null) {
-                HexService.getHexFromString(line).forEach(queue::addLast);
-                if (queue.size() >= countOfColumn) {
+
+    public static void nextLines() {
+        index = Math.min(index + 1, cacheFiles.size() - 1);
+    }
+
+
+    public static void previousLines() {
+        index = Math.max(index - 1, 0);
+    }
+
+    private static void cacheFile(File file) throws IOException {
+        File cacheDir = new File(CACHE_DIR);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdir();
+        }
+
+        try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+            long position = 0;
+            long size = fileChannel.size();
+            while (position < size) {
+                long remaining = size - position;
+                long chunkSize = Math.min(remaining, CACHE_SIZE);
+                MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, chunkSize);
+                File chunkFile = new File(cacheDir, index++ + "." + file.getName());
+                lock.lock();
+                try {
+                    while (isCacheFilesBeingAccessed) {
+                        canAccessCacheFiles.await();
+                    }
+                    isCacheFilesBeingAccessed = true;
+                    cacheFiles.add(chunkFile);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    isCacheFilesBeingAccessed = false;
+                    canAccessCacheFiles.signalAll();
+                    lock.unlock();
+                }
+                try (FileOutputStream fos = new FileOutputStream(chunkFile); FileChannel chunkChannel = fos.getChannel()) {
+                    List<List<String>> lines = new ArrayList<>();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    while (buffer.hasRemaining()) {
+                        stringBuilder.append((char) buffer.get());
+                    }
+                    String line = stringBuilder.toString();
+
+                    Deque<String> queue = new ArrayDeque<>();
+                    int rows = 0;
+                    HexService.getHexFromString(line).forEach(queue::addLast);
                     List<String> row = new LinkedList<>();
                     while (!queue.isEmpty()) {
                         row.add(queue.removeFirst());
                         if (row.size() == countOfColumn) {
                             lines.add(row);
                             row = new LinkedList<>();
+                            if (countOfRow != null) {
+                                rows++;
+                                if (rows == countOfRow) break;
+                            }
+                            continue;
+                        }
+                        if (queue.isEmpty()) {
+                            lines.add(row);
                         }
                     }
+                    for (List<String> data : lines) {
+                        for (String hex : data) {
+                            chunkChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
+                            chunkChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
+                        }
+                        chunkChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+                    }
+                } catch (IOException exception) {
+                    System.err.println("Error processing file: " + exception.getMessage());
                 }
+                position += chunkSize;
             }
-            List<String> row = new LinkedList<>();
-            while (!queue.isEmpty()) {
-                row.add(queue.removeFirst());
-            }
-            lines.add(row);
-        } catch (IOException exception) {
-            System.err.println("Error processing file: " + exception.getMessage());
         }
-        System.out.println("File road");
-        return lines;
     }
 }
+

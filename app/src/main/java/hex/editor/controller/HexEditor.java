@@ -65,10 +65,10 @@ public class HexEditor {
                         currentColumn++;
                         index++;
                         if (index == searchingHex.size()) {
-                            while (column != currentColumn && row != currentRow) {
+                            while (column != currentColumn || row != currentRow) {
                                 positions.add(new Position(row, column++));
                                 if (column == hex.get(row).size()) {
-                                    column = 1;
+                                    column = 0;
                                     row++;
                                 }
                             }
