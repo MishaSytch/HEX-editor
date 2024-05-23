@@ -5,16 +5,16 @@ import java.nio.file.Path;
 
 public class CacheFile {
     private final long numberOfFirstRow;
-    private final List<List<String>> data;
+    private List<List<String>> data;
     private boolean isModified = false;
     private final Path path;
-    private long inxed;
+    private final long index;
 
     public CacheFile(long numberOfFirstRow, List<List<String>> data, Path path, long index) {
         this.numberOfFirstRow = numberOfFirstRow;
         this.data = data;
         this.path = path;
-        this.inxed = index;
+        this.index = index;
     }
 
     public long getNumberOfFirstRow() {
@@ -23,6 +23,10 @@ public class CacheFile {
 
     public List<List<String>> getData() {
         return data;
+    }
+
+    public void updateData(List<List<String>> data) {
+        this.data = data;
     }
 
     public void wasModified() {
@@ -37,7 +41,7 @@ public class CacheFile {
         return path;
     }
 
-    public long getInxed() {
-        return inxed;
+    public long getIndex() {
+        return index;
     }
 }
