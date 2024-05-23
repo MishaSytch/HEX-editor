@@ -10,27 +10,17 @@ import hex.editor.model.Positions;
 import hex.editor.services.HexService;
 
 public class HexEditor {
-    private List<List<String>> hex;
-
-    public void setHex(List<List<String>> hex) {
-        this.hex = hex;
-    }
-
-    public List<List<String>> getHexLines() throws NullPointerException {
-        return hex;
-    }
-
-    public List<List<String>> getCharLines() throws NullPointerException {
+    public static List<List<String>> getCharLines(List<List<String>> hex) throws NullPointerException {
         return hex.stream().map(HexService::getCharsFromHex).collect(Collectors.toList());
     }
 
-    public String getCharFromHex(String hex) throws NumberFormatException, NullPointerException  {
+    public static String getCharFromHex(String hex) throws NumberFormatException, NullPointerException  {
         List<String> list = new ArrayList<>();
         list.add(hex);
         return HexService.getCharsFromHex(list).get(0);
     }
 
-    public String getHexFromChar(String ch) {
+    public static String getHexFromChar(String ch) {
         if (ch == null || ch.isEmpty()) {
             throw new IllegalArgumentException("Input character string is null or empty");
         }
@@ -43,15 +33,15 @@ public class HexEditor {
         }
     }
 
-    public List<String> getCharsFromHex(List<String> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
+    public static List<String> getCharsFromHex(List<String> hex) throws ArrayIndexOutOfBoundsException, NumberFormatException {
         return HexService.getCharsFromHex(hex);
     }
 
-    public List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
+    public static List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
         return HexService.getHexFromChars(chars);
     }
 
-    public void find(Positions positions, List<String> searchingHex) {
+    public static void find(Positions positions, List<String> searchingHex, List<List<String>> hex) {
         if (hex == null) {
             throw new NullPointerException();
         }
@@ -86,7 +76,7 @@ public class HexEditor {
         }
     }
 
-    public void findByMask(Positions positions, String mask) {
+    public static void findByMask(Positions positions, String mask, List<List<String>> hex) {
         if (hex == null) {
             throw new NullPointerException();
         }
