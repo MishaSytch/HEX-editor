@@ -1,5 +1,6 @@
 package hex.editor.services;
 
+import hex.editor.controller.HexEditor;
 import hex.editor.model.CacheFile;
 
 import java.io.File;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class FileWriter {
 
-    public static void saveFile(Path filePath, List<List<String>> data) {
+    public static void saveFile(Path filePath) {
         while (FileViewer.isCaching()) {
             try {
                 Thread.sleep(100);
@@ -21,25 +22,37 @@ public class FileWriter {
                 throw new RuntimeException(e);
             }
         }
-        for (int i = 0; i < FileViewer.getSize(); i++){
-            writeInFile(new File(filePath.toUri()), data);
-            if (i != FileViewer.getSize() - 1) FileViewer.nextFile();
-        }
+        writeInFile(new File(filePath.toUri()), null,  false);
         System.out.println("File saved!");
     }
 
     public static void writeCacheFile(CacheFile file) {
-        writeInFile(new File(file.getPath().toUri()), file.getData());
+        writeInFile(new File(file.getPath().toUri()), file.getData(), true);
     }
 
-    private static void writeInFile(File file, List<List<String>> data) {
+    private static void writeInFile(File file, List<List<String>> data, boolean isCache) {
         try (FileOutputStream fos = new FileOutputStream(file); FileChannel fileChannel = fos.getChannel()) {
-            for (List<String> line : data) {
-                for (String hex : line) {
-                    fileChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
-                    fileChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
+            if (!isCache) {
+                for (int i = 0; i < FileViewer.getSize(); i++) {
+                    List<List<String>> hex = FileViewer.getCurrentFile().getData();
+                    for (List<String> row : hex) {
+                        for (String item : row) {
+                            fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
+                        }
+                    }
+                    if (i < FileViewer.getSize() - 1) FileViewer.nextFile();
                 }
-                fileChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+            } else {
+                if (data == null) throw new NullPointerException();
+
+                for (List<String> line : data) {
+                    for (String hex : line) {
+                        fileChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
+                        fileChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
+
+                    }
+                    fileChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+                }
             }
         } catch (IOException exception) {
             System.err.println("Error processing file: " + exception.getMessage());

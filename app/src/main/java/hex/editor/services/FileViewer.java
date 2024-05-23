@@ -18,7 +18,7 @@ public class FileViewer {
     private static Integer countOfColumn = null;
     private static Integer countOfRow = null;
     private static final Deque<String> queue = new ArrayDeque<>();
-    private static final long CACHE_SIZE = 1024;
+    private static final long CACHE_SIZE = 10 * 1024;
     private static final String CACHE_DIR = "cache";
     private static final List<File> cacheFiles = new LinkedList<>();
     private static int index = 0;
@@ -181,7 +181,8 @@ public class FileViewer {
 
     public static void removeCache() {
         File cacheDir = new File(CACHE_DIR);
-        cacheDir.delete();
+        boolean res = cacheDir.delete();
+        System.out.println("Cache deleted with " + res);
         index = 0;
         lastRowNumber = 0;
     }

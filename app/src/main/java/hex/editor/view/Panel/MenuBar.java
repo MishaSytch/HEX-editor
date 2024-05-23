@@ -70,7 +70,7 @@ public class MenuBar extends JMenuBar {
                         try {
                             JOptionPane.showConfirmDialog(null, "Wait for saving file", "Saving...", JOptionPane.YES_NO_OPTION);
                             if (workPanel.getCurrentFile().isModified()) FileWriter.writeCacheFile(workPanel.getCurrentFile());
-                            FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"), workPanel.getHex());
+                            FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
                             JOptionPane.showConfirmDialog(null, "File saved!", "Saving...", JOptionPane.YES_NO_OPTION);
                         } catch (Exception ex) {
                             System.out.println("View: FileWriter error");

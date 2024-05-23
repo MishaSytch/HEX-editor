@@ -10,7 +10,7 @@ public class Positions {
 
     public boolean isEmpty() {
         return list.isEmpty();
-    };
+    }
 
 
     public Positions() {

@@ -64,8 +64,6 @@ public class WorkPanel extends BasePanel {
     }
 
     private CacheFile currentFile;
-    private List<String> currentHexSearch;
-    private String currentMaskSearch;
     private final JPanel buttons = new JPanel();
     private final JLabel currentPage = new JLabel("1");
 
@@ -111,10 +109,12 @@ public class WorkPanel extends BasePanel {
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
                     System.out.println("Info: wait info");
-                    Info info = createInfo(event);
-
                     int row = table.rowAtPoint(event.getPoint());
                     int column = table.columnAtPoint(event.getPoint());
+                    if (column == 0 || model.getValueAt(row, column) == null) {
+                        return;
+                    }
+                    Info info = createInfo(event);
                     loadInfo(model, row, column, info);
                 }
 
@@ -138,6 +138,11 @@ public class WorkPanel extends BasePanel {
         table.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent event) {
+                int row = table.rowAtPoint(event.getPoint());
+                int column = table.columnAtPoint(event.getPoint());
+
+                if (column == 0 || model.getValueAt(row, column) == null) return;
+
                 showPopup(event, createInfo(event));
             }
         });
@@ -241,7 +246,13 @@ public class WorkPanel extends BasePanel {
 
     public List<List<String>> getHex() {
         if (currentFile != null && currentFile.isModified()) {
-            hex = model.getDataVector();
+            List<List<String>> hex = new LinkedList<>();
+            for (Object line : model.getDataVector()) {
+                List<String> row = new LinkedList<>();
+                for (int i = 1; i < ((Vector<String>)line).size(); i++) row.add(((Vector<String>)line).get(i));
+                hex.add(row);
+            }
+            return hex;
         }
         return hex;
     }
@@ -249,13 +260,13 @@ public class WorkPanel extends BasePanel {
     public void setHex(CacheFile fileLines) {
         this.hex = fileLines.getData();
         currentFile = fileLines;
-        hexEditor.setHex(hex);
         initComponents();
     }
 
     private Info createInfo(MouseEvent event) {
         int row = table.rowAtPoint(event.getPoint());
         int column = table.columnAtPoint(event.getPoint());
+        if (column == 0 || model.getValueAt(row, column) == null) return null;
 
         String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
         return new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column - 1, data, (String) model.getValueAt(row, column));
@@ -317,25 +328,21 @@ public class WorkPanel extends BasePanel {
     public void unselectCell() {
         infoPanel.start();
         positions.removeAll();
-        currentMaskSearch = null;
-        currentHexSearch = null;
         SwingUtilities.updateComponentTreeUI(this);
         lengthOfPosition = 0;
         System.out.println("View: Cell unselected");
     }
 
     public void searchByMask(String mask) {
-        hexEditor.findByMask(positions, mask);
+        hexEditor.findByMask(positions, mask, getHex());
         lengthOfPosition = 1;
         SwingUtilities.updateComponentTreeUI(this);
-        currentMaskSearch = mask;
     }
 
     public void searchByHex(List<String> searchingHex){
-        hexEditor.find(positions, searchingHex);
+        hexEditor.find(positions, searchingHex, getHex());
         if (lengthOfPosition == 0) lengthOfPosition = searchingHex.size();
         SwingUtilities.updateComponentTreeUI(this);
-        currentHexSearch = searchingHex;
     }
 
     public void nextPosition() {
@@ -358,12 +365,6 @@ public class WorkPanel extends BasePanel {
             clearModel();
             setHex(FileViewer.getCurrentFile());
         }
-        if (currentHexSearch != null) {
-            searchByHex(currentHexSearch);
-        }
-        if (currentMaskSearch != null) {
-            searchByMask(currentMaskSearch);
-        }
         currentPage.setText(currentFile.getIndex() + 1 + "");
     }
 
@@ -373,12 +374,6 @@ public class WorkPanel extends BasePanel {
             FileViewer.previousFile();
             clearModel();
             setHex(FileViewer.getCurrentFile());
-        }
-        if (currentHexSearch != null) {
-            searchByHex(currentHexSearch);
-        }
-        if (currentMaskSearch != null) {
-            searchByMask(currentMaskSearch);
         }
         currentPage.setText(currentFile.getIndex() + 1 + "");
     }
@@ -534,7 +529,7 @@ public class WorkPanel extends BasePanel {
     public void removeFile() {
         hex = null;
         clearModel();
-        unselectCell();
+        FileViewer.removeCache();
     }
 
     private void clearModel() {
