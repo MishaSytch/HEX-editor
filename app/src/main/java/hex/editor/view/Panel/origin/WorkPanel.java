@@ -56,7 +56,6 @@ public class WorkPanel extends BasePanel {
     private Popup popup;
     private Timer scopeTimer;
     private String title;
-    private final HexEditor hexEditor = new HexEditor();
     private int lengthOfPosition;
 
     public CacheFile getCurrentFile() {
@@ -244,6 +243,7 @@ public class WorkPanel extends BasePanel {
         this.add(buttons, BorderLayout.SOUTH);
     }
 
+    @SuppressWarnings("unchecked")
     public List<List<String>> getHex() {
         if (currentFile != null && currentFile.isModified()) {
             List<List<String>> hex = new LinkedList<>();
@@ -268,7 +268,7 @@ public class WorkPanel extends BasePanel {
         int column = table.columnAtPoint(event.getPoint());
         if (column == 0 || model.getValueAt(row, column) == null) return null;
 
-        String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
+        String data = HexEditor.getCharFromHex((String)model.getValueAt(row, column));
         return new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column - 1, data, (String) model.getValueAt(row, column));
     }
 
@@ -334,13 +334,13 @@ public class WorkPanel extends BasePanel {
     }
 
     public void searchByMask(String mask) {
-        hexEditor.findByMask(positions, mask, getHex());
+        HexEditor.findByMask(positions, mask, getHex());
         lengthOfPosition = 1;
         SwingUtilities.updateComponentTreeUI(this);
     }
 
     public void searchByHex(List<String> searchingHex){
-        hexEditor.find(positions, searchingHex, getHex());
+        HexEditor.find(positions, searchingHex, getHex());
         if (lengthOfPosition == 0) lengthOfPosition = searchingHex.size();
         SwingUtilities.updateComponentTreeUI(this);
     }
