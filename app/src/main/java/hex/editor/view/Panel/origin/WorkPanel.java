@@ -111,10 +111,11 @@ public class WorkPanel extends BasePanel {
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
                     System.out.println("Info: wait info");
-                    int row = table.getSelectedRow();
-                    int column = table.getSelectedColumn();
+                    Info info = createInfo(event);
 
-                    loadInfo(model, row, column);
+                    int row = table.rowAtPoint(event.getPoint());
+                    int column = table.columnAtPoint(event.getPoint());
+                    loadInfo(model, row, column, info);
                 }
 
                 if (event.getClickCount() == 2) {
@@ -137,10 +138,7 @@ public class WorkPanel extends BasePanel {
         table.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent event) {
-                int row = table.rowAtPoint(event.getPoint());
-                int column = table.columnAtPoint(event.getPoint());
-                loadInfo(model, row, column);
-                showPopup(event);
+                showPopup(event, createInfo(event));
             }
         });
 
@@ -253,6 +251,14 @@ public class WorkPanel extends BasePanel {
         currentFile = fileLines;
         hexEditor.setHex(hex);
         initComponents();
+    }
+
+    private Info createInfo(MouseEvent event) {
+        int row = table.rowAtPoint(event.getPoint());
+        int column = table.columnAtPoint(event.getPoint());
+
+        String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
+        return new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column - 1, data, (String) model.getValueAt(row, column));
     }
 
     private void initComponents() {
@@ -395,35 +401,20 @@ public class WorkPanel extends BasePanel {
         return valid;
     }
 
-    private void loadInfo(DefaultTableModel model, int row, int column) {
+    private void loadInfo(DefaultTableModel model, int row, int column, Info info) {
         if (column == 0) return;
         if (model.getValueAt(row, column) != null) {
-            String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
-            infoPanel.setInfo(new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column, data, (String) model.getValueAt(row, column)));
+            infoPanel.setInfo(info);
         }
         SwingUtilities.updateComponentTreeUI(infoPanel);
     }
 
-    private void showPopup(MouseEvent event) {
-        int[] selectedColumns = table.getSelectedColumns();
-
+    private void showPopup(MouseEvent event, Info info) {
         lastX = event.getXOnScreen();
         lastY = event.getYOnScreen();
 
-        JSlider infoSlider = new JSlider(JSlider.HORIZONTAL, 0, selectedColumns.length - 1, 0);
-        infoSlider.setMajorTickSpacing(1);
-        infoSlider.setPaintTicks(true);
-        infoSlider.setPaintLabels(true);
-
         Timer hoverTimer = new Timer(100, e -> {
-            if (selectedColumns.length > 1) {
-                for (int column : selectedColumns) {
-                    infoSlider.add(getText(new Info(table.getSelectedRow(), column, "", table.getValueAt(table.getSelectedRow(), column).toString()).getInfo()));
-                }
-                tooltip.add(infoSlider);
-            } else {
-                tooltip.setTipText(infoPanel.getInfo().getText());
-            }
+            tooltip.setTipText(info.getInfo());
             if (popup != null) {
                 popup.hide();
             }

@@ -3,7 +3,6 @@ package hex.editor.view;
 import javax.swing.*;
 import hex.editor.view.Frame.BaseFrame;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
 
 
 public class MainWindow extends BaseFrame {
