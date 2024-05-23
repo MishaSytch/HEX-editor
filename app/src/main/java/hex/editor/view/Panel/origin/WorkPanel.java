@@ -57,13 +57,15 @@ public class WorkPanel extends BasePanel {
     private Timer scopeTimer;
     private String title;
     private final HexEditor hexEditor = new HexEditor();
-    private boolean modified = false;
     private int lengthOfPosition;
+
+    public CacheFile getCurrentFile() {
+        return currentFile;
+    }
+
     private CacheFile currentFile;
     private List<String> currentHexSearch;
     private String currentMaskSearch;
-    private final JButton nextPage = new JButton("Next page");
-    private final JButton previousPage = new JButton("Previous page");
     private final JPanel buttons = new JPanel();
     private final JLabel currentPage = new JLabel("1");
 
@@ -123,6 +125,7 @@ public class WorkPanel extends BasePanel {
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
                             currentFile.wasModified();
+                            currentFile.updateData(hex);
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
                         }
@@ -210,8 +213,10 @@ public class WorkPanel extends BasePanel {
         this.add(fileName, BorderLayout.NORTH);
 
         buttons.setLayout(new FlowLayout());
+        JButton previousPage = new JButton("Previous page");
         buttons.add(previousPage);
         buttons.add(currentPage);
+        JButton nextPage = new JButton("Next page");
         buttons.add(nextPage);
         buttons.setVisible(false);
         buttons.setBackground(getBackground());
@@ -222,7 +227,7 @@ public class WorkPanel extends BasePanel {
         nextPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (currentFile.getInxed() != FileViewer.getSize()) loadNextFile();
+                if (currentFile.getIndex() != FileViewer.getSize()) loadNextFile();
             }
         });
         previousPage.setBackground(getBackground());
@@ -230,14 +235,14 @@ public class WorkPanel extends BasePanel {
         previousPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (currentFile.getInxed() != 0) loadPreviousFile();
+                if (currentFile.getIndex() != 0) loadPreviousFile();
             }
         });
         this.add(buttons, BorderLayout.SOUTH);
     }
 
     public List<List<String>> getHex() {
-        if (modified) {
+        if (currentFile != null && currentFile.isModified()) {
             hex = model.getDataVector();
         }
         return hex;
@@ -341,10 +346,10 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadNextFile() {
-        clearModel();
-        if (currentFile.isModified()) FileWriter.writeCacheFile(hex, currentFile);
+        if (currentFile.isModified()) FileWriter.writeCacheFile(currentFile);
         if (currentFile.getNumberOfFirstRow() != FileViewer.maxRowNumberStarts()) {
             FileViewer.nextFile();
+            clearModel();
             setHex(FileViewer.getCurrentFile());
         }
         if (currentHexSearch != null) {
@@ -353,14 +358,14 @@ public class WorkPanel extends BasePanel {
         if (currentMaskSearch != null) {
             searchByMask(currentMaskSearch);
         }
-        currentPage.setText(currentFile.getInxed() + 1 + "");
+        currentPage.setText(currentFile.getIndex() + 1 + "");
     }
 
     private void loadPreviousFile() {
-        clearModel();
-        if (currentFile.isModified()) FileWriter.writeCacheFile(hex, currentFile);
+        if (currentFile.isModified()) FileWriter.writeCacheFile(currentFile);
         if (currentFile.getNumberOfFirstRow() != 0) {
             FileViewer.previousFile();
+            clearModel();
             setHex(FileViewer.getCurrentFile());
         }
         if (currentHexSearch != null) {
@@ -369,7 +374,7 @@ public class WorkPanel extends BasePanel {
         if (currentMaskSearch != null) {
             searchByMask(currentMaskSearch);
         }
-        currentPage.setText(currentFile.getInxed() + 1 + "");
+        currentPage.setText(currentFile.getIndex() + 1 + "");
     }
 
     private boolean validateData(String data) {
@@ -461,9 +466,9 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        modified = true;
         SwingUtilities.updateComponentTreeUI(this);
         currentFile.wasModified();
+        currentFile.updateData(hex);
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
@@ -488,82 +493,8 @@ public class WorkPanel extends BasePanel {
         }
         SwingUtilities.updateComponentTreeUI(this);
         currentFile.wasModified();
+        currentFile.updateData(hex);
     }
-
-    private void deleteFromHex(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {
-        int i_selectedRows = 0;
-        List<List<String>> copyHEX = new ArrayList<>();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            int k_selectedColumn = selectedColumns[0] == 0 ? 1 : 0;
-            List<String> list = new ArrayList<>();
-            for (int k = 1; k < model.getColumnCount(); k++) {
-                if (is_shifted) {
-                    if(i_selectedRows >= selectedRows.length || i != selectedRows[i_selectedRows] || k_selectedColumn >= selectedColumns.length || k != selectedColumns[k_selectedColumn]
-                    ) {
-                        list.add((String)model.getValueAt(i, k));
-                    } else {
-                        k_selectedColumn++;
-                    }
-                } else {
-                    if (k == selectedColumns[k_selectedColumn] && i == selectedRows[i_selectedRows]) {
-                        k_selectedColumn++;
-                        list.add(null);
-                    } else {
-                        list.add((String)model.getValueAt(i, k));
-                    }
-                }
-            }
-            copyHEX.add(list);
-            i_selectedRows++;
-        }
-        hex = copyHEX;
-        initComponents();
-        SwingUtilities.updateComponentTreeUI(this);
-    }
-
-    private void insertToHex(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns,int valueIndex, boolean is_shifted) {
-        List<List<String>> copyHEX = new ArrayList<>();
-        int i_selectedRows = 0;
-        for (int i = 0; i < model.getRowCount(); i++) {
-            int k_selectedColumn = selectedColumns[0] == 0 ? 1 : 0;
-            boolean visited = false;
-            List<String> list = new ArrayList<>();
-            Deque<String> queue = new ArrayDeque<>();
-            for (int k = 1; k < model.getColumnCount(); k++) {
-                if (
-                    k_selectedColumn < selectedColumns.length && k == selectedColumns[k_selectedColumn]
-                    && i_selectedRows < selectedRows.length && i == selectedRows[i_selectedRows]
-                ) {
-                    k_selectedColumn++;
-                    visited = true;
-
-                    if (is_shifted) queue.addLast((String)model.getValueAt(i, k));
-                    list.add(
-                        valueIndex < values.length 
-                        ? values[valueIndex++] 
-                        : is_shifted 
-                            ? null
-                            : (String)model.getValueAt(i, k)
-                    );
-                } else {
-                    if (!queue.isEmpty()) {
-                        list.add(queue.removeFirst());
-                        k--;
-                    }
-                    else {
-                        list.add((String)model.getValueAt(i, k));
-                    }
-
-                }
-            }
-            if (visited) i_selectedRows++;
-            copyHEX.add(list);
-        }
-        
-        hex = copyHEX;
-        SwingUtilities.updateComponentTreeUI(this);
-    }
-
 
     private void copyToClipBoard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
         StringBuilder sb = new StringBuilder();
@@ -612,6 +543,7 @@ public class WorkPanel extends BasePanel {
     public void removeFile() {
         hex = null;
         clearModel();
+        unselectCell();
     }
 
     private void clearModel() {

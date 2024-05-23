@@ -72,6 +72,7 @@ public class MenuBar extends JMenuBar {
                     if (fileChooser.showSaveDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         try {
                             JOptionPane.showConfirmDialog(null, "Wait for saving file", "Saving...", JOptionPane.YES_NO_OPTION);
+                            if (workPanel.getCurrentFile().isModified()) FileWriter.writeCacheFile(workPanel.getCurrentFile());
                             FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"), workPanel.getHex());
                             JOptionPane.showConfirmDialog(null, "File saved!", "Saving...", JOptionPane.YES_NO_OPTION);
                         } catch (Exception ex) {
