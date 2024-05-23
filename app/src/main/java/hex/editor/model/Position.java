@@ -1,7 +1,5 @@
 package hex.editor.model;
 
-import hex.editor.controller.HexEditor;
-
 public class Position {
     private final int row;
     private final int column;
