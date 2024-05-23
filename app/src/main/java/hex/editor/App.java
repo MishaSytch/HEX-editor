@@ -2,7 +2,6 @@ package hex.editor;
 
 
 import java.awt.EventQueue;
-import java.io.File;
 
 import hex.editor.controller.Thread.ViewThread;
 import hex.editor.services.FileViewer;

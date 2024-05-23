@@ -2,14 +2,12 @@ package hex.editor.services;
 
 import hex.editor.model.CacheFile;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -24,8 +22,7 @@ public class FileWriter {
             }
         }
         for (int i = 0; i < FileViewer.getSize(); i++){
-            CacheFile cacheFile = FileViewer.getCurrentFile();
-            writeInFile(new File(filePath.toUri()), cacheFile.getData());
+            writeInFile(new File(filePath.toUri()), data);
             if (i != FileViewer.getSize() - 1) FileViewer.nextFile();
         }
         System.out.println("File saved!");
