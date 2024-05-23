@@ -12,7 +12,7 @@ import hex.editor.services.HexService;
 public class HexEditor {
     private List<List<String>> hex;
 
-    public HexEditor(List<List<String>> hex) {
+    public void setHex(List<List<String>> hex) {
         this.hex = hex;
     }
 
