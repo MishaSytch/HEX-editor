@@ -210,4 +210,8 @@ public class InfoPanel extends BasePanel {
     public void setWorkPanel(WorkPanel workPanel) {
         this.workPanel = workPanel;
     }
+
+    public void start() {
+        condition(Condition.START);
+    }
 }

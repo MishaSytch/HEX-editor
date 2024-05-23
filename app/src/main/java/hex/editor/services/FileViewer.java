@@ -17,18 +17,25 @@ import java.util.stream.Collectors;
 public class FileViewer {
     private static Integer countOfColumn = null;
     private static Integer countOfRow = null;
-    private static final long CACHE_SIZE = 1024 * 256;
+    private static final Deque<String> queue = new ArrayDeque<>();
+    private static final long CACHE_SIZE = 1024;
     private static final String CACHE_DIR = "cache";
     private static final List<File> cacheFiles = new LinkedList<>();
     private static int index = 0;
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Condition cacheFilesReading = lock.newCondition();
     private static Thread cacheThread;
+    private static long lastRowNumber = 0;
+    public static long maxRowNumberStarts() {
+        return lastRowNumber;
+    }
 
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
         File file = new File(path);
         FileViewer.countOfColumn = countOfColumn;
         FileViewer.countOfRow = countOfRow;
+        cacheFiles.clear();
+        lastRowNumber = 0;
 
         cacheThread = new Thread(() -> {
             try {
@@ -78,7 +85,7 @@ public class FileViewer {
             lock.unlock();
         }
 
-        return new CacheFile(firstRowNumber, lines, path);
+        return new CacheFile(firstRowNumber, lines, path, index);
     }
 
     public static void nextFile() {
@@ -113,6 +120,7 @@ public class FileViewer {
                 MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, chunkSize);
                 List<List<String>> lines = readFromBuffer(buffer);
                 File chunkFile = new File(cacheDir,  Math.abs(file.hashCode()) + "." + firstRowNumber);
+                lastRowNumber = Math.max(lastRowNumber, firstRowNumber);
                 firstRowNumber += lines.size();
                 try (FileOutputStream fos = new FileOutputStream(chunkFile); FileChannel chunkChannel = fos.getChannel()) {
                     for (List<String> data : lines) {
@@ -125,7 +133,11 @@ public class FileViewer {
                 } catch (IOException exception) {
                     System.err.println("Error processing file: " + exception.getMessage());
                 }
-
+                try {
+                    Thread.sleep(0,10);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 try {
                     lock.lock();
                     cacheFiles.add(chunkFile);
@@ -146,7 +158,6 @@ public class FileViewer {
         }
         String line = stringBuilder.toString();
 
-        Deque<String> queue = new ArrayDeque<>();
         int rows = 0;
         HexService.getHexFromString(line).forEach(queue::addLast);
         List<String> row = new LinkedList<>();
@@ -171,6 +182,8 @@ public class FileViewer {
     public static void removeCache() {
         File cacheDir = new File(CACHE_DIR);
         cacheDir.delete();
+        index = 0;
+        lastRowNumber = 0;
     }
 }
 

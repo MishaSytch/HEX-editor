@@ -10,18 +10,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JTable;
-import javax.swing.JToolTip;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CellEditorListener;
@@ -35,6 +24,8 @@ import hex.editor.model.CacheFile;
 import hex.editor.model.Info;
 import hex.editor.model.Position;
 import hex.editor.model.Positions;
+import hex.editor.services.FileViewer;
+import hex.editor.services.FileWriter;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Style.IStyleSheet;
@@ -55,7 +46,6 @@ public class WorkPanel extends BasePanel {
     private final DefaultTableModel model = new DefaultTableModel() {
         @Override
         public boolean isCellEditable(int row, int column) {
-//            return column != 0;
             return false;
         }
     };
@@ -66,10 +56,16 @@ public class WorkPanel extends BasePanel {
     private Popup popup;
     private Timer scopeTimer;
     private String title;
-    private HexEditor hexEditor;
+    private final HexEditor hexEditor = new HexEditor();
     private boolean modified = false;
     private int lengthOfPosition;
     private CacheFile currentFile;
+    private List<String> currentHexSearch;
+    private String currentMaskSearch;
+    private final JButton nextPage = new JButton("Next page");
+    private final JButton previousPage = new JButton("Previous page");
+    private final JPanel buttons = new JPanel();
+    private final JLabel currentPage = new JLabel("1");
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -108,65 +104,6 @@ public class WorkPanel extends BasePanel {
                 return c;
             }
         });
-
-        pane.setVisible(false);
-        this.add(pane, BorderLayout.CENTER);
-        this.add(fileName, BorderLayout.NORTH);
-    }
-
-    public List<List<String>> getHex() {
-        if (modified) {
-            hex = model.getDataVector();
-        }
-        return hex;
-    }
-
-    public void setHex(CacheFile fileLines) {
-        this.hex = fileLines.getData();
-        currentFile = fileLines;
-        hexEditor = new HexEditor(hex);
-        initComponents();
-    }
-
-    private void initComponents() {
-        fileName.setBorder(new EmptyBorder(10, 0, 10, 0));
-        fileName.setText(title);
-
-        Vector<String> columnNames = new Vector<>();
-        columnNames.add(String.valueOf(' '));
-        for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
-        model.setColumnIdentifiers(columnNames);
-        for (List<String> lines : hex) {
-            Vector<String> row = new Vector<>();
-            row.add(String.valueOf(currentFile.getNumberOfFirstRow() + model.getRowCount()));
-            row.addAll(lines);
-            model.addRow(row);
-        }
-
-        table.setModel(model);
-        table.setForeground(styleSheet.getMainTextColor());
-        table.setBackground(styleSheet.getBackBaseColor());
-        table.setBorder(BorderFactory.createBevelBorder(0));
-        table.setShowVerticalLines(true);
-        table.setShowHorizontalLines(true);
-        table.setGridColor(styleSheet.getMainTextColor());
-        table.setAutoscrolls(true);
-        table.getTableHeader().setReorderingAllowed(false);
-        table.setRowSelectionAllowed(true);
-        table.setColumnSelectionAllowed(true);
-        table.setRowHeight(40);
-
-        table.setRowSelectionInterval(0, 0);
-        table.setColumnSelectionInterval(1, 1);
-
-        TableColumnModel columnModel = table.getColumnModel();
-        for (int i = 0; i < columnModel.getColumnCount(); i++) {
-            if (i < columnModel.getColumnCount()) {
-                columnModel.getColumn(i).setMinWidth(50);
-            }
-            else break;
-        }
-
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
@@ -268,8 +205,92 @@ public class WorkPanel extends BasePanel {
             }
         });
 
+        pane.setVisible(false);
+        this.add(pane, BorderLayout.CENTER);
+        this.add(fileName, BorderLayout.NORTH);
+
+        buttons.setLayout(new FlowLayout());
+        buttons.add(previousPage);
+        buttons.add(currentPage);
+        buttons.add(nextPage);
+        buttons.setVisible(false);
+        buttons.setBackground(getBackground());
+        currentPage.setBackground(getBackground());
+        currentPage.setForeground(styleSheet.getMainTextColor());
+        nextPage.setBackground(getBackground());
+        nextPage.setForeground(getStyleSheet().getMainTextColor());
+        nextPage.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (currentFile.getInxed() != FileViewer.getSize()) loadNextFile();
+            }
+        });
+        previousPage.setBackground(getBackground());
+        previousPage.setForeground(getStyleSheet().getMainTextColor());
+        previousPage.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (currentFile.getInxed() != 0) loadPreviousFile();
+            }
+        });
+        this.add(buttons, BorderLayout.SOUTH);
+    }
+
+    public List<List<String>> getHex() {
+        if (modified) {
+            hex = model.getDataVector();
+        }
+        return hex;
+    }
+
+    public void setHex(CacheFile fileLines) {
+        this.hex = fileLines.getData();
+        currentFile = fileLines;
+        hexEditor.setHex(hex);
+        initComponents();
+    }
+
+    private void initComponents() {
+        unselectCell();
+        buttons.setVisible(true);
+        fileName.setBorder(new EmptyBorder(10, 0, 10, 0));
+        fileName.setText(title);
+        Vector<String> columnNames = new Vector<>();
+        columnNames.add(String.valueOf(' '));
+        for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
+        model.setColumnIdentifiers(columnNames);
+        for (List<String> lines : hex) {
+            Vector<String> row = new Vector<>();
+            row.add(String.valueOf(currentFile.getNumberOfFirstRow() + model.getRowCount()));
+            row.addAll(lines);
+            model.addRow(row);
+        }
+
+        table.setModel(model);
+        table.setForeground(styleSheet.getMainTextColor());
+        table.setBackground(styleSheet.getBackBaseColor());
+        table.setBorder(BorderFactory.createBevelBorder(0));
+        table.setShowVerticalLines(true);
+        table.setShowHorizontalLines(true);
+        table.setGridColor(styleSheet.getMainTextColor());
+        table.setAutoscrolls(true);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.setRowSelectionAllowed(true);
+        table.setColumnSelectionAllowed(true);
+        table.setRowHeight(40);
+
+        table.setRowSelectionInterval(0, 0);
+        table.setColumnSelectionInterval(1, 1);
+
+        TableColumnModel columnModel = table.getColumnModel();
+        for (int i = 0; i < columnModel.getColumnCount(); i++) {
+            if (i < columnModel.getColumnCount()) {
+                columnModel.getColumn(i).setMinWidth(50);
+            }
+            else break;
+        }
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         pane.setBackground(styleSheet.getBackBaseColor());
         pane.setForeground(styleSheet.getBackBaseColor());
         pane.setHorizontalScrollBar(new JScrollBar(Adjustable.HORIZONTAL));
@@ -283,7 +304,10 @@ public class WorkPanel extends BasePanel {
     }
 
     public void unselectCell() {
+        infoPanel.start();
         positions.removeAll();
+        currentMaskSearch = null;
+        currentHexSearch = null;
         SwingUtilities.updateComponentTreeUI(this);
         lengthOfPosition = 0;
         System.out.println("View: Cell unselected");
@@ -293,25 +317,59 @@ public class WorkPanel extends BasePanel {
         hexEditor.findByMask(positions, mask);
         lengthOfPosition = 1;
         SwingUtilities.updateComponentTreeUI(this);
+        currentMaskSearch = mask;
     }
 
     public void searchByHex(List<String> searchingHex){
         hexEditor.find(positions, searchingHex);
-        lengthOfPosition = searchingHex.size();
+        if (lengthOfPosition == 0) lengthOfPosition = searchingHex.size();
         SwingUtilities.updateComponentTreeUI(this);
+        currentHexSearch = searchingHex;
     }
 
     public void nextPosition() {
-        if (lengthOfPosition > 1)positions.getNext(lengthOfPosition);
+        if (lengthOfPosition > 1) positions.getNext(lengthOfPosition);
         else positions.getNext();
         SwingUtilities.updateComponentTreeUI(this);
     }
 
 
     public void previousPosition() {
-        if (lengthOfPosition > 1)positions.getPrevious(lengthOfPosition);
+        if (lengthOfPosition > 1) positions.getPrevious(lengthOfPosition);
         else positions.getPrevious();
         SwingUtilities.updateComponentTreeUI(this);
+    }
+
+    private void loadNextFile() {
+        clearModel();
+        if (currentFile.isModified()) FileWriter.writeCacheFile(hex, currentFile);
+        if (currentFile.getNumberOfFirstRow() != FileViewer.maxRowNumberStarts()) {
+            FileViewer.nextFile();
+            setHex(FileViewer.getCurrentFile());
+        }
+        if (currentHexSearch != null) {
+            searchByHex(currentHexSearch);
+        }
+        if (currentMaskSearch != null) {
+            searchByMask(currentMaskSearch);
+        }
+        currentPage.setText(currentFile.getInxed() + 1 + "");
+    }
+
+    private void loadPreviousFile() {
+        clearModel();
+        if (currentFile.isModified()) FileWriter.writeCacheFile(hex, currentFile);
+        if (currentFile.getNumberOfFirstRow() != 0) {
+            FileViewer.previousFile();
+            setHex(FileViewer.getCurrentFile());
+        }
+        if (currentHexSearch != null) {
+            searchByHex(currentHexSearch);
+        }
+        if (currentMaskSearch != null) {
+            searchByMask(currentMaskSearch);
+        }
+        currentPage.setText(currentFile.getInxed() + 1 + "");
     }
 
     private boolean validateData(String data) {
@@ -336,7 +394,7 @@ public class WorkPanel extends BasePanel {
         if (column == 0) return;
         if (model.getValueAt(row, column) != null) {
             String data = hexEditor.getCharFromHex((String)model.getValueAt(row, column));
-            infoPanel.setInfo(new Info(row, column, data, (String) model.getValueAt(row, column)));
+            infoPanel.setInfo(new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column, data, (String) model.getValueAt(row, column)));
         }
         SwingUtilities.updateComponentTreeUI(infoPanel);
     }
@@ -549,5 +607,18 @@ public class WorkPanel extends BasePanel {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public void removeFile() {
+        hex = null;
+        clearModel();
+    }
+
+    private void clearModel() {
+        if (model.getRowCount() != 0) {
+            for (int i = model.getRowCount() - 1; i >= 0; i--) {
+                model.removeRow(i);
+            }
+        }
     }
 }

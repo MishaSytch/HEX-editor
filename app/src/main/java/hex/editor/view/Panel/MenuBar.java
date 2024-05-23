@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import hex.editor.services.FileViewer;
 import hex.editor.services.FileWriter;
@@ -51,11 +52,12 @@ public class MenuBar extends JMenuBar {
                                     int countOfRows = Integer.parseInt(textRows);
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
+                                if (workPanel.getHex() != null) workPanel.removeFile();
                                 workPanel.setHex(FileViewer.getCurrentFile());
                                 saveFile.setEnabled(true);
                                 break;
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
+                                System.err.println(e.getMessage());
                             }
                         }
                    }

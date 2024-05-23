@@ -8,11 +8,13 @@ public class CacheFile {
     private final List<List<String>> data;
     private boolean isModified = false;
     private final Path path;
+    private long inxed;
 
-    public CacheFile(long numberOfFirstRow, List<List<String>> data, Path path) {
+    public CacheFile(long numberOfFirstRow, List<List<String>> data, Path path, long index) {
         this.numberOfFirstRow = numberOfFirstRow;
         this.data = data;
         this.path = path;
+        this.inxed = index;
     }
 
     public long getNumberOfFirstRow() {
@@ -33,5 +35,9 @@ public class CacheFile {
 
     public Path getPath() {
         return path;
+    }
+
+    public long getInxed() {
+        return inxed;
     }
 }

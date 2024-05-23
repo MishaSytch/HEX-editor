@@ -10,7 +10,7 @@ import java.util.List;
 
 public class FileWriter {
 
-    public static void saveFile(Path filePath, List<List<String>> data) throws IOException {
+    public static void saveFile(Path filePath, List<List<String>> data) {
         if (FileViewer.getCurrentFile().isModified()) writeCacheFile(data, FileViewer.getCurrentFile());
         while (FileViewer.isCaching()) {
             try {
@@ -25,21 +25,29 @@ public class FileWriter {
                 writeInFile(cacheFile.getData(), writer);
                 if (i != FileViewer.getSize() - 1) FileViewer.nextFile();
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         System.out.println("File saved!");
     }
 
-    public static void writeCacheFile(List<List<String>> data, CacheFile file) throws IOException {
+    public static void writeCacheFile(List<List<String>> data, CacheFile file) {
         try (BufferedWriter writer = Files.newBufferedWriter(file.getPath())) {
             writeInFile(data, writer);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private static void writeInFile(List<List<String>> data, BufferedWriter writer) throws IOException {
+    private static void writeInFile(List<List<String>> data, BufferedWriter writer) {
         for (List<String> lineData : data) {
             String line = String.join(";", lineData);
-            writer.write(line);
-            writer.newLine();
+            try {
+                writer.write(line);
+                writer.newLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
