@@ -20,7 +20,6 @@ public class App {
         ViewThread view = new ViewThread();
         Thread viewThread = new Thread(view);
         viewThread.start();
-        FileViewer.removeCache();
         System.out.println("Main");
     }
 }
