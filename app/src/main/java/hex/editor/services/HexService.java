@@ -1,6 +1,7 @@
 package hex.editor.services;
 
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,12 +10,8 @@ public class HexService {
 
     public static List<String> getHexFromString(String line) throws NullPointerException {
         return Arrays.stream(line.split(""))
-            .filter(x -> !x.isEmpty())
-            .map(str -> str.charAt(0))
-            .map(ch -> {
-                if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
-                return String.format("%02x", (int)ch).toUpperCase();
-            })
+            .map(str -> str.getBytes(StandardCharsets.UTF_8))
+            .map(b -> String.format("%02x", b))
             .collect(Collectors.toList());
     }
 
@@ -42,12 +39,10 @@ public class HexService {
 
     public static List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
         if (chars.isEmpty()) throw new ArrayIndexOutOfBoundsException();
-
         return chars.stream()
-            .map(str -> str.charAt(0))
-            .map(ch -> {
-                if((int)ch > 256) return String.format("%04x", (int)ch).toUpperCase();
-                return String.format("%02x", (int)ch).toUpperCase();
+            .map(str -> str.getBytes(StandardCharsets.UTF_8))
+            .map(b -> {
+                return String.format("%02x", b);
             })
             .collect(Collectors.toList());
     }

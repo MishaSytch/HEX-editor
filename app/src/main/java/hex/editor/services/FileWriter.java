@@ -15,13 +15,8 @@ import java.util.List;
 public class FileWriter {
 
     public static void saveFile(Path filePath) {
-        while (FileViewer.isCaching()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        while (FileViewer.isCaching()) { }
+
         writeInFile(new File(filePath.toUri()), null,  false);
         System.out.println("File saved!");
     }

@@ -45,7 +45,6 @@ public class FileViewer {
             }
         });
         cacheThread.start();
-
     }
 
     public static void openFile(String path, Integer countOfColumn) {
@@ -96,13 +95,21 @@ public class FileViewer {
     public static void previousFile() {
         index = Math.max(index - 1, 0);
     }
-
+    
     public static int getSize() {
         return cacheFiles.size();
     }
-
+    
     public static boolean isCaching() {
         return cacheThread.isAlive();
+    }
+    
+    public static void removeCache() {
+        File cacheDir = new File(CACHE_DIR);
+        boolean res = cacheDir.delete();
+        System.out.println("Cache deleted with " + res);
+        index = 0;
+        lastRowNumber = 0;
     }
 
     private static void cacheFile(File file) throws IOException {
@@ -177,14 +184,6 @@ public class FileViewer {
             }
         }
         return lines;
-    }
-
-    public static void removeCache() {
-        File cacheDir = new File(CACHE_DIR);
-        boolean res = cacheDir.delete();
-        System.out.println("Cache deleted with " + res);
-        index = 0;
-        lastRowNumber = 0;
     }
 }
 
