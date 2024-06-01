@@ -452,9 +452,9 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        SwingUtilities.updateComponentTreeUI(this);
         currentFile.wasModified();
         currentFile.updateData(hex);
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
@@ -477,9 +477,9 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        SwingUtilities.updateComponentTreeUI(this);
         currentFile.wasModified();
         currentFile.updateData(hex);
+        SwingUtilities.updateComponentTreeUI(this);
     }
 
     private void copyToClipBoard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {

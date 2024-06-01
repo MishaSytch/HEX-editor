@@ -10,8 +10,6 @@ import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class ViewThread implements Runnable {
-    public ViewThread() {
-    }
 
     private void init() {
         MainWindow mainWindow = new MainWindow();

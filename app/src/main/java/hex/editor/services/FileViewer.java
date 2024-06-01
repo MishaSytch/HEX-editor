@@ -19,13 +19,14 @@ public class FileViewer {
     private static Integer countOfRow = null;
     private static final Deque<String> queue = new ArrayDeque<>();
     private static final long CACHE_SIZE = 10 * 1024;
-    private static final String CACHE_DIR = "cache";
+    private static final String CACHE_DIR = ".cache";
     private static final List<File> cacheFiles = new LinkedList<>();
     private static int index = 0;
     private static final ReentrantLock lock = new ReentrantLock();
     private static final Condition cacheFilesReading = lock.newCondition();
     private static Thread cacheThread;
     private static long lastRowNumber = 0;
+
     public static long maxRowNumberStarts() {
         return lastRowNumber;
     }
@@ -181,10 +182,22 @@ public class FileViewer {
 
     public static void removeCache() {
         File cacheDir = new File(CACHE_DIR);
-        boolean res = cacheDir.delete();
-        System.out.println("Cache deleted with " + res);
+        deleteRecursive(cacheDir);
         index = 0;
         lastRowNumber = 0;
+        cacheFiles.clear();
+    }
+
+    private static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] files = fileOrDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteRecursive(file);
+                }
+            }
+        }
+        fileOrDirectory.delete();
     }
 }
 
