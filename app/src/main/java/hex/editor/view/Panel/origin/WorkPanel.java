@@ -224,7 +224,7 @@ public class WorkPanel extends BasePanel {
         nextPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (currentFile.getIndex() != FileViewer.getSize()) loadNextFile();
+                loadNextFile();
             }
         });
         previousPage.setBackground(getBackground());
@@ -232,7 +232,7 @@ public class WorkPanel extends BasePanel {
         previousPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (currentFile.getIndex() != 0) loadPreviousFile();
+                loadPreviousFile();
             }
         });
         this.add(buttons, BorderLayout.SOUTH);

@@ -15,8 +15,6 @@ import java.util.List;
 public class FileWriter {
 
     public static void saveFile(Path filePath) {
-        while (FileViewer.isCaching()) { }
-
         writeInFile(new File(filePath.toUri()), null,  false);
         System.out.println("File saved!");
     }
@@ -29,15 +27,17 @@ public class FileWriter {
         try (FileOutputStream fos = new FileOutputStream(file); FileChannel fileChannel = fos.getChannel()) {
             if (!isCache) {
                 FileViewer.firstFile();
-                for (int i = 0; i < FileViewer.getSize(); i++) {
-                    List<List<String>> hex = FileViewer.getCurrentCacheFile().getData();
-                    for (List<String> row : hex) {
-                        for (String item : row) {
-                            fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
+                do {
+                    do {
+                        List<List<String>> hex = FileViewer.getCurrentCacheFile().getData();
+                        for (List<String> row : hex) {
+                            for (String item : row) {
+                                fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
+                            }
                         }
-                    }
-                    if (i < FileViewer.getSize() - 1) FileViewer.nextFile();
-                }
+                        FileViewer.nextFile();
+                    } while (FileViewer.hasNext());
+                } while (FileViewer.isCaching()); 
             } else {
                 if (data == null) throw new NullPointerException();
 

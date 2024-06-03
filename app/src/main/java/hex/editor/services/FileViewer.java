@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.locks.*;
 import java.util.stream.Collectors;
 
-public class FileViewer {
+public class FileViewer  {
     private static Integer countOfColumn = null;
     private static Integer countOfRow = null;
     private static final Deque<String> queue = new ArrayDeque<>();
@@ -26,11 +26,11 @@ public class FileViewer {
     private static final Condition cacheFilesReading = lock.newCondition();
     private static Thread cacheThread;
     private static long lastRowNumber = 0;
-
+    
     public static long maxRowNumberStarts() {
         return lastRowNumber;
     }
-
+    
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
         File file = new File(path);
         FileViewer.countOfColumn = countOfColumn;
@@ -48,19 +48,19 @@ public class FileViewer {
         });
         cacheThread.start();
     }
-
+    
     public static void firstFile() {
         index = 0;
     }
-
+    
     public static void openFile(String path, Integer countOfColumn) {
         openFile(path, countOfColumn, null);
     }
-
+    
     public static File getCurrentFile() {
         return cacheFiles.get(index);
     }
-
+    
     public static CacheFile getCurrentCacheFile() {
         long firstRowNumber = 0;
         List<List<String>> lines = new ArrayList<>();
@@ -70,14 +70,14 @@ public class FileViewer {
             while (cacheFiles.isEmpty()) {
                 cacheFilesReading.await();
             }
-
+            
             File currentFile = cacheFiles.get(index);
             path = Paths.get(currentFile.getAbsolutePath());
             try {
                 firstRowNumber = Long.parseLong(currentFile.getName().split("\\.")[1]) ;
             } catch (NumberFormatException ignored) {
             }
-
+            
             try (Scanner scanner = new Scanner(currentFile, StandardCharsets.UTF_8.name())) {
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
@@ -93,7 +93,7 @@ public class FileViewer {
         } finally {
             lock.unlock();
         }
-
+        
         return new CacheFile(firstRowNumber, index, lines, path, cacheFiles.get(index));
     }
 
@@ -108,8 +108,12 @@ public class FileViewer {
 
     @SuppressWarnings("rawtypes")
     public static File[] getFiles() {
+        try {
+            cacheThread.interrupt();
+        } catch (Exception ignore) {}
+
         while (isCaching()) { }
-        File[] files = new File[getSize()];
+        File[] files = new File[cacheFiles.size()];
         Iterator irt = cacheFiles.iterator();
         int i = 0;
         while (irt.hasNext()) {
@@ -118,12 +122,33 @@ public class FileViewer {
         return files;
     }
     
-    public static int getSize() {
-        return cacheFiles.size();
-    }
-    
     public static boolean isCaching() {
         return cacheThread.isAlive();
+    }
+
+    public static boolean hasNext() {
+        return index < cacheFiles.size() - 1;
+    }
+    
+    public static void removeCache() {
+
+        File cacheDir = new File(CACHE_DIR);
+        deleteRecursive(cacheDir);
+        index = 0;
+        lastRowNumber = 0;
+        cacheFiles.clear();
+    }
+
+    private static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] files = fileOrDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteRecursive(file);
+                }
+            }
+        }
+        fileOrDirectory.delete();
     }
 
     private static void cacheFile(File file) throws IOException {
@@ -139,33 +164,36 @@ public class FileViewer {
                 long remaining = size - position;
                 long chunkSize = Math.min(remaining, CACHE_SIZE);
                 MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, chunkSize);
-                List<List<String>> lines = readFromBuffer(buffer);
-                File chunkFile = new File(cacheDir,  Math.abs(file.hashCode()) + "." + firstRowNumber);
-                lastRowNumber = Math.max(lastRowNumber, firstRowNumber);
-                firstRowNumber += lines.size();
-                try (FileOutputStream fos = new FileOutputStream(chunkFile); FileChannel chunkChannel = fos.getChannel()) {
-                    for (List<String> data : lines) {
-                        for (String hex : data) {
-                            chunkChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
-                            chunkChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
+                do {
+
+                    List<List<String>> lines = readFromBuffer(buffer);
+                    File chunkFile = new File(cacheDir,  Math.abs(file.hashCode()) + "." + firstRowNumber);
+                    lastRowNumber = Math.max(lastRowNumber, firstRowNumber);
+                    firstRowNumber += lines.size();
+                    try (FileOutputStream fos = new FileOutputStream(chunkFile); FileChannel chunkChannel = fos.getChannel()) {
+                        for (List<String> data : lines) {
+                            for (String hex : data) {
+                                chunkChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
+                                chunkChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
+                            }
+                            chunkChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
                         }
-                        chunkChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
+                    } catch (IOException exception) {
+                        System.err.println("Error processing file: " + exception.getMessage());
                     }
-                } catch (IOException exception) {
-                    System.err.println("Error processing file: " + exception.getMessage());
-                }
-                try {
-                    Thread.sleep(0,10);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    lock.lock();
-                    cacheFiles.add(chunkFile);
-                    cacheFilesReading.signalAll();
-                }  finally {
-                    lock.unlock();
-                }
+                    try {
+                        Thread.sleep(0,10);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        lock.lock();
+                        cacheFiles.add(chunkFile);
+                        cacheFilesReading.signalAll();
+                    }  finally {
+                        lock.unlock();
+                    }
+                } while (!queue.isEmpty());
                 position += chunkSize;
             }
         }
@@ -198,26 +226,6 @@ public class FileViewer {
             }
         }
         return lines;
-    }
-
-    public static void removeCache() {
-        File cacheDir = new File(CACHE_DIR);
-        deleteRecursive(cacheDir);
-        index = 0;
-        lastRowNumber = 0;
-        cacheFiles.clear();
-    }
-
-    private static void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory()) {
-            File[] files = fileOrDirectory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    deleteRecursive(file);
-                }
-            }
-        }
-        fileOrDirectory.delete();
     }
 }
 
