@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.*;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.JPanel;
@@ -48,11 +49,14 @@ public class InfoPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    public void setInfo(String info_info) {
-        info.setText(info_info);
+    public void setInfo(List<Info> info_Infos) {
+        if (info_Infos.size() == 2 || info_Infos.size() == 4 || info_Infos.size() == 8) {
+            info.setText(Info.getBytes(info_Infos));
+        }
         SwingUtilities.updateComponentTreeUI(this);
     }
 
+    
     private void initComponents() {
         add(info, BorderLayout.WEST);
         searchingField.setBorder(new EmptyBorder(10, 10, 10, 10));

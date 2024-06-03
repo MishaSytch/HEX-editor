@@ -13,8 +13,8 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -105,6 +105,14 @@ public class WorkPanel extends BasePanel {
             }
         });
         table.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                int[] selectedRow = table.getSelectedRows();
+                int[] selectedColumn = table.getSelectedColumns();
+                showInfoInCells(selectedRow, selectedColumn);
+            }
+
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
@@ -254,10 +262,25 @@ public class WorkPanel extends BasePanel {
     private Info createInfo(MouseEvent event) {
         int row = table.rowAtPoint(event.getPoint());
         int column = table.columnAtPoint(event.getPoint());
+        return createInfo(row, column);
+    }
+
+    private Info createInfo(int row, int column) {
         if (column == 0 || model.getValueAt(row, column) == null) return null;
 
         String data = HexEditor.getCharFromHex((String)model.getValueAt(row, column));
         return new Info(Integer.parseInt((String)model.getValueAt(row, 0)), column - 1, data, (String) model.getValueAt(row, column));
+    }
+
+    private void showInfoInCells(int[] selectedRows, int[] selectedColumns) {
+        List<Info> list = new ArrayList<>();
+        for (int row : selectedRows) {
+            for (int column : selectedColumns) {
+                if (column == 0) continue;
+                list.add(createInfo(row, column));
+            }
+        }
+        loadInfo(list);
     }
 
     private void initComponents() {
@@ -390,6 +413,10 @@ public class WorkPanel extends BasePanel {
             infoPanel.setInfo(info);
         }
         SwingUtilities.updateComponentTreeUI(infoPanel);
+    }
+
+    private void loadInfo(List<Info> infos) {
+        infoPanel.setInfo(infos);
     }
 
     private void showPopup(MouseEvent event, Info info) {
