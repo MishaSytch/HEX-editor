@@ -84,11 +84,11 @@ public class HexEditor {
             throw new IllegalArgumentException("Mask is empty"); 
         }
         for (int row = 0; row < hex.size(); row++) {
-            Pattern regexp = Pattern.compile(mask.toUpperCase());
+            Pattern regexp = Pattern.compile(mask.toLowerCase());
             if (!hex.get(row).isEmpty()) {
                 for (int column = 0; column < hex.get(row).size(); column++) {
                     if (hex.get(row).get(column) != null) {
-                        Matcher match = regexp.matcher(hex.get(row).get(column));
+                        Matcher match = regexp.matcher(hex.get(row).get(column).toLowerCase());
                         if (match.find()) positions.add(new Position(row, column));
                     }
                 }
