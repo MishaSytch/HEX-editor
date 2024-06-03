@@ -37,6 +37,7 @@ public class FileViewer {
         FileViewer.countOfRow = countOfRow;
         cacheFiles.clear();
         lastRowNumber = 0;
+        index = 0;
 
         cacheThread = new Thread(() -> {
             try {
@@ -46,14 +47,21 @@ public class FileViewer {
             }
         });
         cacheThread.start();
+    }
 
+    public static void firstFile() {
+        index = 0;
     }
 
     public static void openFile(String path, Integer countOfColumn) {
         openFile(path, countOfColumn, null);
     }
 
-    public static CacheFile getCurrentFile() {
+    public static File getCurrentFile() {
+        return cacheFiles.get(index);
+    }
+
+    public static CacheFile getCurrentCacheFile() {
         long firstRowNumber = 0;
         List<List<String>> lines = new ArrayList<>();
         Path path;
@@ -86,7 +94,7 @@ public class FileViewer {
             lock.unlock();
         }
 
-        return new CacheFile(firstRowNumber, lines, path, index);
+        return new CacheFile(firstRowNumber, index, lines, path, cacheFiles.get(index));
     }
 
     public static void nextFile() {
@@ -98,10 +106,22 @@ public class FileViewer {
         index = Math.max(index - 1, 0);
     }
 
+    @SuppressWarnings("rawtypes")
+    public static File[] getFiles() {
+        while (isCaching()) { }
+        File[] files = new File[getSize()];
+        Iterator irt = cacheFiles.iterator();
+        int i = 0;
+        while (irt.hasNext()) {
+            files[i++] = (File)irt.next();
+        }
+        return files;
+    }
+    
     public static int getSize() {
         return cacheFiles.size();
     }
-
+    
     public static boolean isCaching() {
         return cacheThread.isAlive();
     }

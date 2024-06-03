@@ -1,6 +1,7 @@
 package hex.editor.model;
 
 import java.util.List;
+import java.io.File;
 import java.nio.file.Path;
 
 public class CacheFile {
@@ -9,12 +10,18 @@ public class CacheFile {
     private boolean isModified = false;
     private final Path path;
     private final long index;
+    private final File file;
 
-    public CacheFile(long numberOfFirstRow, List<List<String>> data, Path path, long index) {
+    public File getFile() {
+        return file;
+    }
+
+    public CacheFile(long numberOfFirstRow, long index, List<List<String>> data, Path path, File file) {
         this.numberOfFirstRow = numberOfFirstRow;
         this.data = data;
         this.path = path;
         this.index = index;
+        this.file = file;
     }
 
     public long getNumberOfFirstRow() {
@@ -26,11 +33,8 @@ public class CacheFile {
     }
 
     public void updateData(List<List<String>> data) {
-        this.data = data;
-    }
-
-    public void wasModified() {
         isModified = true;
+        this.data = data;
     }
 
     public boolean isModified() {

@@ -50,7 +50,7 @@ public class MenuBar extends JMenuBar {
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
                                 if (workPanel.getHex() != null) workPanel.removeFile();
-                                workPanel.setHex(FileViewer.getCurrentFile());
+                                workPanel.setHex(FileViewer.getCurrentCacheFile());
                                 saveFile.setEnabled(true);
                                 break;
                             } catch (Exception e) {
@@ -67,14 +67,61 @@ public class MenuBar extends JMenuBar {
                 if (file != null) {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showSaveDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
-                        try {
-                            JOptionPane.showConfirmDialog(null, "Wait for saving file", "Saving...", JOptionPane.YES_NO_OPTION);
-                            if (workPanel.getCurrentFile().isModified()) FileWriter.writeCacheFile(workPanel.getCurrentFile());
-                            FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
-                            JOptionPane.showConfirmDialog(null, "File saved!", "Saving...", JOptionPane.YES_NO_OPTION);
-                        } catch (Exception ex) {
-                            System.out.println("View: FileWriter error");
-                        }
+                        JDialog dialog = new JDialog();
+                        JLabel text = new JLabel("Wait for saving file...");
+                        
+                        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                            @Override
+                            protected Void doInBackground() {
+                                try {
+                                    if (workPanel.getCurrentFile().isModified()) FileWriter.writeCacheFile(workPanel.getCurrentFile());
+                                    FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
+                                } catch (Exception ex) {
+                                    System.out.println("View: FileWriter error");
+                                }
+                                return null;
+                            }
+                            
+                            @Override
+                            protected void done() {
+                                dialog.dispose();
+                                JOptionPane.showMessageDialog(null, "File saved!", "Saving...", JOptionPane.INFORMATION_MESSAGE);
+                            }
+                        };
+                        SwingWorker<Void, Void> waitWorker = new SwingWorker<Void,Void>() {
+
+                            @Override
+                            protected Void doInBackground() throws Exception {
+                                int i = 1;
+                                while(!worker.isDone()) {
+                                    switch (i) {
+                                        case 1:
+                                            text.setText("Wait for saving file.");
+                                            i = 2;
+                                            break;
+                                        case 2:
+                                            text.setText("Wait for saving file..");
+                                            i = 3;
+                                            break;
+                                        case 3:
+                                            text.setText("Wait for saving file...");
+                                            i = 1;
+                                            break;
+                                    }
+                                    Thread.sleep(1000);
+                                }
+                                return null;
+                            }
+                            
+                        };
+                        dialog.setModal(true);
+                        dialog.setUndecorated(true);
+                        dialog.setSize(200, 100);
+                        dialog.setLocationRelativeTo(null);
+                        dialog.add(text);
+                        worker.execute();
+                        waitWorker.execute();
+                        dialog.setVisible(true);
                     }
                 }
             });

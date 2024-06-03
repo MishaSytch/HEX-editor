@@ -16,20 +16,21 @@ public class FileWriter {
 
     public static void saveFile(Path filePath) {
         while (FileViewer.isCaching()) { }
-        
+
         writeInFile(new File(filePath.toUri()), null,  false);
         System.out.println("File saved!");
     }
 
     public static void writeCacheFile(CacheFile file) {
-        writeInFile(new File(file.getPath().toUri()), file.getData(), true);
+        writeInFile(file.getFile(), file.getData(), true);
     }
 
     private static void writeInFile(File file, List<List<String>> data, boolean isCache) {
         try (FileOutputStream fos = new FileOutputStream(file); FileChannel fileChannel = fos.getChannel()) {
             if (!isCache) {
+                FileViewer.firstFile();
                 for (int i = 0; i < FileViewer.getSize(); i++) {
-                    List<List<String>> hex = FileViewer.getCurrentFile().getData();
+                    List<List<String>> hex = FileViewer.getCurrentCacheFile().getData();
                     for (List<String> row : hex) {
                         for (String item : row) {
                             fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
@@ -42,7 +43,7 @@ public class FileWriter {
 
                 for (List<String> line : data) {
                     for (String hex : line) {
-                        fileChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
+                        fileChannel.write(ByteBuffer.wrap(hex != null ? hex.getBytes(StandardCharsets.UTF_8) : " ".getBytes(StandardCharsets.UTF_8)));
                         fileChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
 
                     }

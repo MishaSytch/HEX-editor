@@ -57,6 +57,7 @@ public class WorkPanel extends BasePanel {
     private Timer scopeTimer;
     private String title;
     private int lengthOfPosition;
+    private boolean isModified = false;
 
     public CacheFile getCurrentFile() {
         return currentFile;
@@ -64,7 +65,7 @@ public class WorkPanel extends BasePanel {
 
     private CacheFile currentFile;
     private final JPanel buttons = new JPanel();
-    private final JLabel currentPage = new JLabel("1");
+    private final JLabel currentPage = new JLabel();
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -124,8 +125,8 @@ public class WorkPanel extends BasePanel {
                         String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
-                            currentFile.wasModified();
-                            currentFile.updateData(hex);
+                            isModified = true;
+                            currentFile.updateData(getHex());
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
                         }
@@ -143,20 +144,6 @@ public class WorkPanel extends BasePanel {
                 if (column == 0 || model.getValueAt(row, column) == null) return;
 
                 showPopup(event, createInfo(event));
-            }
-        });
-
-        table.getDefaultEditor(String.class).addCellEditorListener( new CellEditorListener() {
-            @Override
-            public void editingStopped(ChangeEvent event) {
-                int row = table.getSelectedRow();
-                int column = table.getSelectedColumn();
-                String newValue = (String) table.getValueAt(row, column);
-                updateModel(row, column, newValue);
-            }
-
-            @Override
-            public void editingCanceled(ChangeEvent event) {
             }
         });
 
@@ -245,7 +232,7 @@ public class WorkPanel extends BasePanel {
 
     @SuppressWarnings("unchecked")
     public List<List<String>> getHex() {
-        if (currentFile != null && currentFile.isModified()) {
+        if (currentFile != null && isModified) {
             List<List<String>> hex = new LinkedList<>();
             for (Object line : model.getDataVector()) {
                 List<String> row = new LinkedList<>();
@@ -259,6 +246,7 @@ public class WorkPanel extends BasePanel {
 
     public void setHex(CacheFile fileLines) {
         this.hex = fileLines.getData();
+        currentPage.setText("1");
         currentFile = fileLines;
         initComponents();
     }
@@ -363,7 +351,7 @@ public class WorkPanel extends BasePanel {
         if (currentFile.getNumberOfFirstRow() != FileViewer.maxRowNumberStarts()) {
             FileViewer.nextFile();
             clearModel();
-            setHex(FileViewer.getCurrentFile());
+            setHex(FileViewer.getCurrentCacheFile());
         }
         currentPage.setText(currentFile.getIndex() + 1 + "");
     }
@@ -373,7 +361,7 @@ public class WorkPanel extends BasePanel {
         if (currentFile.getNumberOfFirstRow() != 0) {
             FileViewer.previousFile();
             clearModel();
-            setHex(FileViewer.getCurrentFile());
+            setHex(FileViewer.getCurrentCacheFile());
         }
         currentPage.setText(currentFile.getIndex() + 1 + "");
     }
@@ -452,9 +440,9 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        currentFile.wasModified();
-        currentFile.updateData(hex);
         SwingUtilities.updateComponentTreeUI(this);
+        isModified = true;
+        currentFile.updateData(getHex());
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
@@ -477,9 +465,9 @@ public class WorkPanel extends BasePanel {
                 }
             }
         }
-        currentFile.wasModified();
-        currentFile.updateData(hex);
         SwingUtilities.updateComponentTreeUI(this);
+        isModified = true;
+        currentFile.updateData(getHex());
     }
 
     private void copyToClipBoard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
@@ -504,16 +492,16 @@ public class WorkPanel extends BasePanel {
             model.setValueAt(newValue, row, column);
         
             List<List<String>> copyHEX = new ArrayList<>();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            List<String> list = new ArrayList<>();
-            for (int k = 1; k < model.getColumnCount(); k++) {
-                list.add((String)model.getValueAt(i, k));
+            for (int i = 0; i < model.getRowCount(); i++) {
+                List<String> list = new ArrayList<>();
+                for (int k = 1; k < model.getColumnCount(); k++) {
+                    list.add((String)model.getValueAt(i, k));
+                }
+                copyHEX.add(list);
             }
-            copyHEX.add(list);
-        }
-        
-        hex = copyHEX;
-        SwingUtilities.updateComponentTreeUI(this);
+            
+            hex = copyHEX;
+            SwingUtilities.updateComponentTreeUI(this);
         }
     }
 
