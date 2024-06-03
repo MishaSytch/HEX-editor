@@ -54,7 +54,7 @@ public class WorkPanel extends BasePanel {
     private Popup popup;
     private Timer scopeTimer;
     private String title;
-    private int lengthOfPosition;
+    private int lengthOfPosition = 0;
     private boolean isModified = false;
 
     public CacheFile getCurrentFile() {
@@ -350,7 +350,7 @@ public class WorkPanel extends BasePanel {
 
     public void searchByHex(List<String> searchingHex){
         HexEditor.find(positions, searchingHex, getHex());
-        if (lengthOfPosition == 0) lengthOfPosition = searchingHex.size();
+        lengthOfPosition = searchingHex.size();
         SwingUtilities.updateComponentTreeUI(this);
     }
 

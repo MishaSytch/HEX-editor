@@ -49,9 +49,9 @@ public class MenuBar extends JMenuBar {
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
                                 } else {
                                     int countOfRows = Integer.parseInt(textRows);
+                                    if (workPanel.getHex() != null) workPanel.removeFile();
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
-                                if (workPanel.getHex() != null) workPanel.removeFile();
                                 workPanel.setHex(FileViewer.getCurrentCacheFile());
                                 saveFile.setEnabled(true);
                                 break;

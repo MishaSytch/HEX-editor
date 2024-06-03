@@ -51,11 +51,9 @@ public class HexEditor {
                     int index = 0;
                     int currentColumn = column;
                     int currentRow = row;
-                    while (searchingHex.get(index).equalsIgnoreCase(hex.get(currentRow).get(currentColumn))) {
-                        currentColumn++;
-                        index++;
-                        if (index == searchingHex.size()) {
-                            while (column != currentColumn || row != currentRow) {
+                    while (index < searchingHex.size() && currentRow < hex.size() && currentColumn < hex.get(currentRow).size() && searchingHex.get(index).equalsIgnoreCase(hex.get(currentRow).get(currentColumn))) {
+                        if (index == searchingHex.size() - 1) {
+                            for (int i = 0; i < searchingHex.size(); i++) {
                                 positions.add(new Position(row, column++));
                                 if (column == hex.get(row).size()) {
                                     column = 0;
@@ -64,10 +62,12 @@ public class HexEditor {
                             }
                             break;
                         }
-                        if (currentColumn == hex.get(currentRow).size()) {
+                        if (currentRow < hex.size() && currentColumn == hex.get(currentRow).size()) {
                             currentColumn = 0;
                             currentRow++;
                         }
+                        currentColumn++;
+                        index++;
                     }
                     column = currentColumn;
                     row = currentRow;
