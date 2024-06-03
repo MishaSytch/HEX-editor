@@ -124,7 +124,6 @@ public class WorkPanel extends BasePanel {
                         String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
-                            currentFile.wasModified();
                             currentFile.updateData(hex);
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
@@ -453,7 +452,6 @@ public class WorkPanel extends BasePanel {
             }
         }
         SwingUtilities.updateComponentTreeUI(this);
-        currentFile.wasModified();
         currentFile.updateData(hex);
     }
 
@@ -478,7 +476,6 @@ public class WorkPanel extends BasePanel {
             }
         }
         SwingUtilities.updateComponentTreeUI(this);
-        currentFile.wasModified();
         currentFile.updateData(hex);
     }
 

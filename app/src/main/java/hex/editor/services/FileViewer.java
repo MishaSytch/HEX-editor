@@ -19,7 +19,7 @@ public class FileViewer {
     private static Integer countOfRow = null;
     private static final Deque<String> queue = new ArrayDeque<>();
     private static final long CACHE_SIZE = 10 * 1024;
-    private static final String CACHE_DIR = "cache";
+    private static final String CACHE_DIR = ".cache";
     private static final List<File> cacheFiles = new LinkedList<>();
     private static int index = 0;
     private static final ReentrantLock lock = new ReentrantLock();
@@ -34,8 +34,6 @@ public class FileViewer {
         File file = new File(path);
         FileViewer.countOfColumn = countOfColumn;
         FileViewer.countOfRow = countOfRow;
-        cacheFiles.clear();
-        lastRowNumber = 0;
 
         cacheThread = new Thread(() -> {
             try {
@@ -94,6 +92,18 @@ public class FileViewer {
 
     public static void previousFile() {
         index = Math.max(index - 1, 0);
+    }
+
+    public static File[] getFiles() {
+        while (isCaching()) { }
+        File[] files = new File[getSize()];
+        @SuppressWarnings("rawtypes")
+        Iterator irt = cacheFiles.iterator();
+        int i = 0;
+        while (irt.hasNext()) {
+            files[i++] = (File)irt.next();
+        }
+        return files;
     }
     
     public static int getSize() {

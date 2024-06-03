@@ -2,6 +2,7 @@ package hex.editor.services;
 
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,10 +10,13 @@ import java.util.stream.Collectors;
 public class HexService {
 
     public static List<String> getHexFromString(String line) throws NullPointerException {
-        return Arrays.stream(line.split(""))
-            .map(str -> str.getBytes(StandardCharsets.UTF_8))
-            .map(b -> String.format("%02x", b))
-            .collect(Collectors.toList());
+        List<String> list = new ArrayList<>();
+        byte[] bytes = line.getBytes(StandardCharsets.UTF_8);
+        for (byte b : bytes) {
+            list.add(String.format("%02x", b));
+        }
+    
+        return list;
     }
 
     public static List<String> getCharsFromString(String line) throws NullPointerException {
@@ -32,18 +36,19 @@ public class HexService {
                     return true;
                 throw new NumberFormatException();
             })
-            .map(hx -> hx.isEmpty() ? "" : (char)Integer.parseInt(hx, 16))
-            .map(String::valueOf)
+            .map(hx -> hx.isEmpty() ? "" : String.valueOf((char)Integer.parseInt(hx, 16))) 
             .collect(Collectors.toList());
     }
 
     public static List<String> getHexFromChars(List<String> chars) throws ArrayIndexOutOfBoundsException, NullPointerException {
         if (chars.isEmpty()) throw new ArrayIndexOutOfBoundsException();
-        return chars.stream()
-            .map(str -> str.getBytes(StandardCharsets.UTF_8))
-            .map(b -> {
-                return String.format("%02x", b);
-            })
-            .collect(Collectors.toList());
+        List<String> list = new ArrayList<>();
+        for (String str : chars) {
+            byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+            for (byte b : bytes) {
+                list.add(String.format("%02x", b));
+            }
+        }
+        return list;
     }
 }

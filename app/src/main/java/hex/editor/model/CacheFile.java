@@ -26,11 +26,8 @@ public class CacheFile {
     }
 
     public void updateData(List<List<String>> data) {
-        this.data = data;
-    }
-
-    public void wasModified() {
         isModified = true;
+        this.data = data;
     }
 
     public boolean isModified() {
