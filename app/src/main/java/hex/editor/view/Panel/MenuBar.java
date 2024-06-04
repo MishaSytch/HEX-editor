@@ -53,7 +53,7 @@ public class MenuBar extends JMenuBar {
                                     if (workPanel.getHex() != null) workPanel.removeFile();
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
-                                workPanel.setHex(FileViewer.getCurrentCacheFile());
+                                workPanel.setHex(FileViewer.getCurrentLines());
                                 saveFile.setEnabled(true);
                                 break;
                             } catch (Exception e) {

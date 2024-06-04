@@ -250,10 +250,9 @@ public class WorkPanel extends BasePanel {
         return hex;
     }
 
-    public void setHex(CacheFile fileLines) {
-        this.hex = fileLines.getData();
+    public void setHex(List<List<String>> hex) {
+        this.hex = hex;
         currentPage.setText("1");
-        currentFile = fileLines;
         initComponents();
     }
 
@@ -367,12 +366,11 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void loadNextFile() {
+    private void loadNextFile() throws IOException {
         if (currentFile.isModified()) FileWriter.writeCacheFile(currentFile);
-        if (currentFile.getNumberOfFirstRow() != FileViewer.maxRowNumberStarts()) {
-            FileViewer.nextFile();
+        if (FileViewer.isLast()) {
             clearModel();
-            setHex(FileViewer.getCurrentCacheFile());
+            setHex(FileViewer.getNextLines());
         }
         currentPage.setText(currentFile.getIndex() + 1 + "");
     }
