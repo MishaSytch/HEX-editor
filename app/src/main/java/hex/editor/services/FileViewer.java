@@ -145,10 +145,10 @@ public class FileViewer  {
             long position = 0;
             long size = fileChannel.size();
             while (position < size) {
-                long remaining = size - position;
-                long chunkSize = Math.min(remaining, CACHE_SIZE);
-                MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, chunkSize);
                 do {
+                    long remaining = size - position;
+                    long chunkSize = Math.min(remaining, CACHE_SIZE);
+                    MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, position, chunkSize);
                     List<List<String>> lines = readFromBuffer(buffer);
                     File chunkFile = new File(cacheDir,  Math.abs(file.hashCode()) + "." + firstRowNumber);
                     lastRowNumber = Math.max(lastRowNumber, firstRowNumber);
@@ -176,8 +176,8 @@ public class FileViewer  {
                     }  finally {
                         lock.unlock();
                     }
+                    position += chunkSize;
                 } while (!queue.isEmpty());
-                position += chunkSize;
             }
         }
     }

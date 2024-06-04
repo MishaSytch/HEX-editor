@@ -2,6 +2,7 @@ package hex.editor.view.Panel;
 
 import javax.swing.*;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -120,8 +121,8 @@ public class MenuBar extends JMenuBar {
                         dialog.setUndecorated(true);
                         dialog.setSize(200, 100);
                         dialog.setLocationRelativeTo(null);
-                        dialog.setLayout(new FlowLayout());
-                        dialog.add(text);
+                        dialog.setLayout(new BorderLayout());
+                        dialog.add(text, BorderLayout.CENTER);
                         worker.execute();
                         waitWorker.execute();
                         dialog.setVisible(true);
