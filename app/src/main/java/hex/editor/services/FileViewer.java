@@ -28,6 +28,7 @@ public class FileViewer  {
     private static CacheLines cache;
     private static File file;
     private static long currentIndex = 0;
+    private static long cachedIndex = 0;
     private static int part = 1;
     
     public static File getCacheFile() {
@@ -53,7 +54,7 @@ public class FileViewer  {
     
     public static CacheLines getCurrentLines() throws IOException {
         if (cache != null && cache.getIndex() == currentIndex) return cache;
-        return (cache = new CacheLines(partFile(file, currentIndex), currentIndex, part));
+        return (cache = new CacheLines(getPartFile(file, currentIndex), currentIndex, part));
     }
 
     public static CacheLines getNextLines() throws IOException {
@@ -61,6 +62,7 @@ public class FileViewer  {
         if (!isLast()) {
             part++;
         }
+        cachedIndex = Math.max(cachedIndex, currentIndex + size);
         return getCurrentLines();
     }
 
@@ -87,6 +89,12 @@ public class FileViewer  {
         return lines;
     }
 
+    public static List<List<String>> getFile() throws FileNotFoundException, IOException {
+        List<List<String>> data = getCacheLines();
+        data.addAll(getUncachedFile());
+        return data;
+    }
+
     public static boolean isLast() {
         return file.length() == currentIndex + size;
     }
@@ -105,12 +113,24 @@ public class FileViewer  {
         part = 1;
     }
 
-    private static List<List<String>> partFile(File file, long from) throws IOException {
+    private static List<List<String>> getPartFile(File file, long from) throws IOException {
         try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
             long chunkSize = Math.min(size, fileChannel.size());
             MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, from, chunkSize);
 
             return readFromBuffer(buffer);
+        }
+    }
+
+    private static List<List<String>> getUncachedFile() throws IOException {
+        try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+            MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, cachedIndex, file.length());
+            List<List<String>> data = new ArrayList<>();
+            do {
+                data.addAll(readFromBuffer(buffer));
+            } while (!queue.isEmpty());
+
+            return data;
         }
     }
 

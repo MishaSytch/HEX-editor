@@ -27,20 +27,20 @@ public class FileWriter {
     private static void writeInFile(File file, CacheLines cache) {
         try (FileOutputStream fos = new FileOutputStream(file); FileChannel fileChannel = fos.getChannel()) {
             if (cache == null) {
-                List<List<String>> hex = FileViewer.getCacheLines();
+                List<List<String>> hex = FileViewer.getFile();
                 for (List<String> row : hex) {
                     for (String item : row) {
                         fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
                     }
                 }
-                FileViewer.getNextLines();
+                
             } else {
                 RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-                randomAccessFile.seek(cache.getIndex() == 0 ? 0 : (cache.getIndex() * 2 + 1) * 2);
+                randomAccessFile.seek(cache.getIndex() == 0 ? 0 : (cache.getIndex() * 2 + 1) * 2 - 1);
                 for (List<String> line : cache.getData()) {
                     for (String hex : line) {
-                        randomAccessFile.write(hex != null ? hex.getBytes(StandardCharsets.UTF_8) : " ".getBytes(StandardCharsets.UTF_8));
-                        randomAccessFile.write(";".getBytes(StandardCharsets.UTF_8));
+                        randomAccessFile.writeBytes(hex);
+                        randomAccessFile.writeBytes(";");
                     }
                 }
                 randomAccessFile.close();

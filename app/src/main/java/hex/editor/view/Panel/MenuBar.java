@@ -76,7 +76,9 @@ public class MenuBar extends JMenuBar {
                             @Override
                             protected Void doInBackground() {
                                 try {
-                                    FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
+                                    if (!FileViewer.getCurrentLines().isSaved()) {
+                                        FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
+                                    }
                                     FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
                                 } catch (Exception ex) {
                                     System.out.println("View: FileWriter error");
