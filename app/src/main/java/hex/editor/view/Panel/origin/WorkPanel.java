@@ -63,7 +63,6 @@ public class WorkPanel extends BasePanel {
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
         this.infoPanel = infoPanel;
-
         this.setBorder(BorderFactory.createEtchedBorder(1));
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());
@@ -127,6 +126,7 @@ public class WorkPanel extends BasePanel {
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
                             isModified = true;
+                            cacheLines.updateData(getHex());
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
                         }
@@ -136,6 +136,7 @@ public class WorkPanel extends BasePanel {
         });
 
         table.addMouseMotionListener(new MouseMotionAdapter() {
+
             @Override
             public void mouseMoved(MouseEvent event) {
                 int row = table.rowAtPoint(event.getPoint());
@@ -214,12 +215,12 @@ public class WorkPanel extends BasePanel {
         nextPage.setBackground(getBackground());
         nextPage.setForeground(getStyleSheet().getMainTextColor());
         nextPage.addMouseListener(new MouseAdapter() {
+
             @Override
             public void mousePressed(MouseEvent e) {
                 try {
-                    loadNextLines();
+                    loadNextCahceLines();
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
             }
@@ -227,12 +228,12 @@ public class WorkPanel extends BasePanel {
         previousPage.setBackground(getBackground());
         previousPage.setForeground(getStyleSheet().getMainTextColor());
         previousPage.addMouseListener(new MouseAdapter() {
+
             @Override
             public void mousePressed(MouseEvent e) {
                 try {
-                    loadPreviousFile();
+                    loadPreviousCacheLines();
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
             }
@@ -242,11 +243,13 @@ public class WorkPanel extends BasePanel {
 
     @SuppressWarnings("unchecked")
     public List<List<String>> getHex() {
-        if (cacheLines != null && isModified) {
-            List<List<String>> hex = new LinkedList<>();
+        if (isModified) {
+            hex.clear();
             for (Object line : model.getDataVector()) {
                 List<String> row = new LinkedList<>();
-                for (int i = 1; i < ((Vector<String>)line).size(); i++) row.add(((Vector<String>)line).get(i));
+                for (int i = 1; i < ((Vector<String>)line).size(); i++) {
+                    row.add(((Vector<String>)line).get(i));
+                }
                 hex.add(row);
             }
             return hex;
@@ -371,22 +374,22 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void loadNextLines() throws IOException {
-        if (cacheLines.isModified() && !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
-        if (FileViewer.isLast()) {
+    private void loadNextCahceLines() throws IOException {
+        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
+        if (!FileViewer.isLast()) {
             clearModel();
             setHex(FileViewer.getNextLines());
+            currentPage.setText(cacheLines.getPart() + 1 + "");
         }
-        currentPage.setText(cacheLines.getPart() + 1 + "");
     }
 
-    private void loadPreviousFile() throws IOException {
-        if (cacheLines.isModified() && !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
-        if (cacheLines.getIndex() != 0) {
+    private void loadPreviousCacheLines() throws IOException {
+        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
+        if (cacheLines.getPart() != 1) {
             clearModel();
             setHex(FileViewer.getPreviousLines());
+            currentPage.setText(cacheLines.getPart() + 1 + "");
         }
-        currentPage.setText(cacheLines.getPart() + 1 + "");
     }
 
     private boolean validateData(String data) {

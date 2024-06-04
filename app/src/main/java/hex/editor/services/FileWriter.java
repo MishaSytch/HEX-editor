@@ -36,14 +36,12 @@ public class FileWriter {
                 FileViewer.getNextLines();
             } else {
                 RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-                randomAccessFile.seek(cache.getIndex());
+                randomAccessFile.seek(cache.getIndex() == 0 ? 0 : (cache.getIndex() * 2 + 1) * 2);
                 for (List<String> line : cache.getData()) {
                     for (String hex : line) {
                         randomAccessFile.write(hex != null ? hex.getBytes(StandardCharsets.UTF_8) : " ".getBytes(StandardCharsets.UTF_8));
                         randomAccessFile.write(";".getBytes(StandardCharsets.UTF_8));
-
                     }
-                    randomAccessFile.write("\n".getBytes(StandardCharsets.UTF_8));
                 }
                 randomAccessFile.close();
             }

@@ -39,10 +39,11 @@ public class FileViewer  {
     }
 
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
+        if (file != null) delete();
         file = new File(path);
         cacheFile = new File(CACHE_FILE); 
         FileViewer.countOfColumn = countOfColumn;
-        FileViewer.countOfRow = (int) (countOfRow != null ? countOfRow : Math.min(file.length() / countOfColumn, 20));
+        FileViewer.countOfRow = (int) (countOfRow != null ? countOfRow : Math.min(file.length() / countOfColumn + 1, 20));
         size = FileViewer.countOfRow * countOfColumn;
     }
     
@@ -56,7 +57,7 @@ public class FileViewer  {
     }
 
     public static CacheLines getNextLines() throws IOException {
-        currentIndex = Math.min(file.length() - size, currentIndex + size);
+        currentIndex = Math.min(file.length() < size ? 0 : file.length() - size, currentIndex + size);
         if (!isLast()) {
             part++;
         }
@@ -91,12 +92,22 @@ public class FileViewer  {
     }
 
     public static void delete() {
+        cache = null;
+        currentIndex = 0;
+        file = null;
         cacheFile.delete();
+
+        countOfColumn = null;
+        countOfRow = null;
+        size = 0;
+        queue.clear();
+
+        part = 1;
     }
 
     private static List<List<String>> partFile(File file, long from) throws IOException {
         try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-            long chunkSize = Math.min(size, fileChannel.size() - (currentIndex + size));
+            long chunkSize = Math.min(size, fileChannel.size());
             MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, from, chunkSize);
 
             return readFromBuffer(buffer);
