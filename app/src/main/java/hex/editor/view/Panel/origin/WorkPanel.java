@@ -18,7 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import hex.editor.controller.HexEditor;
-import hex.editor.model.CacheFile;
+import hex.editor.model.CacheLines;
 import hex.editor.model.Info;
 import hex.editor.model.Position;
 import hex.editor.model.Positions;
@@ -56,14 +56,9 @@ public class WorkPanel extends BasePanel {
     private String title;
     private int lengthOfPosition = 0;
     private boolean isModified = false;
-
-    public CacheFile getCurrentFile() {
-        return currentFile;
-    }
-
-    private CacheFile currentFile;
     private final JPanel buttons = new JPanel();
     private final JLabel currentPage = new JLabel();
+    private CacheLines cacheLines;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -132,7 +127,6 @@ public class WorkPanel extends BasePanel {
                         if (validateData(text)) {
                             model.setValueAt(text.toUpperCase(), row, column);
                             isModified = true;
-                            currentFile.updateData(getHex());
                         } else {
                             JOptionPane.showConfirmDialog(null, "Not valid!");
                         }
@@ -222,7 +216,12 @@ public class WorkPanel extends BasePanel {
         nextPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                loadNextFile();
+                try {
+                    loadNextLines();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
         });
         previousPage.setBackground(getBackground());
@@ -230,7 +229,12 @@ public class WorkPanel extends BasePanel {
         previousPage.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                loadPreviousFile();
+                try {
+                    loadPreviousFile();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
         });
         this.add(buttons, BorderLayout.SOUTH);
@@ -238,7 +242,7 @@ public class WorkPanel extends BasePanel {
 
     @SuppressWarnings("unchecked")
     public List<List<String>> getHex() {
-        if (currentFile != null && isModified) {
+        if (cacheLines != null && isModified) {
             List<List<String>> hex = new LinkedList<>();
             for (Object line : model.getDataVector()) {
                 List<String> row = new LinkedList<>();
@@ -250,8 +254,9 @@ public class WorkPanel extends BasePanel {
         return hex;
     }
 
-    public void setHex(List<List<String>> hex) {
-        this.hex = hex;
+    public void setHex(CacheLines cacheLines) {
+        this.cacheLines = cacheLines;
+        this.hex = cacheLines.getData();
         currentPage.setText("1");
         initComponents();
     }
@@ -291,7 +296,7 @@ public class WorkPanel extends BasePanel {
         model.setColumnIdentifiers(columnNames);
         for (List<String> lines : hex) {
             Vector<String> row = new Vector<>();
-            row.add(String.valueOf(currentFile.getNumberOfFirstRow() + model.getRowCount()));
+            row.add(String.valueOf(cacheLines.getIndex() + model.getRowCount()));
             row.addAll(lines);
             model.addRow(row);
         }
@@ -366,23 +371,22 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void loadNextFile() throws IOException {
-        if (currentFile.isModified()) FileWriter.writeCacheFile(currentFile);
+    private void loadNextLines() throws IOException {
+        if (cacheLines.isModified() && !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
         if (FileViewer.isLast()) {
             clearModel();
             setHex(FileViewer.getNextLines());
         }
-        currentPage.setText(currentFile.getIndex() + 1 + "");
+        currentPage.setText(cacheLines.getPart() + 1 + "");
     }
 
-    private void loadPreviousFile() {
-        if (currentFile.isModified()) FileWriter.writeCacheFile(currentFile);
-        if (currentFile.getNumberOfFirstRow() != 0) {
-            FileViewer.previousFile();
+    private void loadPreviousFile() throws IOException {
+        if (cacheLines.isModified() && !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
+        if (cacheLines.getIndex() != 0) {
             clearModel();
-            setHex(FileViewer.getCurrentCacheFile());
+            setHex(FileViewer.getPreviousLines());
         }
-        currentPage.setText(currentFile.getIndex() + 1 + "");
+        currentPage.setText(cacheLines.getPart() + 1 + "");
     }
 
     private boolean validateData(String data) {
@@ -465,7 +469,7 @@ public class WorkPanel extends BasePanel {
         }
         SwingUtilities.updateComponentTreeUI(this);
         isModified = true;
-        currentFile.updateData(getHex());
+        cacheLines.updateData(getHex());
     }
 
     private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
@@ -490,7 +494,7 @@ public class WorkPanel extends BasePanel {
         }
         SwingUtilities.updateComponentTreeUI(this);
         isModified = true;
-        currentFile.updateData(getHex());
+        cacheLines.updateData(getHex());
     }
 
     private void copyToClipBoard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns) {
@@ -540,7 +544,7 @@ public class WorkPanel extends BasePanel {
     public void removeFile() {
         hex = null;
         clearModel();
-        FileViewer.removeCache();
+        FileViewer.delete();
     }
 
     private void clearModel() {

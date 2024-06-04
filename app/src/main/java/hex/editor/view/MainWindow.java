@@ -29,7 +29,7 @@ public class MainWindow extends BaseFrame {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                FileViewer.removeCache();
+                FileViewer.delete();
             } 
         });
     }

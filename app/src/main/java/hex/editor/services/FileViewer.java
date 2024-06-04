@@ -1,65 +1,102 @@
 package hex.editor.services;
 
-import hex.editor.model.CacheFile;
-
-import java.io.*;
-import java.nio.ByteBuffer;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
-import java.util.concurrent.locks.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
+
+import hex.editor.model.CacheLines;
 
 public class FileViewer  {
     private static Integer countOfColumn = null;
     private static Integer countOfRow = null;
+    private static long size;
     private static final Deque<String> queue = new ArrayDeque<>();
-    private static final String CACHE_DIR = ".cache";
+    private static final String CACHE_FILE = ".cache";
+    private static File cacheFile;
+    private static CacheLines cache;
     private static File file;
     private static long currentIndex = 0;
+    private static int part = 1;
+    
+    public static File getCacheFile() {
+        return cacheFile;
+    }
+
+    public static long getCurrentIndex() {
+        return currentIndex;
+    }
 
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
         file = new File(path);
+        cacheFile = new File(CACHE_FILE); 
         FileViewer.countOfColumn = countOfColumn;
         FileViewer.countOfRow = (int) (countOfRow != null ? countOfRow : Math.min(file.length() / countOfColumn, 20));
+        size = FileViewer.countOfRow * countOfColumn;
     }
     
     public static void openFile(String path, Integer countOfColumn) {
         openFile(path, countOfColumn, null);
     }
     
-    public static List<List<String>> getCurrentLines() throws IOException {
-        return partFile(file, currentIndex);
+    public static CacheLines getCurrentLines() throws IOException {
+        if (cache != null && cache.getIndex() == currentIndex) return cache;
+        return (cache = new CacheLines(partFile(file, currentIndex), currentIndex, part));
     }
 
-    public static List<List<String>> getNextLines() throws IOException {
-        currentIndex = Math.min(file.length(), currentIndex + countOfColumn * countOfRow);
+    public static CacheLines getNextLines() throws IOException {
+        currentIndex = Math.min(file.length() - size, currentIndex + size);
+        if (!isLast()) {
+            part++;
+        }
         return getCurrentLines();
     }
 
-    public static List<List<String>> getPreviousLines() throws IOException {
-        currentIndex = Math.max(0, currentIndex - countOfColumn * countOfRow);
+    public static CacheLines getPreviousLines() throws IOException {
+        part = Math.max(1, part - 1);
+        currentIndex = Math.max(0, currentIndex - size);
         return getCurrentLines();
     }
 
-    public static List<List<String>> getFirstLines() throws IOException {
+    public static CacheLines getFirstLines() throws IOException {
         currentIndex = 0;
         return getCurrentLines();
     }
 
+    public static List<List<String>> getCacheLines() throws FileNotFoundException, IOException {
+        List<List<String>> lines = new ArrayList<>();
+        try (Scanner scanner = new Scanner(cacheFile, StandardCharsets.UTF_8.name())) {
+            while(scanner.hasNext()){
+                String line = scanner.nextLine();
+                List<String> data = Arrays.asList(line.split(";"));
+                lines.add(data.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+            }
+        }
+        return lines;
+    }
+
     public static boolean isLast() {
-        return file.length() == currentIndex;
+        return file.length() == currentIndex + size;
+    }
+
+    public static void delete() {
+        cacheFile.delete();
     }
 
     private static List<List<String>> partFile(File file, long from) throws IOException {
         try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
-            long size = fileChannel.size();
-            long remaining = size - from;
-            long chunkSize = Math.min(remaining, size);
+            long chunkSize = Math.min(size, fileChannel.size() - (currentIndex + size));
             MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, from, chunkSize);
 
             return readFromBuffer(buffer);
