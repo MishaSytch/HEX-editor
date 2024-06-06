@@ -54,7 +54,7 @@ public class FileViewer  {
     }
     
     public static CacheLines getCurrentLines() throws IOException {
-        if (cache != null && cache.getIndex() == currentIndex) return cache;
+        if (cache != null && cache.getPart() == part) return cache;
         if (cache != null && cacheFile.length() > cache.getSize()) return cache = new CacheLines(getCacheLines(currentIndex), currentIndex, part);
         return (cache = new CacheLines(getPartFile(file, currentIndex), currentIndex, part));
     }

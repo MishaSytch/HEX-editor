@@ -375,21 +375,21 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadNextCacheLines() throws IOException {
-        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
         if (!FileViewer.isLast()) {
             clearModel();
             setHex(FileViewer.getNextLines());
             currentPage.setText(cacheLines.getPart() + "");
         }
+        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
     }
-
+    
     private void loadPreviousCacheLines() throws IOException {
-        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
         if (cacheLines.getPart() != 1) {
             clearModel();
             setHex(FileViewer.getPreviousLines());
             currentPage.setText(cacheLines.getPart() + "");
         }
+        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
     }
 
     private boolean validateData(String data) {
