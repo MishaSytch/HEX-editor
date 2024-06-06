@@ -56,15 +56,14 @@ public class FileViewer  {
     
     public static CacheLines getCurrentLines() throws IOException {
         if (cache != null && cache.getPart() == PART) return cache;
-        return (cache = new CacheLines(getPartFile(FILE, CURRENT_CHAR_IN_FILE, LENGTH_OF_LINE), PART));
+        return (cache = new CacheLines(readFile(FILE, CURRENT_CHAR_IN_FILE, LENGTH_OF_LINE), PART));
     }
 
     public static CacheLines getNextLines() throws IOException {
-        CURRENT_CHAR_IN_FILE = Math.min(FILE.length() < LENGTH_OF_LINE ? 0 : FILE.length() - LENGTH_OF_LINE, CURRENT_CHAR_IN_FILE + LENGTH_OF_LINE);
+        CURRENT_CHAR_IN_FILE = Math.min(FILE.length(), CURRENT_CHAR_IN_FILE + LENGTH_OF_LINE);
         if (!isLast()) {
             PART++;
         }
-
         if (cacheFile.length() > cache.getNextIndex()) return new CacheLines(getNextCachedLine(), PART);
 
         return getCurrentLines();
@@ -108,11 +107,11 @@ public class FileViewer  {
     }
 
     private static List<List<String>> getNextCachedLine() throws IOException {
-        return getPartFile(cacheFile, cache.getNextIndex(), cache.getLength());
+        return readCacheFile(cache.getNextIndex());
     }
 
     private static List<List<String>> getPreviousCachedLine() throws IOException {
-        return getPartFile(cacheFile, cache.getPreviousIndex(), cache.getLength());
+        return readCacheFile(cache.getPreviousIndex());
     }
     
     private static List<List<String>> getAllCachedLines() throws FileNotFoundException, IOException {
@@ -128,7 +127,30 @@ public class FileViewer  {
         return lines;
     }
     
-    private static List<List<String>> getPartFile(File file, long from, int size) throws IOException {
+    private static List<List<String>> readCacheFile(long from) throws IOException {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
+            byte[] bytes = new byte[cache.getLength()];
+            randomAccessFile.seek(from);
+            randomAccessFile.read(bytes);
+
+            String line = new String(bytes, StandardCharsets.UTF_8);
+            int indexOfChar = 0;
+
+            List<List<String>> outer = new ArrayList<>();
+
+            for (int row = 0 ; row < countOfRow; row++) {
+                List<String> inner = new ArrayList<>();
+                for (int column = 0; column < countOfColumn; column++) {
+                    inner.add(String.valueOf(line.charAt(indexOfChar)));
+                }
+                outer.add(inner);
+            }
+
+            return outer;
+        }
+    }
+    
+    private static List<List<String>> readFile(File file, long from, int size) throws IOException {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
             byte[] bytes = new byte[size];
             randomAccessFile.seek(from);
