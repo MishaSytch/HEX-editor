@@ -82,7 +82,7 @@ public class FileViewer  {
         try (Scanner scanner = new Scanner(cacheFile, StandardCharsets.UTF_8.name())) {
             while(scanner.hasNext()){
                 String line = scanner.nextLine();
-                List<String> data = Arrays.asList(line.split(";"));
+                List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
                 lines.add(data.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList()));
             }
         }

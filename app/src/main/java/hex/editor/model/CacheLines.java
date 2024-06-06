@@ -47,5 +47,9 @@ public class CacheLines {
     public int getPart() {
         return part;
     }
+
+    public long getLength() {
+        return data.get(0).size() * data.size();
+    }
    
 }
