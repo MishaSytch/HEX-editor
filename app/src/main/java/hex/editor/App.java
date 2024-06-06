@@ -16,8 +16,6 @@ public class App {
     }
 
     private static void setup() {
-        ViewThread view = ViewThread.getInstance();
-        
-        System.out.println("Main");
+        ViewThread.getInstance();
     }
 }

@@ -22,7 +22,6 @@ public class FileWriter {
 
     public static void saveFile(Path filePath) {
         writeInFile(new File(filePath.toUri()), null);
-        System.out.println("File saved!");
     }
 
     public static void writeInCacheFile(CacheLines cache) {
@@ -44,14 +43,17 @@ public class FileWriter {
                 
             } else {
                 RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-                randomAccessFile.seek(cache.getNextIndex());
+                randomAccessFile.seek(cache.getIndex());
+                int count = 0;
                 for (List<String> line : cache.getData()) {
                     for (String hex : line) {
+                        count++;
                         randomAccessFile.write(hex.getBytes(StandardCharsets.UTF_8));
                         randomAccessFile.write(separator.getBytes(StandardCharsets.UTF_8));
                     }
                 }
                 randomAccessFile.close();
+                FileViewer.cached(count);
             }
         } catch (IOException exception) {
             System.err.println("Error processing file: " + exception.getMessage());

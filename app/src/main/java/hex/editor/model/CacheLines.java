@@ -7,22 +7,13 @@ import hex.editor.services.FileWriter;
 
 public class CacheLines {
     private List<List<String>> data;
-    private long index;
     private boolean isModified;
     private boolean isSaved;
     private int part;
     
-    public long getNextIndex() {
-        return (getPart() - 1) * getSize();
-    }
-
-    public int getSize() {
-        return getLength() * (data.get(0).get(0).length() + FileWriter.getSeparator().getBytes(StandardCharsets.UTF_8).length);  
-    }
- 
-    public CacheLines(List<List<String>> data, long index, int part) {
+    
+    public CacheLines(List<List<String>> data, int part) {
         this.data = data;
-        this.index = index;
         this.part = part;
         isModified = false;
         isSaved = false;
@@ -38,8 +29,20 @@ public class CacheLines {
         isSaved = false;
     }
     
+    public int getLength() {
+        return getSize() * (data.get(0).get(0).length() + FileWriter.getSeparator().getBytes(StandardCharsets.UTF_8).length);  
+    }
+    
+    public long getNextIndex() {
+        return part * getLength();
+    }
+
+    public long getPreviousIndex() {
+        return Math.max(0, (part - 2) * getLength());
+    }
+    
     public long getIndex() {
-        return index;
+        return (part - 1) * getLength();
     }
     
     public boolean isModified() {
@@ -59,7 +62,7 @@ public class CacheLines {
         return part;
     }
 
-    public int getLength() {
+    public int getSize() {
         return data.get(0).size() * data.size();
     }
    

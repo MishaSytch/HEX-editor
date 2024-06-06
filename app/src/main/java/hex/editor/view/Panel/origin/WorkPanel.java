@@ -59,6 +59,7 @@ public class WorkPanel extends BasePanel {
     private final JPanel buttons = new JPanel();
     private final JLabel currentPage = new JLabel();
     private CacheLines cacheLines;
+    private long currentFirstRow = 0;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -108,7 +109,6 @@ public class WorkPanel extends BasePanel {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (table.getSelectedColumn() > 0) {
-                    System.out.println("Info: wait info");
                     int row = table.rowAtPoint(event.getPoint());
                     int column = table.columnAtPoint(event.getPoint());
                     if (column == 0 || model.getValueAt(row, column) == null) {
@@ -177,9 +177,6 @@ public class WorkPanel extends BasePanel {
 
                             int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
                             insertToModel(model, values, selectedRows, selectedColumns, valueIndex, result == JOptionPane.YES_OPTION);
-                            System.out.println("Data pasted with validation");
-                        } else {
-                            System.out.println("Invalid data");
                         }
                     } catch (UnsupportedFlavorException | IOException e) {
                         System.out.println("Failed to paste data: " + e.getMessage());
@@ -192,7 +189,6 @@ public class WorkPanel extends BasePanel {
                     if (selectedRows.length > 0 && selectedColumns.length > 0) {
                         int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
                         deleteFromModel(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
-                        System.out.println("View: deleted selected cells");
                     }
                 }
             }
@@ -297,9 +293,10 @@ public class WorkPanel extends BasePanel {
         columnNames.add(String.valueOf(' '));
         for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
         model.setColumnIdentifiers(columnNames);
-        for (List<String> lines : hex) {
+        for (int i = 0; i < hex.size(); i++) {
+            List<String> lines = hex.get(i);
             Vector<String> row = new Vector<>();
-            row.add(String.valueOf(cacheLines.getIndex() + model.getRowCount()));
+            row.add(String.valueOf(currentFirstRow + i));
             row.addAll(lines);
             model.addRow(row);
         }
@@ -346,7 +343,6 @@ public class WorkPanel extends BasePanel {
         positions.removeAll();
         SwingUtilities.updateComponentTreeUI(this);
         lengthOfPosition = 0;
-        System.out.println("View: Cell unselected");
     }
 
     public void searchByMask(String mask) {
@@ -375,21 +371,23 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadNextCacheLines() throws IOException {
+        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
         if (!FileViewer.isLast()) {
+            currentFirstRow += model.getRowCount();
             clearModel();
             setHex(FileViewer.getNextLines());
             currentPage.setText(cacheLines.getPart() + "");
         }
-        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
     }
     
     private void loadPreviousCacheLines() throws IOException {
+        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
         if (cacheLines.getPart() != 1) {
+            currentFirstRow -= model.getRowCount();
             clearModel();
             setHex(FileViewer.getPreviousLines());
             currentPage.setText(cacheLines.getPart() + "");
         }
-        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
     }
 
     private boolean validateData(String data) {
@@ -398,7 +396,6 @@ public class WorkPanel extends BasePanel {
 
     private boolean validateDataArray(String[] dataArray) {
         if (dataArray == null) {
-            System.out.println("Data array is null");
             return false;
         }
 
@@ -514,7 +511,6 @@ public class WorkPanel extends BasePanel {
         StringSelection stringSelection = new StringSelection(sb.toString());
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(stringSelection, null);
-        System.out.println("Copied to clipboard");
     }
 
     private void cutToClipboard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {

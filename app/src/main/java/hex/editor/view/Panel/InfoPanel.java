@@ -103,7 +103,6 @@ public class InfoPanel extends BasePanel {
                     if (!(hexButton.isEnabled() || maskButton.isEnabled())) {
                         condition(Condition.TYPE);
                     } else {
-                        System.out.println("View: ready to search");
                         searchingField.setText("");
                     }
                     SwingUtilities.updateComponentTreeUI(searchingPanel);

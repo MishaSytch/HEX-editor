@@ -28,7 +28,7 @@ public class TestFileViewer {
         File dir = new File("/home/msych/filesForTest/");
         files = dir.listFiles();
         FileViewer.openFile(files[0].getAbsolutePath(), new Integer(10));
-        assertEquals(0, FileViewer.getCurrentIndex());
+        assertEquals(0, FileViewer.getCURRENT_CHAR_IN_FILE());
         FileViewer.getCurrentLines();
         assertEquals(HexEditor.getHexFromChar("B"), FileViewer.getCurrentLines().getData().get(0).get(0));
         assertEquals(HexEditor.getHexFromChar("B"), FileViewer.getNextLines().getData().get(0).get(0));
@@ -41,7 +41,7 @@ public class TestFileViewer {
         files = dir.listFiles();
         for (File file : files) {
             FileViewer.openFile(file.getAbsolutePath(), new Integer((int) file.length()));
-            assertEquals(0, FileViewer.getCurrentIndex());
+            assertEquals(0, FileViewer.getCURRENT_CHAR_IN_FILE());
             
             List<List<String>> res = new ArrayList<>();
             try (Scanner scanner = new Scanner(file)) {

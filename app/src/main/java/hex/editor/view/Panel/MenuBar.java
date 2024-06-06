@@ -34,7 +34,6 @@ public class MenuBar extends JMenuBar {
 
                     if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                        System.out.println("View: load File");
                         while (true) {
                             try {
                                 String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
@@ -80,9 +79,7 @@ public class MenuBar extends JMenuBar {
                                         FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
                                     }
                                     FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
-                                } catch (Exception ex) {
-                                    System.out.println("View: FileWriter error");
-                                }
+                                } catch (Exception ignore) {}
                                 return null;
                             }
                             
