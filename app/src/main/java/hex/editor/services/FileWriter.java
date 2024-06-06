@@ -44,8 +44,7 @@ public class FileWriter {
                 
             } else {
                 RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-                long nextPoint = (cache.getPart() - 1) * cache.getLength() * (cache.getData().get(0).get(0).length() + separator.getBytes(StandardCharsets.UTF_8).length);
-                randomAccessFile.seek(nextPoint);
+                randomAccessFile.seek(cache.getNextIndex());
                 for (List<String> line : cache.getData()) {
                     for (String hex : line) {
                         randomAccessFile.write(hex.getBytes(StandardCharsets.UTF_8));

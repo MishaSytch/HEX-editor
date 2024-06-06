@@ -45,11 +45,11 @@ public class MenuBar extends JMenuBar {
                                 }
                                 int countOfColumn = Integer.parseInt(textColumns);
                                 String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
+                                if (workPanel.getHex() != null) workPanel.removeFile();
                                 if (textRows.isEmpty()) {
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
                                 } else {
                                     int countOfRows = Integer.parseInt(textRows);
-                                    if (workPanel.getHex() != null) workPanel.removeFile();
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
                                 workPanel.setHex(FileViewer.getCurrentLines());

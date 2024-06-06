@@ -1,6 +1,9 @@
 package hex.editor.model;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import hex.editor.services.FileWriter;
 
 public class CacheLines {
     private List<List<String>> data;
@@ -9,6 +12,14 @@ public class CacheLines {
     private boolean isSaved;
     private int part;
     
+    public long getNextIndex() {
+        return (getPart() - 1) * getSize();
+    }
+
+    public int getSize() {
+        return getLength() * (data.get(0).get(0).length() + FileWriter.getSeparator().getBytes(StandardCharsets.UTF_8).length);  
+    }
+ 
     public CacheLines(List<List<String>> data, long index, int part) {
         this.data = data;
         this.index = index;
@@ -48,7 +59,7 @@ public class CacheLines {
         return part;
     }
 
-    public long getLength() {
+    public int getLength() {
         return data.get(0).size() * data.size();
     }
    

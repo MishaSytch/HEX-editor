@@ -124,7 +124,7 @@ public class WorkPanel extends BasePanel {
                     if (column != 0) {
                         String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
                         if (validateData(text)) {
-                            model.setValueAt(text.toUpperCase(), row, column);
+                            model.setValueAt(text.toLowerCase(), row, column);
                             isModified = true;
                             cacheLines.updateData(getHex());
                         } else {
@@ -219,7 +219,7 @@ public class WorkPanel extends BasePanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 try {
-                    loadNextCahceLines();
+                    loadNextCacheLines();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -374,12 +374,12 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    private void loadNextCahceLines() throws IOException {
+    private void loadNextCacheLines() throws IOException {
         if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
         if (!FileViewer.isLast()) {
             clearModel();
             setHex(FileViewer.getNextLines());
-            currentPage.setText(cacheLines.getPart() + 1 + "");
+            currentPage.setText(cacheLines.getPart() + "");
         }
     }
 
@@ -388,7 +388,7 @@ public class WorkPanel extends BasePanel {
         if (cacheLines.getPart() != 1) {
             clearModel();
             setHex(FileViewer.getPreviousLines());
-            currentPage.setText(cacheLines.getPart() + 1 + "");
+            currentPage.setText(cacheLines.getPart() + "");
         }
     }
 
@@ -515,24 +515,6 @@ public class WorkPanel extends BasePanel {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(stringSelection, null);
         System.out.println("Copied to clipboard");
-    }
-
-    private void updateModel(int row, int column, String newValue) {
-        if (model != null && row >= 0 && column > 0 && row < model.getRowCount() && column < model.getColumnCount()) {
-            model.setValueAt(newValue, row, column);
-        
-            List<List<String>> copyHEX = new ArrayList<>();
-            for (int i = 0; i < model.getRowCount(); i++) {
-                List<String> list = new ArrayList<>();
-                for (int k = 1; k < model.getColumnCount(); k++) {
-                    list.add((String)model.getValueAt(i, k));
-                }
-                copyHEX.add(list);
-            }
-            
-            hex = copyHEX;
-            SwingUtilities.updateComponentTreeUI(this);
-        }
     }
 
     private void cutToClipboard(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean is_shifted) {

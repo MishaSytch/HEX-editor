@@ -4,8 +4,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import hex.editor.controller.HexEditor;
-
 public class Info {
     private final int row;
     private final int column;

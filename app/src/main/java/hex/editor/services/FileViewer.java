@@ -3,6 +3,7 @@ package hex.editor.services;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -54,6 +55,7 @@ public class FileViewer  {
     
     public static CacheLines getCurrentLines() throws IOException {
         if (cache != null && cache.getIndex() == currentIndex) return cache;
+        if (cache != null && cacheFile.length() > cache.getSize()) return cache = new CacheLines(getCacheLines(currentIndex), currentIndex, part);
         return (cache = new CacheLines(getPartFile(file, currentIndex), currentIndex, part));
     }
 
@@ -89,9 +91,26 @@ public class FileViewer  {
         return lines;
     }
 
+    public static List<List<String>> getCacheLines(long index) throws FileNotFoundException, IOException {
+        List<List<String>> lines = new ArrayList<>();
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(cacheFile, "rw")) {
+            int pos = cache.getSize() * (part - 1);
+            randomAccessFile.seek(pos); 
+            while (lines.size() < countOfRow) {
+                int sizeOfLine = cache.getSize() / countOfRow;
+                byte[] bytes = new byte[sizeOfLine];
+                randomAccessFile.read(bytes);
+                String line = new String(bytes, StandardCharsets.UTF_8);
+                List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
+                lines.add(data.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+            }
+        }
+        return lines;
+    }
+
     public static List<List<String>> getFile() throws FileNotFoundException, IOException {
         List<List<String>> data = getCacheLines();
-        data.addAll(getUncachedFile());
+        data.get(0).addAll(getUncachedFile());
         return data;
     }
 
@@ -103,7 +122,7 @@ public class FileViewer  {
         cache = null;
         currentIndex = 0;
         file = null;
-        cacheFile.delete();
+        if (cacheFile != null || (cacheFile = new File(CACHE_FILE)).exists()) cacheFile.delete();
 
         countOfColumn = null;
         countOfRow = null;
@@ -122,14 +141,19 @@ public class FileViewer  {
         }
     }
 
-    private static List<List<String>> getUncachedFile() throws IOException {
-        try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+    private static List<String> getUncachedFile() throws IOException {
+        try (FileChannel fileChannel = FileChannel.open(file.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE)) {
             MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, cachedIndex, file.length());
-            List<List<String>> data = new ArrayList<>();
-            do {
-                data.addAll(readFromBuffer(buffer));
-            } while (!queue.isEmpty());
-
+            List<String> data = new ArrayList<>();
+            StringBuilder stringBuilder = new StringBuilder();
+    
+            while (buffer.hasRemaining()) {
+                stringBuilder.append((char) buffer.get());
+                String line = stringBuilder.toString();
+                HexService.getHexFromString(line).forEach(data::add);
+                stringBuilder.setLength(0);
+            }
+    
             return data;
         }
     }
