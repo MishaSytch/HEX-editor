@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +61,7 @@ public class FileViewer  {
         if (!isLast()) {
             PART++;
         }
-        if (cacheFile.length() > cache.getNextIndex()) return new CacheLines(getNextCachedLine(), PART);
+        if (cacheFile.length() > cache.getNextIndex()) return (cache = new CacheLines(getNextCachedLine(), PART));
 
         return getCurrentLines();
     }
@@ -73,7 +70,7 @@ public class FileViewer  {
         PART = Math.max(1, PART - 1);
         CURRENT_CHAR_IN_FILE = Math.max(0, CURRENT_CHAR_IN_FILE - LENGTH_OF_LINE);
 
-        return new CacheLines(getPreviousCachedLine(), PART);
+        return (cache = new CacheLines(getPreviousCachedLine(), PART));
     }
     
     public static List<List<String>> getFile() throws FileNotFoundException, IOException {
@@ -128,12 +125,12 @@ public class FileViewer  {
     }
     
     private static List<List<String>> readCacheFile(long from) throws IOException {
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(CACHE_FILE, "r")) {
             byte[] bytes = new byte[cache.getLength()];
             randomAccessFile.seek(from);
             randomAccessFile.read(bytes);
 
-            String line = new String(bytes, StandardCharsets.UTF_8);
+            String[] line = (new String(bytes, StandardCharsets.UTF_8)).split(FileWriter.getSeparator());
             int indexOfChar = 0;
 
             List<List<String>> outer = new ArrayList<>();
@@ -141,7 +138,7 @@ public class FileViewer  {
             for (int row = 0 ; row < countOfRow; row++) {
                 List<String> inner = new ArrayList<>();
                 for (int column = 0; column < countOfColumn; column++) {
-                    inner.add(String.valueOf(line.charAt(indexOfChar)));
+                    inner.add(line[indexOfChar++]);
                 }
                 outer.add(inner);
             }

@@ -30,7 +30,7 @@ public class CacheLines {
     }
     
     public int getLength() {
-        return getSize() * (data.get(0).get(0).length() + FileWriter.getSeparator().getBytes(StandardCharsets.UTF_8).length);  
+        return getSize() * (2 + FileWriter.getSeparator().getBytes(StandardCharsets.UTF_8).length);  
     }
     
     public long getNextIndex() {

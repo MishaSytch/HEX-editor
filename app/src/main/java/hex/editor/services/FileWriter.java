@@ -48,7 +48,7 @@ public class FileWriter {
                 for (List<String> line : cache.getData()) {
                     for (String hex : line) {
                         count++;
-                        randomAccessFile.write(hex.getBytes(StandardCharsets.UTF_8));
+                        randomAccessFile.write(hex != null ? hex.getBytes(StandardCharsets.UTF_8) : "".getBytes(StandardCharsets.UTF_8));
                         randomAccessFile.write(separator.getBytes(StandardCharsets.UTF_8));
                     }
                 }
