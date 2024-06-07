@@ -78,7 +78,7 @@ public class FileViewer  {
     
     public static List<List<String>> getFile() throws FileNotFoundException, IOException {
         List<List<String>> data = getAllCachedLines();
-        data.get(0).addAll(getUncachedFile());
+        if (FILE.length() > CACHED_CHAR) data.get(0).addAll(getUncachedFile());
         return data;
     }
     
