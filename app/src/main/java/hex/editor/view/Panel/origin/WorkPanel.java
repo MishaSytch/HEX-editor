@@ -17,8 +17,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import org.checkerframework.checker.units.qual.m;
-
 import hex.editor.controller.HexEditor;
 import hex.editor.model.CacheLines;
 import hex.editor.model.Info;
