@@ -103,11 +103,33 @@ public class WorkPanel extends BasePanel {
             public void mouseReleased(MouseEvent e) {
                 int[] selectedRow = table.getSelectedRows();
                 int[] selectedColumn = table.getSelectedColumns();
+                for (int row : selectedRow) {
+                    for (int column : selectedColumn) {
+                        if (model.getValueAt(row, column) == null) {
+                            infoPanel.removeInfo();
+                            return;
+                        }
+                    }
+                }
                 showInfoInCells(selectedRow, selectedColumn);
             }
 
             @Override
             public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    int row = table.rowAtPoint(event.getPoint());
+                    int column = table.columnAtPoint(event.getPoint());
+                    if (column != 0) {
+                        String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
+                        if (validateData(text)  || text.isEmpty()) {
+                            model.setValueAt(text.toLowerCase(), row, column);
+                            isModified = true;
+                            cacheLines.updateData(getHex());
+                        } else {
+                            JOptionPane.showConfirmDialog(null, "Not valid!");
+                        }
+                    }
+                }
                 if (table.getSelectedColumn() > 0) {
                     int row = table.rowAtPoint(event.getPoint());
                     int column = table.columnAtPoint(event.getPoint());
@@ -116,21 +138,6 @@ public class WorkPanel extends BasePanel {
                     }
                     Info info = createInfo(event);
                     loadInfo(model, row, column, info);
-                }
-
-                if (event.getClickCount() == 2) {
-                    int row = table.rowAtPoint(event.getPoint());
-                    int column = table.columnAtPoint(event.getPoint());
-                    if (column != 0) {
-                        String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
-                        if (validateData(text)) {
-                            model.setValueAt(text.toLowerCase(), row, column);
-                            isModified = true;
-                            cacheLines.updateData(getHex());
-                        } else {
-                            JOptionPane.showConfirmDialog(null, "Not valid!");
-                        }
-                    }
                 }
             }
         });
@@ -142,9 +149,7 @@ public class WorkPanel extends BasePanel {
                 int row = table.rowAtPoint(event.getPoint());
                 int column = table.columnAtPoint(event.getPoint());
 
-                if (column == 0 || model.getValueAt(row, column) == null) return;
-
-                showPopup(event, createInfo(event));
+                showPopup(event, createInfo(event), model.getValueAt(row, column), column);
             }
         });
 
@@ -169,14 +174,21 @@ public class WorkPanel extends BasePanel {
                     try {
                         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                         String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        String[] values = data.replace("\n", "").replace("\t", ";").split(";");
+                        List<List<String>> values = new ArrayList<>();
+                        for (String line : data.split("\n")) {
+                            List<String> inner = new ArrayList<>();
+                            for (String item : line.split("["+FileWriter.getSeparator()+FileWriter.getRegexForSplit().substring(1))) {
+                                inner.add(item);
+                            }
+                            values.add(inner);
+                        }
+
                         if (validateData(data) || validateDataArray(values)) {
                             int[] selectedRows = table.getSelectedRows();
                             int[] selectedColumns = table.getSelectedColumns();
-                            int valueIndex = 0;
 
                             int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
-                            insertToModel(model, values, selectedRows, selectedColumns, valueIndex, result == JOptionPane.YES_OPTION);
+                            insertToModel(model, values, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
                         }
                     } catch (UnsupportedFlavorException | IOException e) {
                         System.out.println("Failed to paste data: " + e.getMessage());
@@ -394,14 +406,16 @@ public class WorkPanel extends BasePanel {
         return data != null && (data.matches("^[a-fA-F0-9]{2}$|^[a-fA-F0-9]{4}$") || data.isEmpty());
     }
 
-    private boolean validateDataArray(String[] dataArray) {
-        if (dataArray == null) {
+    private boolean validateDataArray(List<List<String>> dataArray) {
+        if (dataArray == null || dataArray.isEmpty()) {
             return false;
         }
 
         boolean valid = true;
-        for (String data : dataArray) {
-            valid &=  validateData(data);
+        for (List<String> line : dataArray) {
+            for (String data : line) {
+                valid &= validateData(data);
+            }
         }
         
         return valid;
@@ -419,13 +433,15 @@ public class WorkPanel extends BasePanel {
         infoPanel.setInfo(infos);
     }
 
-    private void showPopup(MouseEvent event, Info info) {
+    private void showPopup(MouseEvent event, Info info, Object value, int column) {
         lastX = event.getXOnScreen();
         lastY = event.getYOnScreen();
 
+        if (info == null || info.getInfo() == null) return;
+
         Timer hoverTimer = new Timer(100, e -> {
             tooltip.setTipText(info.getInfo());
-            if (popup != null) {
+            if (popup != null && value == null || popup != null || column == 0) {
                 popup.hide();
             }
             popup = popupFactory.getPopup(table, tooltip, lastX + 10, lastY - 10);
@@ -460,9 +476,9 @@ public class WorkPanel extends BasePanel {
             }
         } else {
             for (int row : selectedRows) {
-                for (int col : selectedColumns) {
-                    if (col > 0) {
-                        model.setValueAt(null, row, col);
+                for (int column : selectedColumns) {
+                    if (column > 0) {
+                        model.setValueAt(null, row, column);
                     }
                 }
             }
@@ -472,26 +488,28 @@ public class WorkPanel extends BasePanel {
         cacheLines.updateData(getHex());
     }
 
-    private void insertToModel(DefaultTableModel model, String[] values, int[] selectedRows, int[] selectedColumns, int valueIndex, boolean isShifted) {
-        if (isShifted) {
-            for (int row : selectedRows) {
-                for (int column : selectedColumns) {
-                    if (column > 0) {
-                        for (int i = model.getColumnCount() - 1; i > column; i--) {
-                            model.setValueAt(model.getValueAt(row, i - 1), row, i);
-                        }
-                        model.setValueAt(values[valueIndex++], row, column);
+    private void insertToModel(DefaultTableModel model, List<List<String>> values, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
+        int valueRow = 0;
+        int valueColumn = 0;
+        for (int row : selectedRows) {
+            for (int column : selectedColumns) {
+                if (column > 0) {
+                    if (isShifted) for (int i = model.getColumnCount() - 1; i > column; i--) {
+                        model.setValueAt(model.getValueAt(row, i - 1), row, i);
+                    }
+                    model.setValueAt(
+                        valueRow >= values.size() ? null 
+                                                    : valueColumn >= values.get(valueRow).size() ? null 
+                                                                                                : values.get(valueRow).get(valueColumn++), row, column
+                    );
+                    if (valueRow < values.size() && valueColumn >= values.get(valueRow).size()) {
+                        valueColumn = 0;
+                        valueRow++;
                     }
                 }
             }
         }
-        else {
-            for (int row : selectedRows) {
-                for (int column : selectedColumns) {
-                    if (column > 0) model.setValueAt(values[valueIndex++], row, column);
-                }
-            }
-        }
+            
         SwingUtilities.updateComponentTreeUI(this);
         isModified = true;
         cacheLines.updateData(getHex());
@@ -504,7 +522,7 @@ public class WorkPanel extends BasePanel {
                 if (col == 0) continue;
                 String data = model.getValueAt(row, col) != null ? model.getValueAt(row, col).toString() : "";
                 sb.append(data);
-                sb.append(";");
+                sb.append(FileWriter.getSeparator());
             }
             sb.append("\n");
         }

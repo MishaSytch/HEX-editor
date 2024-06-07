@@ -15,6 +15,11 @@ import java.util.List;
 
 public class FileWriter {
     private static final String separator = ";";
+    private static final String regex_for_split = "[\\t\\s\\W+]";
+
+    public static String getRegexForSplit() {
+        return regex_for_split;
+    }
 
     public static String getSeparator() {
         return separator;

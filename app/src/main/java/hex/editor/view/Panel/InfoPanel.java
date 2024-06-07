@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 
 import hex.editor.model.Condition;
 import hex.editor.model.Info;
+import hex.editor.services.FileWriter;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.origin.BasePanel;
 import hex.editor.view.Panel.origin.WorkPanel;
@@ -44,6 +45,11 @@ public class InfoPanel extends BasePanel {
         initComponents();
     }
 
+    public void removeInfo() {
+        info.setText("");
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+    
     public void setInfo(Info info_Info) {
         info.setText(info_Info.getInfo());
         SwingUtilities.updateComponentTreeUI(this);
@@ -56,6 +62,13 @@ public class InfoPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
+    public void setWorkPanel(WorkPanel workPanel) {
+        this.workPanel = workPanel;
+    }
+
+    public void start() {
+        condition(Condition.START);
+    }
     
     private void initComponents() {
         add(info, BorderLayout.WEST);
@@ -120,7 +133,7 @@ public class InfoPanel extends BasePanel {
                             workPanel.searchByMask(searchingField.getText().trim());
                         }
                         if (!hexButton.isEnabled()) {
-                            workPanel.searchByHex(Arrays.stream(searchingField.getText().split("[\\t\\s\\W+]")).collect(Collectors.toList()));
+                            workPanel.searchByHex(Arrays.stream(searchingField.getText().split(FileWriter.getRegexForSplit())).collect(Collectors.toList()));
                         }
                     }
                     SwingUtilities.updateComponentTreeUI(searchingPanel);
@@ -128,7 +141,7 @@ public class InfoPanel extends BasePanel {
             }
         });
     }
-
+    
     private void condition(Condition condition) {
         switch (condition) {
             case START: {
@@ -208,13 +221,5 @@ public class InfoPanel extends BasePanel {
             SwingUtilities.updateComponentTreeUI(searchingPanel);
         });
         return button;
-    }
-
-    public void setWorkPanel(WorkPanel workPanel) {
-        this.workPanel = workPanel;
-    }
-
-    public void start() {
-        condition(Condition.START);
     }
 }

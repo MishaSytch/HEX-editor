@@ -41,7 +41,10 @@ public class FileViewer  {
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
         if (FILE != null) delete();
         FILE = new File(path);
-        cacheFile = new File(CACHE_FILE); 
+        cacheFile = new File(CACHE_FILE);
+        while(cacheFile.exists()) {
+            cacheFile.delete();
+        } 
         FileViewer.countOfColumn = countOfColumn;
         FileViewer.countOfRow = (int) (countOfRow != null ? countOfRow : Math.min(FILE.length() / countOfColumn + 1, 20));
         LENGTH_OF_LINE = FileViewer.countOfRow * countOfColumn;
