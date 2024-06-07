@@ -17,6 +17,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+import org.checkerframework.checker.units.qual.m;
+
 import hex.editor.controller.HexEditor;
 import hex.editor.model.CacheLines;
 import hex.editor.model.Info;
@@ -463,23 +465,17 @@ public class WorkPanel extends BasePanel {
     }
 
     private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
-        if (isShifted) {
-            for (int row : selectedRows) {
-                for (int column : selectedColumns) {
-                    for (int i = column; i < model.getColumnCount() - 1; i++) {
-                        if (i > 0) {
-                            model.setValueAt(model.getValueAt(row, i + 1), row, i);
+        for (int row : selectedRows) {
+            for (int column : selectedColumns) {
+                if (column > 0) {
+                        if (isShifted && column + selectedColumns.length < model.getColumnCount() - 1) {
+                            for (int currentColumn = column + 1; currentColumn < model.getColumnCount(); currentColumn++) {
+                                model.setValueAt(model.getValueAt(row, currentColumn), row, column++);    
+                            }
+                            model.setValueAt(null, row, column);
+                        } else {
+                            model.setValueAt(null, row, column);
                         }
-                    }
-                    model.setValueAt(null, row, model.getColumnCount() - 1);
-                }
-            }
-        } else {
-            for (int row : selectedRows) {
-                for (int column : selectedColumns) {
-                    if (column > 0) {
-                        model.setValueAt(null, row, column);
-                    }
                 }
             }
         }
