@@ -197,7 +197,8 @@ public class FileViewer  {
         HexService.getHexFromString(line).forEach(queue::addLast);
         List<String> row = new LinkedList<>();
         while (!queue.isEmpty()) {
-            row.add(queue.removeFirst());
+            String tmp;
+            row.add((tmp = queue.removeFirst()).equals("00") ? "" : tmp);
             if (row.size() == countOfColumn) {
                 lines.add(row);
                 row = new LinkedList<>();
