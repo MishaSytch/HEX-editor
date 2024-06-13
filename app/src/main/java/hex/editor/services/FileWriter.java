@@ -4,11 +4,8 @@ import hex.editor.controller.HexEditor;
 import hex.editor.model.CacheLines;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,32 +36,27 @@ public class FileWriter {
     }
 
     private static void writeInFile(File file, CacheLines cache) {
-        int SIZE_LINE = (int) Math.pow(2, 3 * 5);
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw")) {
+        try {
             if (cache == null) {
-                Files.copy(
+                Path path = Files.copy(
                     FileViewer.getCurrentFile().toPath(),
                     file.toPath(),
                     REPLACE_EXISTING,
                     NOFOLLOW_LINKS
                 );
+
+                RandomAccessFile randomAccessFile = new RandomAccessFile((file = path.toFile()), "rw");
                 randomAccessFile.seek(0);
 
-                List<List<String>> hex = FileViewer.getAllCachedLines();
-                StringBuilder sb = new StringBuilder();
-                for (List<String> row : hex) {
-                    for (String item : row) {
-                        if (sb.length() == SIZE_LINE) {
-                            randomAccessFile.write(sb.toString().getBytes(StandardCharsets.UTF_8));
-                            sb = new StringBuilder();
-                        }
-                        sb.append(HexEditor.getCharFromHex(item));
-                    }
+                List<String> hex = FileViewer.getAllCachedLines();
+                for (String item : hex) {
+                    randomAccessFile.write(HexEditor.getCharFromHex(item).getBytes(StandardCharsets.UTF_8));
                 }
 
-                randomAccessFile.write(sb.toString().getBytes(StandardCharsets.UTF_8));
-                
+                randomAccessFile.close();
+
             } else {
+                RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
                 randomAccessFile.seek(cache.getIndex());
                 int count = 0;
                 for (List<String> line : cache.getData()) {
@@ -75,9 +67,10 @@ public class FileWriter {
                     }
                 }
                 
+                randomAccessFile.close();
                 FileViewer.cached(count);
             }
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             System.err.println("Error processing file: " + exception.getMessage());
         }
     }

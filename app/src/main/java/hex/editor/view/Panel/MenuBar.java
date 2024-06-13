@@ -79,7 +79,9 @@ public class MenuBar extends JMenuBar {
                                         FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
                                     }
                                     FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
-                                } catch (Exception ignore) {}
+                                } catch (Exception e) {
+                                    System.out.println(e.getStackTrace());
+                                }
                                 return null;
                             }
                             

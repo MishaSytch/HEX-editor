@@ -80,9 +80,9 @@ public class FileViewer  {
         return (cache = new CacheLines(getPreviousCachedLine(), PART));
     }
     
-    public static List<List<String>> getFile() throws FileNotFoundException, IOException {
-        List<List<String>> data = getAllCachedLines();
-        if (FILE.length() > CACHED_CHAR) data.get(0).addAll(getUncachedFile());
+    public static List<String> getFile() throws FileNotFoundException, IOException {
+        List<String> data = getAllCachedLines();
+        if (FILE.length() > CACHED_CHAR) data.addAll(getUncachedFile());
         return data;
     }
     
@@ -110,17 +110,13 @@ public class FileViewer  {
         CACHED_CHAR = Math.max(CACHED_CHAR, CURRENT_CHAR_IN_FILE + size);
     }
     
-    public static List<List<String>> getAllCachedLines() throws FileNotFoundException, IOException {
-        List<List<String>> lines = new ArrayList<>();
+    public static List<String> getAllCachedLines() throws FileNotFoundException, IOException {
         try (Scanner scanner = new Scanner(cacheFile, StandardCharsets.UTF_8.name())) {
-            while(scanner.hasNext()){
-                String line = scanner.nextLine();
-                List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
-                lines.add(data.stream().collect(Collectors.toList()));
-            }
+            String line = scanner.nextLine();
+            List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
+            return data;
         }
 
-        return lines;
     }
 
     public static File getCurrentFile() {
