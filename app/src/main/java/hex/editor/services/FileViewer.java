@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -28,9 +26,13 @@ public class FileViewer  {
     private static int LENGTH_OF_LINE;
     private static final String CACHE_FILE = ".cache";
     private static File FILE;
+
     private static long CURRENT_CHAR_IN_FILE = 0;
     private static long CACHED_CHAR = 0;
     private static int PART = 1;
+
+    private static int SIZE;
+    private static long SAVED_IN_UNCACHED_FILE = 0;
     
     public static File getCacheFile() {
         return cacheFile;
@@ -104,19 +106,11 @@ public class FileViewer  {
 
     public static void cached(int size) {
         if (isLast()) return;
-
+        
         CACHED_CHAR = Math.max(CACHED_CHAR, CURRENT_CHAR_IN_FILE + size);
     }
-
-    private static List<List<String>> getNextCachedLine() throws IOException {
-        return readCacheFile(cache.getNextIndex());
-    }
-
-    private static List<List<String>> getPreviousCachedLine() throws IOException {
-        return readCacheFile(cache.getPreviousIndex());
-    }
     
-    private static List<List<String>> getAllCachedLines() throws FileNotFoundException, IOException {
+    public static List<List<String>> getAllCachedLines() throws FileNotFoundException, IOException {
         List<List<String>> lines = new ArrayList<>();
         try (Scanner scanner = new Scanner(cacheFile, StandardCharsets.UTF_8.name())) {
             while(scanner.hasNext()){
@@ -127,6 +121,18 @@ public class FileViewer  {
         }
 
         return lines;
+    }
+
+    public static File getCurrentFile() {
+        return FILE;
+    }
+    
+    private static List<List<String>> getNextCachedLine() throws IOException {
+        return readCacheFile(cache.getNextIndex());
+    }
+
+    private static List<List<String>> getPreviousCachedLine() throws IOException {
+        return readCacheFile(cache.getPreviousIndex());
     }
     
     private static List<List<String>> readCacheFile(long from) throws IOException {
@@ -165,15 +171,21 @@ public class FileViewer  {
     }
 
     private static List<String> getUncachedFile() throws IOException {
+        SIZE = (int) Math.min(Byte.MAX_VALUE, FILE.length() - CACHED_CHAR);
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
-            byte[] bytes = new byte[(int)(FILE.length() - CACHED_CHAR)];
-            randomAccessFile.seek(CACHED_CHAR);
-            randomAccessFile.read(bytes);
-
             List<String> data = new ArrayList<>();
-            HexService
-                .getHexFromString(new String(bytes, StandardCharsets.UTF_8))
-                .forEach(data::add);
+
+            while (SIZE + SAVED_IN_UNCACHED_FILE < FILE.length() - CACHED_CHAR) {
+                byte[] bytes = new byte[SIZE];
+                randomAccessFile.seek(CACHED_CHAR + SAVED_IN_UNCACHED_FILE);
+                randomAccessFile.read(bytes);
+
+                HexService
+                    .getHexFromString(new String(bytes, StandardCharsets.UTF_8))
+                    .forEach(data::add);
+
+                SAVED_IN_UNCACHED_FILE += SIZE;
+            }
 
             return data;
         }

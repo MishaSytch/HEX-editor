@@ -18,4 +18,5 @@ public class App {
     private static void setup() {
         ViewThread.getInstance();
     }
+
 }
