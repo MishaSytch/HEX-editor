@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -120,8 +122,8 @@ public class FileViewer  {
             while(scanner.hasNext()){
                 String line = scanner.nextLine();
                 List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
-                lines.add(data.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList()));
-                }
+                lines.add(data.stream().collect(Collectors.toList()));
+            }
         }
 
         return lines;
@@ -158,7 +160,7 @@ public class FileViewer  {
 
             String line = new String(bytes, StandardCharsets.UTF_8);
 
-            return fromLineToMatrix(line);
+            return stringToMatrix(line);
         }
     }
 
@@ -167,16 +169,17 @@ public class FileViewer  {
             byte[] bytes = new byte[(int)(FILE.length() - CACHED_CHAR)];
             randomAccessFile.seek(CACHED_CHAR);
             randomAccessFile.read(bytes);
-            
+
             List<String> data = new ArrayList<>();
-            String line = new String(bytes, StandardCharsets.UTF_8);
-            HexService.getHexFromString(line).forEach(data::add);
+            HexService
+                .getHexFromString(new String(bytes, StandardCharsets.UTF_8))
+                .forEach(data::add);
 
             return data;
         }
     }
 
-    private static List<List<String>> fromLineToMatrix(String line) {
+    private static List<List<String>> stringToMatrix(String line) {
         List<List<String>> lines = new ArrayList<>();
         int rows = 0;
         HexService.getHexFromString(line).forEach(queue::addLast);
