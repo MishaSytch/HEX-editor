@@ -50,7 +50,7 @@ public class FileWriter {
 
                 List<String> hex = FileViewer.getAllCachedLines();
                 for (String item : hex) {
-                    randomAccessFile.write(HexEditor.getCharFromHex(item).getBytes(StandardCharsets.UTF_8));
+                    randomAccessFile.write(HexEditor.getCharFromHex(item).getBytes(StandardCharsets.UTF_8));    
                 }
 
                 randomAccessFile.close();

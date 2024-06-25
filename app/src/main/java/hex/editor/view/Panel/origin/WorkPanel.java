@@ -466,14 +466,16 @@ public class WorkPanel extends BasePanel {
         for (int row : selectedRows) {
             for (int column : selectedColumns) {
                 if (column > 0) {
-                        if (isShifted && column + selectedColumns.length < model.getColumnCount() - 1) {
-                            for (int currentColumn = column + 1; currentColumn < model.getColumnCount(); currentColumn++) {
-                                model.setValueAt(model.getValueAt(row, currentColumn), row, column++);    
-                            }
-                            model.setValueAt(null, row, column);
-                        } else {
+                    if (isShifted) {
+                        for (int currentColumn = column + selectedColumns.length; currentColumn < model.getColumnCount(); currentColumn++) {
+                            model.setValueAt(model.getValueAt(row, currentColumn), row, column++);    
+                        }
+                        for (; column < model.getColumnCount(); column++) {
                             model.setValueAt(null, row, column);
                         }
+                    } else {
+                        model.setValueAt(null, row, column);
+                    }
                 }
             }
         }
