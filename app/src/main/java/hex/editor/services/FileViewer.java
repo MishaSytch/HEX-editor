@@ -12,8 +12,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
-
 import hex.editor.model.CacheLines;
 
 public class FileViewer  {
