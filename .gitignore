@@ -6,5 +6,6 @@
 
 # Ignore Gradle build output directory
 app/build
+app/bin
 app/src/test
 .cache
