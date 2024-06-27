@@ -14,7 +14,7 @@ plugins {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
-        vendor = JvmVendorSpec.ADOPTOPENJDK
+        // vendor = JvmVendorSpec.ADOPTOPENJDK
     }
 }
 
@@ -46,4 +46,12 @@ application {
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+apply plugin: 'java'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'app/src/main/java/hex/editor/App.java'
+    }
 }
