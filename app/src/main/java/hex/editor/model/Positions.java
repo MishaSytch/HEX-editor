@@ -17,16 +17,11 @@ public class Positions {
     }
 
     public void getNext() {
-        index++;
-        if (index >= list.size()) {
-            index = 0;
-        }
+        index = Math.min(list.size() - 1, index + 1);
     }
+    
     public void getPrevious() {
-        index--;
-        if (index < 0) {
-            index = list.size() - 1;
-        }
+        index = Math.max(0, index - 1);
     }
 
     public Position getCurrent() {
@@ -68,4 +63,16 @@ public class Positions {
         index = 0;
         list.clear();
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }    
 }

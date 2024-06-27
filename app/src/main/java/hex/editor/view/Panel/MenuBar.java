@@ -1,6 +1,8 @@
 package hex.editor.view.Panel;
 
 import javax.swing.*;
+
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -32,7 +34,6 @@ public class MenuBar extends JMenuBar {
 
                     if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
                         file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                        System.out.println("View: load File");
                         while (true) {
                             try {
                                 String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
@@ -43,14 +44,14 @@ public class MenuBar extends JMenuBar {
                                 }
                                 int countOfColumn = Integer.parseInt(textColumns);
                                 String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
+                                if (workPanel.getHex() != null) workPanel.removeFile();
                                 if (textRows.isEmpty()) {
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
                                 } else {
                                     int countOfRows = Integer.parseInt(textRows);
                                     FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
                                 }
-                                if (workPanel.getHex() != null) workPanel.removeFile();
-                                workPanel.setHex(FileViewer.getCurrentFile());
+                                workPanel.setHex(FileViewer.getCurrentLines());
                                 saveFile.setEnabled(true);
                                 break;
                             } catch (Exception e) {
@@ -67,14 +68,64 @@ public class MenuBar extends JMenuBar {
                 if (file != null) {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showSaveDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
-                        try {
-                            JOptionPane.showConfirmDialog(null, "Wait for saving file", "Saving...", JOptionPane.YES_NO_OPTION);
-                            if (workPanel.getCurrentFile().isModified()) FileWriter.writeCacheFile(workPanel.getCurrentFile());
-                            FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
-                            JOptionPane.showConfirmDialog(null, "File saved!", "Saving...", JOptionPane.YES_NO_OPTION);
-                        } catch (Exception ex) {
-                            System.out.println("View: FileWriter error");
-                        }
+                        JDialog dialog = new JDialog();
+                        JLabel text = new JLabel("Wait for saving file...");
+                        
+                        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                            @Override
+                            protected Void doInBackground() {
+                                try {
+                                    if (!FileViewer.getCurrentLines().isSaved()) {
+                                        FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
+                                    }
+                                    FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
+                                } catch (Exception e) {
+                                    System.out.println(e.getStackTrace());
+                                }
+                                return null;
+                            }
+                            
+                            @Override
+                            protected void done() {
+                                dialog.dispose();
+                                JOptionPane.showMessageDialog(null, "File saved!", "Saving...", JOptionPane.INFORMATION_MESSAGE);
+                            }
+                        };
+                        SwingWorker<Void, Void> waitWorker = new SwingWorker<Void,Void>() {
+
+                            @Override
+                            protected Void doInBackground() throws Exception {
+                                int i = 1;
+                                while(!worker.isDone()) {
+                                    switch (i) {
+                                        case 1:
+                                            text.setText("Wait for saving file.");
+                                            i = 2;
+                                            break;
+                                        case 2:
+                                            text.setText("Wait for saving file..");
+                                            i = 3;
+                                            break;
+                                        case 3:
+                                            text.setText("Wait for saving file...");
+                                            i = 1;
+                                            break;
+                                    }
+                                    Thread.sleep(1000);
+                                }
+                                return null;
+                            }
+                            
+                        };
+                        dialog.setModal(true);
+                        dialog.setUndecorated(true);
+                        dialog.setSize(200, 100);
+                        dialog.setLocationRelativeTo(null);
+                        dialog.setLayout(new BorderLayout());
+                        dialog.add(text, BorderLayout.CENTER);
+                        worker.execute();
+                        waitWorker.execute();
+                        dialog.setVisible(true);
                     }
                 }
             });

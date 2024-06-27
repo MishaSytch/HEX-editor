@@ -1,60 +1,75 @@
 package hex.editor.services;
 
 import hex.editor.controller.HexEditor;
-import hex.editor.model.CacheFile;
+import hex.editor.model.CacheLines;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static java.nio.file.StandardCopyOption.*;
+
+import static java.nio.file.LinkOption.*;
+
 public class FileWriter {
+    private static final String separator = ";";
+    private static final String regex_for_split = "[\\t\\s\\W+]";
+
+    public static String getRegexForSplit() {
+        return regex_for_split;
+    }
+
+    public static String getSeparator() {
+        return separator;
+    }
 
     public static void saveFile(Path filePath) {
-        while (FileViewer.isCaching()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        writeInFile(new File(filePath.toUri()), null,  false);
-        System.out.println("File saved!");
+        writeInFile(new File(filePath.toUri()), null);
     }
 
-    public static void writeCacheFile(CacheFile file) {
-        writeInFile(new File(file.getPath().toUri()), file.getData(), true);
+    public static void writeInCacheFile(CacheLines cache) {
+        writeInFile(FileViewer.getCacheFile(), cache);
     }
 
-    private static void writeInFile(File file, List<List<String>> data, boolean isCache) {
-        try (FileOutputStream fos = new FileOutputStream(file); FileChannel fileChannel = fos.getChannel()) {
-            if (!isCache) {
-                for (int i = 0; i < FileViewer.getSize(); i++) {
-                    List<List<String>> hex = FileViewer.getCurrentFile().getData();
-                    for (List<String> row : hex) {
-                        for (String item : row) {
-                            fileChannel.write(ByteBuffer.wrap((HexEditor.getCharFromHex(item)).getBytes(StandardCharsets.UTF_8)));
-                        }
-                    }
-                    if (i < FileViewer.getSize() - 1) FileViewer.nextFile();
+    private static void writeInFile(File file, CacheLines cache) {
+        try {
+            if (cache == null) {
+                Path path = Files.copy(
+                    FileViewer.getCurrentFile().toPath(),
+                    file.toPath(),
+                    REPLACE_EXISTING,
+                    NOFOLLOW_LINKS
+                );
+
+                RandomAccessFile randomAccessFile = new RandomAccessFile((file = path.toFile()), "rw");
+                randomAccessFile.seek(0);
+
+                List<String> hex = FileViewer.getAllCachedLines();
+                for (String item : hex) {
+                    randomAccessFile.write(HexEditor.getCharFromHex(item).getBytes(StandardCharsets.UTF_8));    
                 }
+
+                randomAccessFile.close();
+
             } else {
-                if (data == null) throw new NullPointerException();
-
-                for (List<String> line : data) {
+                RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+                randomAccessFile.seek(cache.getIndex());
+                int count = 0;
+                for (List<String> line : cache.getData()) {
                     for (String hex : line) {
-                        fileChannel.write(ByteBuffer.wrap(hex.getBytes(StandardCharsets.UTF_8)));
-                        fileChannel.write(ByteBuffer.wrap(";".getBytes(StandardCharsets.UTF_8)));
-
+                        count++;
+                        randomAccessFile.write(hex != null ? hex.getBytes(StandardCharsets.UTF_8) : "".getBytes(StandardCharsets.UTF_8));
+                        randomAccessFile.write(separator.getBytes(StandardCharsets.UTF_8));
                     }
-                    fileChannel.write(ByteBuffer.wrap("\n".getBytes(StandardCharsets.UTF_8)));
                 }
+                
+                randomAccessFile.close();
+                FileViewer.cached(count);
             }
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             System.err.println("Error processing file: " + exception.getMessage());
         }
     }

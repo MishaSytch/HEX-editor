@@ -51,11 +51,9 @@ public class HexEditor {
                     int index = 0;
                     int currentColumn = column;
                     int currentRow = row;
-                    while (searchingHex.get(index).equalsIgnoreCase(hex.get(currentRow).get(currentColumn))) {
-                        currentColumn++;
-                        index++;
-                        if (index == searchingHex.size()) {
-                            while (column != currentColumn || row != currentRow) {
+                    while (index < searchingHex.size() && currentRow < hex.size() && currentColumn < hex.get(currentRow).size() && searchingHex.get(index).equalsIgnoreCase(hex.get(currentRow).get(currentColumn))) {
+                        if (index == searchingHex.size() - 1) {
+                            for (int i = 0; i < searchingHex.size(); i++) {
                                 positions.add(new Position(row, column++));
                                 if (column == hex.get(row).size()) {
                                     column = 0;
@@ -64,10 +62,12 @@ public class HexEditor {
                             }
                             break;
                         }
-                        if (currentColumn == hex.get(currentRow).size()) {
+                        if (currentRow < hex.size() && currentColumn == hex.get(currentRow).size()) {
                             currentColumn = 0;
                             currentRow++;
                         }
+                        currentColumn++;
+                        index++;
                     }
                     column = currentColumn;
                     row = currentRow;
@@ -84,25 +84,15 @@ public class HexEditor {
             throw new IllegalArgumentException("Mask is empty"); 
         }
         for (int row = 0; row < hex.size(); row++) {
-            Pattern regexp = Pattern.compile(mask.toUpperCase());
+            Pattern regexp = Pattern.compile(mask.toLowerCase());
             if (!hex.get(row).isEmpty()) {
                 for (int column = 0; column < hex.get(row).size(); column++) {
                     if (hex.get(row).get(column) != null) {
-                        Matcher match = regexp.matcher(hex.get(row).get(column));
+                        Matcher match = regexp.matcher(hex.get(row).get(column).toLowerCase());
                         if (match.find()) positions.add(new Position(row, column));
                     }
                 }
             }
         }
-    }
-
-    public static byte[] hexStringToByteArray(String hexValue) {
-        int len = hexValue.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hexValue.charAt(i), 16) << 4)
-                    + Character.digit(hexValue.charAt(i+1), 16));
-        }
-        return data;
     }
 }

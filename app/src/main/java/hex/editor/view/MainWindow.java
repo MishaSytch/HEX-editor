@@ -1,8 +1,12 @@
 package hex.editor.view;
 
 import javax.swing.*;
+
+import hex.editor.services.FileViewer;
 import hex.editor.view.Frame.BaseFrame;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 public class MainWindow extends BaseFrame {
@@ -22,5 +26,11 @@ public class MainWindow extends BaseFrame {
         this.setForeground(super.getBackground());
         this.setBounds((screenWidth - super.getWIDTH()) / 2, (screenHeight - super.getHEIGHT()) / 2, super.getWIDTH(), super.getHEIGHT());
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                FileViewer.delete();
+            } 
+        });
     }
 }

@@ -9,11 +9,10 @@ import hex.editor.view.Panel.InfoPanel;
 import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
-public class ViewThread implements Runnable {
-    public ViewThread() {
-    }
+public class ViewThread {
+    private static ViewThread instance = null;
 
-    private void init() {
+    private ViewThread() {
         MainWindow mainWindow = new MainWindow();
         mainWindow.setVisible(false);
         InfoPanel infoPanel = new InfoPanel(mainWindow);
@@ -32,8 +31,9 @@ public class ViewThread implements Runnable {
         mainWindow.setVisible(true);
     }
 
-    @Override
-    public void run() {
-        init();
-    }    
+    public static ViewThread getInstance() {
+        instance = new ViewThread();
+        return instance;
+    }
+
 }
