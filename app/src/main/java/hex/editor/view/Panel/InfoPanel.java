@@ -88,8 +88,30 @@ public class InfoPanel extends BasePanel {
                 }
             }
         });
-        nextPosButton.addActionListener(e -> workPanel.nextPosition());
-        previousPosButton.addActionListener(e -> workPanel.previousPosition());
+
+        nextPosButton.addActionListener(e -> {
+            workPanel.nextPosition();
+        });
+    
+        previousPosButton.addActionListener(e -> {
+            workPanel.previousPosition();
+        });
+
+        hexButton.addActionListener(e -> {
+            condition(Condition.TYPE);
+            
+            hexButton.setEnabled(false);
+            maskButton.setEnabled(true);
+        
+        });
+
+        maskButton.addActionListener(e -> {
+            condition(Condition.TYPE);
+            
+            hexButton.setEnabled(true);
+            maskButton.setEnabled(false);
+    
+        });
     }
 
     public void removeInfo() {
@@ -158,7 +180,7 @@ public class InfoPanel extends BasePanel {
                 maskButton.setEnabled(true);
 
                 searchingField.setVisible(true);
-                searchingField.setEnabled(true);
+                searchingField.setEnabled(false);
                 searchingField.setText("Choose method");
                 searchingField.setBackground(getBackground());
                 searchingField.setForeground(getStyleSheet().getMainTextColor());
@@ -169,39 +191,25 @@ public class InfoPanel extends BasePanel {
 
                 clearButton.setVisible(false);
 
-                searchingField.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mousePressed(MouseEvent e) {
-                        if (workPanel.getHex() != null) {
-                            searchingField.setText("");
-                        }
-                    }
-                });
-
                 break;
             }
             case TYPE: {
-                hexButton.setVisible(true);
-
-                maskButton.setVisible(true);
-
-                searchingField.setVisible(true);
                 searchingField.setEnabled(true);
-                searchingField.setText("");
-                searchingField.setBackground(getBackground());
-                searchingField.setForeground(getStyleSheet().getMainTextColor());
+                searchingField.setText("");          
+                searchingField.setForeground(getBackground());
+                searchingField.setBackground(getStyleSheet().getMainTextColor());
                 searchingField.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent arg0) {
                         if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
                             if (!searchingField.getText().trim().isEmpty()) {
-                                condition(Condition.SHOW);
                                 if (!maskButton.isEnabled()){
                                     workPanel.searchByMask(searchingField.getText().trim());
                                 }
                                 if (!hexButton.isEnabled()) {
                                     workPanel.searchByHex(Arrays.stream(searchingField.getText().split(FileWriter.getRegexForSplit())).collect(Collectors.toList()));
                                 }
+                                condition(Condition.SHOW);
                             }
                         }
                     }
@@ -217,15 +225,15 @@ public class InfoPanel extends BasePanel {
             }
             case SHOW: {
                 hexButton.setVisible(false);
+                hexButton.setEnabled(true);
 
                 maskButton.setVisible(false);
+                maskButton.setEnabled(true);
 
                 searchingField.setVisible(false);
 
                 previousPosButton.setVisible(true);
-
                 nextPosButton.setVisible(true);
-
                 clearButton.setVisible(true);
                 
                 break;
@@ -237,20 +245,6 @@ public class InfoPanel extends BasePanel {
         JButton button = new JButton(title);
         button.setBackground(getBackground());
         button.setForeground(getStyleSheet().getMainTextColor());
-
-        button.addActionListener(e -> {
-            if (button == maskButton){
-                hexButton.setEnabled(true);
-                
-                maskButton.setEnabled(false);
-            } else {
-                hexButton.setEnabled(false);
-
-                maskButton.setEnabled(true);
-            }
-
-            condition(Condition.TYPE);
-        });
         
         return button;
     }

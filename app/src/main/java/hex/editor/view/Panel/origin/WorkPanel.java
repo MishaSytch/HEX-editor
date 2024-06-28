@@ -13,8 +13,6 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -332,6 +330,7 @@ public class WorkPanel extends BasePanel {
     }
 
     private void initComponents() {
+        infoPanel.start();
         unselectCell();
         buttons.setVisible(true);
         fileName.setBorder(new EmptyBorder(10, 0, 10, 0));
@@ -386,7 +385,6 @@ public class WorkPanel extends BasePanel {
     }
 
     public void unselectCell() {
-        infoPanel.start();
         positions.removeAll();
         SwingUtilities.updateComponentTreeUI(this);
         lengthOfPosition = 0;
@@ -475,7 +473,7 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadInfo(List<Info> infos) {
-        
+
 
         infoPanel.setInfo(infos);
     }
