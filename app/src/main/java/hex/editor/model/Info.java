@@ -62,7 +62,6 @@ public class Info {
 
         if (size == 1) {
             byte byteValue = buffer.get();
-            char charValue = (char) byteValue;
             int unsignedValue = Byte.toUnsignedInt(byteValue);
             result.append("8-bit value: ").append(byteValue).append("<br>");
             result.append("Unsigned value: ").append(unsignedValue).append("<br>");
@@ -84,7 +83,7 @@ public class Info {
             result.append("64-bit signed: <br>").append(signedValue).append("<br><br>");
             result.append("64-bit double: <br>").append(doubleValue).append("<br><br>");
         } else {
-            result.append("Is not supported length of cells");
+            result.append("");
         }
 
         return result.toString();

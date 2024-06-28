@@ -508,18 +508,19 @@ public class WorkPanel extends BasePanel {
     }
 
     private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
-        int column = Math.max(1, selectedColumns[0]);
         for (int row : selectedRows) {
             if (isShifted) {
-                for (int i = column; i < model.getColumnCount(); i++) {
-                    if (i + selectedColumns.length < model.getColumnCount()) {
-                        model.setValueAt(model.getValueAt(row, i + selectedColumns.length), row, i);    
+                for (int column = Math.max(1, selectedColumns[0]); column < model.getColumnCount(); column++) {
+                    if (column + selectedColumns.length < model.getColumnCount()) {
+                        model.setValueAt(model.getValueAt(row, column + selectedColumns.length), row, column);    
                     } else {
-                        model.setValueAt(null, row, i);    
+                        model.setValueAt(null, row, column);    
                     }
                 }
             } else {
-                model.setValueAt(null, row, column);
+                for (int column : selectedColumns) {
+                    model.setValueAt(null, row, column);
+                }
             }  
         }
         SwingUtilities.updateComponentTreeUI(this);
