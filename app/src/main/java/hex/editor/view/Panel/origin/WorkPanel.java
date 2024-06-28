@@ -13,6 +13,8 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -60,6 +62,7 @@ public class WorkPanel extends BasePanel {
     private final JLabel currentPage = new JLabel();
     private CacheLines cacheLines;
     private long currentFirstRow = 0;
+    private JPopupMenu popupMenu;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -68,6 +71,8 @@ public class WorkPanel extends BasePanel {
         this.setLayout(new BorderLayout());
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getBackBaseColor());
+
+        popupMenu = createPopupMenu();    
 
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
@@ -101,6 +106,16 @@ public class WorkPanel extends BasePanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    int row = table.rowAtPoint(e.getPoint());
+                    int column = table.columnAtPoint(e.getPoint());
+
+                    if (!table.isRowSelected(row)) {
+                        table.changeSelection(row, column, false, false);
+                    }
+                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+
                 int[] selectedRow = table.getSelectedRows();
                 int[] selectedColumn = table.getSelectedColumns();
                 for (int row : selectedRow) {
@@ -117,18 +132,7 @@ public class WorkPanel extends BasePanel {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2) {
-                    int row = table.rowAtPoint(event.getPoint());
-                    int column = table.columnAtPoint(event.getPoint());
-                    if (column != 0) {
-                        String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
-                        if (validateData(text)  || text.isEmpty()) {
-                            model.setValueAt(text.toLowerCase(), row, column);
-                            isModified = true;
-                            cacheLines.updateData(getHex());
-                        } else {
-                            JOptionPane.showConfirmDialog(null, "Not valid!");
-                        }
-                    }
+                    editCell();
                 }
                 if (table.getSelectedColumn() > 0) {
                     int row = table.rowAtPoint(event.getPoint());
@@ -158,50 +162,19 @@ public class WorkPanel extends BasePanel {
             @Override
             public void keyReleased(KeyEvent arg0) {
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_C) {
-                    int[] selectedRows = table.getSelectedRows();
-                    int[] selectedColumns = table.getSelectedColumns();
-                    copyToClipBoard(model, selectedRows, selectedColumns);
+                    copyCell();
                 }
 
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_X) {
-                    int[] selectedRows = table.getSelectedRows();
-                    int[] selectedColumns = table.getSelectedColumns();
-                    int result = JOptionPane.showConfirmDialog(null, "Do you want to cut with shift", "Cut", JOptionPane.YES_NO_OPTION);
-                    cutToClipboard(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
+                    cutCell();
                 }
 
                 if (arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_V) {
-                    try {
-                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        String data = (String) clipboard.getData(DataFlavor.stringFlavor);
-                        List<List<String>> values = new ArrayList<>();
-                        for (String line : data.split("\n")) {
-                            List<String> inner = new ArrayList<>();
-                            for (String item : line.split("["+FileWriter.getSeparator()+FileWriter.getRegexForSplit().substring(1))) {
-                                inner.add(item);
-                            }
-                            values.add(inner);
-                        }
-
-                        if (validateData(data) || validateDataArray(values)) {
-                            int[] selectedRows = table.getSelectedRows();
-                            int[] selectedColumns = table.getSelectedColumns();
-
-                            int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
-                            insertToModel(model, values, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
-                        }
-                    } catch (UnsupportedFlavorException | IOException e) {
-                        System.out.println("Failed to paste data: " + e.getMessage());
-                    }
+                    insertCell();
                 }
 
                 if (arg0.getKeyCode() == KeyEvent.VK_DELETE) {
-                    int[] selectedRows = table.getSelectedRows();
-                    int[] selectedColumns = table.getSelectedColumns();
-                    if (selectedRows.length > 0 && selectedColumns.length > 0) {
-                        int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
-                        deleteFromModel(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
-                    }
+                    deleteCell();
                 }
             }
         });
@@ -270,6 +243,68 @@ public class WorkPanel extends BasePanel {
         this.hex = cacheLines.getData();
         currentPage.setText("1");
         initComponents();
+    }
+
+    private void deleteCell() {
+        int[] selectedRows = table.getSelectedRows();
+        int[] selectedColumns = table.getSelectedColumns();
+        if (selectedRows.length > 0 && selectedColumns.length > 0) {
+            int result = JOptionPane.showConfirmDialog(null, "Do you want to delete selected cells with shift", "Delete", JOptionPane.YES_NO_OPTION);
+            deleteFromModel(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
+        }
+    }
+
+    private void insertCell() {
+        try {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            String data = (String) clipboard.getData(DataFlavor.stringFlavor);
+            List<List<String>> values = new ArrayList<>();
+            for (String line : data.split("\n")) {
+                List<String> inner = new ArrayList<>();
+                for (String item : line.split("["+FileWriter.getSeparator()+FileWriter.getRegexForSplit().substring(1))) {
+                    inner.add(item);
+                }
+                values.add(inner);
+            }
+
+            if (validateData(data) || validateDataArray(values)) {
+                int[] selectedRows = table.getSelectedRows();
+                int[] selectedColumns = table.getSelectedColumns();
+
+                int result = JOptionPane.showConfirmDialog(null, "Do you want to insert with shift", "Insert", JOptionPane.YES_NO_OPTION);
+                insertToModel(model, values, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
+            }
+        } catch (UnsupportedFlavorException | IOException e) {
+            System.out.println("Failed to paste data: " + e.getMessage());
+        }
+    }
+
+    private void cutCell() {
+        int[] selectedRows = table.getSelectedRows();
+        int[] selectedColumns = table.getSelectedColumns();
+        int result = JOptionPane.showConfirmDialog(null, "Do you want to cut with shift", "Cut", JOptionPane.YES_NO_OPTION);
+        cutToClipboard(model, selectedRows, selectedColumns, result == JOptionPane.YES_OPTION);
+    }
+
+    private void copyCell() {
+        int[] selectedRows = table.getSelectedRows();
+        int[] selectedColumns = table.getSelectedColumns();
+        copyToClipBoard(model, selectedRows, selectedColumns);
+    }
+
+    private void editCell() {
+        int row = table.getSelectedRow();
+        int column = table.getSelectedColumn();
+        if (column != 0) {
+            String text = JOptionPane.showInputDialog(null, "Edit cell:").trim();
+            if (validateData(text) || text.isEmpty()) {
+                model.setValueAt(text.toLowerCase(), row, column);
+                isModified = true;
+                cacheLines.updateData(getHex());
+            } else {
+                JOptionPane.showConfirmDialog(null, "Not valid!");
+            }
+        }
     }
 
     private Info createInfo(MouseEvent event) {
@@ -382,6 +417,16 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void removeFile() {
+        hex = null;
+        clearModel();
+        FileViewer.delete();
+    }
+
     private void loadNextCacheLines() throws IOException {
         if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
         if (!FileViewer.isLast()) {
@@ -437,7 +482,7 @@ public class WorkPanel extends BasePanel {
         lastX = event.getXOnScreen();
         lastY = event.getYOnScreen();
 
-        if (info == null || info.getInfo() == null) return;
+        if (info == null || info.getInfo() == null || popupMenu.isVisible()) return;
 
         Timer hoverTimer = new Timer(100, e -> {
             tooltip.setTipText(info.getInfo());
@@ -450,7 +495,7 @@ public class WorkPanel extends BasePanel {
             lastY = event.getYOnScreen();
 
             scopeTimer = new Timer(1000, x -> {
-                if (lastX == event.getXOnScreen() && lastY == event.getYOnScreen()) {
+                if (lastX == event.getXOnScreen() && lastY == event.getYOnScreen() &&  !popupMenu.isVisible()) {
                     popup.show();
                 }
             });
@@ -463,21 +508,19 @@ public class WorkPanel extends BasePanel {
     }
 
     private void deleteFromModel(DefaultTableModel model, int[] selectedRows, int[] selectedColumns, boolean isShifted) {
+        int column = Math.max(1, selectedColumns[0]);
         for (int row : selectedRows) {
-            for (int column : selectedColumns) {
-                if (column > 0) {
-                    if (isShifted) {
-                        for (int currentColumn = column + selectedColumns.length; currentColumn < model.getColumnCount(); currentColumn++) {
-                            model.setValueAt(model.getValueAt(row, currentColumn), row, column++);    
-                        }
-                        for (; column < model.getColumnCount(); column++) {
-                            model.setValueAt(null, row, column);
-                        }
+            if (isShifted) {
+                for (int i = column; i < model.getColumnCount(); i++) {
+                    if (i + selectedColumns.length < model.getColumnCount()) {
+                        model.setValueAt(model.getValueAt(row, i + selectedColumns.length), row, i);    
                     } else {
-                        model.setValueAt(null, row, column);
+                        model.setValueAt(null, row, i);    
                     }
                 }
-            }
+            } else {
+                model.setValueAt(null, row, column);
+            }  
         }
         SwingUtilities.updateComponentTreeUI(this);
         isModified = true;
@@ -532,21 +575,59 @@ public class WorkPanel extends BasePanel {
         deleteFromModel(model, selectedRows, selectedColumns, is_shifted);    
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void removeFile() {
-        hex = null;
-        clearModel();
-        FileViewer.delete();
-    }
-
     private void clearModel() {
         if (model.getRowCount() != 0) {
             for (int i = model.getRowCount() - 1; i >= 0; i--) {
                 model.removeRow(i);
             }
         }
+    }
+
+    private JPopupMenu createPopupMenu() {
+        JPopupMenu popupMenu = new JPopupMenu();
+
+        JMenuItem edit = new JMenuItem("edit");
+        edit.addActionListener(e -> {
+            editCell();
+        });
+
+        JMenuItem cut = new JMenuItem("cut");
+        cut.addActionListener(e -> {
+            cutCell();
+        });
+
+        JMenuItem delete = new JMenuItem("delete");
+        delete.addActionListener(e -> {
+            deleteCell();
+        });
+
+        JMenuItem copy = new JMenuItem("copy");
+        copy.addActionListener(e -> {
+            copyCell();
+        });
+
+        JMenuItem insert = new JMenuItem("insert");
+        insert.addActionListener(e -> {
+            insertCell();
+        });
+
+        popupMenu.add(edit);
+        popupMenu.add(copy);
+        popupMenu.add(insert);
+        popupMenu.add(delete);
+        popupMenu.add(cut);
+
+        table.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (table.getSelectedRowCount() > 1 || table.getSelectedColumnCount() > 1) {
+                    edit.setEnabled(false);
+                } else {
+                    edit.setEnabled(true);
+                }
+            }
+        });;
+
+        return popupMenu;
     }
 }
