@@ -1,6 +1,7 @@
 package hex.editor.model;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -32,20 +33,20 @@ public class Info {
                 + "Row: " + row + "<br>"
                 + "Column: " + column + "<br>"
                 + "Char: " + char_info + "<br>"
-                + "Hex: " + hex_info + "<br>";
+                + "Hex: " + hex_info + "<br><br>"
+                + hexToRepresent(char_info);
     }
 
     public static String getBytes(List<Info> infos) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<html>\nbytes:\n");
         StringBuilder text = new StringBuilder();
         for (Info info : infos) {
             text.append(info.getChar());
         }
-        sb.append("\t"
-            + hexToRepresent(text.toString())
-            + "<br>"
-        );
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<html>");
+        sb.append(hexToRepresent(text.toString()));
+
         return sb.toString();
     }
 
@@ -55,20 +56,38 @@ public class Info {
     }
 
     private static String readData(byte[] data, int size) {
-        String result;
-        if (size == 2) {
-            short value = ByteBuffer.wrap(data).getShort();
-            result = String.valueOf(value);
+        StringBuilder result = new StringBuilder();
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        if (size == 1) {
+            byte byteValue = buffer.get();
+            char charValue = (char) byteValue;
+            int unsignedValue = Byte.toUnsignedInt(byteValue);
+            result.append("8-bit value: ").append(byteValue).append("<br>");
+            result.append("Unsigned value: ").append(unsignedValue).append("<br>");
+        } else if (size == 2) {
+            short signedValue = buffer.getShort();
+            int unsignedValue = Short.toUnsignedInt(signedValue);
+            result.append("16-bit signed: <br>").append(signedValue).append("<br><br>");
+            result.append("16-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
         } else if (size == 4) {
-            int value = ByteBuffer.wrap(data).getInt();
-            result = String.valueOf(value);
+            int signedValue = buffer.getInt();
+            long unsignedValue = Integer.toUnsignedLong(signedValue);
+            float floatValue = buffer.getFloat(buffer.position() - 4);
+            result.append("32-bit signed: <br>").append(signedValue).append("<br><br>");
+            result.append("32-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
+            result.append("32-bit float: <br>").append(floatValue).append("<br><br>");
         } else if (size == 8) {
-            double value = ByteBuffer.wrap(data).getDouble();
-            result = String.valueOf(value);
+            long signedValue = buffer.getLong();
+            double doubleValue = buffer.getDouble(buffer.position() - 8);
+            result.append("64-bit signed: <br>").append(signedValue).append("<br><br>");
+            result.append("64-bit double: <br>").append(doubleValue).append("<br><br>");
         } else {
-            result = "Is not supported length of cells";
+            result.append("Is not supported length of cells");
         }
-        return result;
+
+        return result.toString();
     }
     
 }

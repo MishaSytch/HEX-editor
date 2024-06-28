@@ -475,6 +475,8 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadInfo(List<Info> infos) {
+        
+
         infoPanel.setInfo(infos);
     }
 

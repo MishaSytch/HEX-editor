@@ -103,6 +103,8 @@ public class InfoPanel extends BasePanel {
     public void setInfo(List<Info> info_Infos) {
         if (info_Infos.size() == 2 || info_Infos.size() == 4 || info_Infos.size() == 8) {
             info.setText(Info.getBytes(info_Infos));
+        } else {
+            info.setText("");
         }
     }
 
