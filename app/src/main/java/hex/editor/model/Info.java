@@ -60,31 +60,53 @@ public class Info {
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        if (size == 1) {
-            byte byteValue = buffer.get();
-            int unsignedValue = Byte.toUnsignedInt(byteValue);
-            result.append("8-bit value: ").append(byteValue).append("<br>");
-            result.append("Unsigned value: ").append(unsignedValue).append("<br>");
-        } else if (size == 2) {
-            short signedValue = buffer.getShort();
-            int unsignedValue = Short.toUnsignedInt(signedValue);
-            result.append("16-bit signed: <br>").append(signedValue).append("<br><br>");
-            result.append("16-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
-        } else if (size == 4) {
-            int signedValue = buffer.getInt();
-            long unsignedValue = Integer.toUnsignedLong(signedValue);
-            float floatValue = buffer.getFloat(buffer.position() - 4);
-            result.append("32-bit signed: <br>").append(signedValue).append("<br><br>");
-            result.append("32-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
-            result.append("32-bit float: <br>").append(floatValue).append("<br><br>");
-        } else if (size == 8) {
-            long signedValue = buffer.getLong();
-            double doubleValue = buffer.getDouble(buffer.position() - 8);
-            result.append("64-bit signed: <br>").append(signedValue).append("<br><br>");
-            result.append("64-bit double: <br>").append(doubleValue).append("<br><br>");
-        } else {
-            result.append("");
-        }
+        switch (size) {
+            case 1: {
+                byte byteValue = buffer.get();
+                int unsignedValue = Byte.toUnsignedInt(byteValue);
+
+                result.append("8-bit value: ").append(byteValue).append("<br>");
+                result.append("Unsigned value: ").append(unsignedValue).append("<br>");
+            
+                break;
+            }
+            case 2: {
+                short signedValue = buffer.getShort();
+                int unsignedValue = Short.toUnsignedInt(signedValue);
+                
+                result.append("16-bit signed: <br>").append(signedValue).append("<br><br>");
+                result.append("16-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
+            
+            
+                break;
+            }
+            case 4: {
+                int signedValue = buffer.getInt();
+                long unsignedValue = Integer.toUnsignedLong(signedValue);
+                float floatValue = buffer.getFloat(buffer.position() - 4);
+                
+                result.append("32-bit signed: <br>").append(signedValue).append("<br><br>");
+                result.append("32-bit unsigned: <br>").append(unsignedValue).append("<br><br>");
+                result.append("32-bit float: <br>").append(floatValue).append("<br><br>");
+            
+                break;
+            }
+            case 8: {
+                long signedValue = buffer.getLong();
+                double doubleValue = buffer.getDouble(buffer.position() - 8);
+                
+                result.append("64-bit signed: <br>").append(signedValue).append("<br><br>");
+                result.append("64-bit double: <br>").append(doubleValue).append("<br><br>");
+        
+                break;
+            }
+            default: {
+                result.append("");
+
+                break;
+            }
+
+        } 
 
         return result.toString();
     }
