@@ -8,15 +8,13 @@ import hex.editor.services.FileWriter;
 public class CacheLines {
     private List<List<String>> data;
     private boolean isModified;
-    private boolean isSaved;
-    private int part;
+    private final int part;
     
     
     public CacheLines(List<List<String>> data, int part) {
         this.data = data;
         this.part = part;
         isModified = false;
-        isSaved = false;
     }
     
     public List<List<String>> getData() {
@@ -26,7 +24,6 @@ public class CacheLines {
     public void updateData(List<List<String>> data) {
         this.data = data;
         isModified = true;
-        isSaved = false;
     }
     
     public int getLength() {
@@ -34,7 +31,7 @@ public class CacheLines {
     }
     
     public long getNextIndex() {
-        return part * getLength();
+        return (long) part * getLength();
     }
 
     public long getPreviousIndex() {
@@ -42,20 +39,11 @@ public class CacheLines {
     }
     
     public long getIndex() {
-        return (part - 1) * getLength();
+        return (long) (part - 1) * getLength();
     }
     
     public boolean isModified() {
         return isModified;
-    }
-    
-    public boolean isSaved() {
-        return isSaved;
-    }
-    
-    public void wasSaved() {
-        isSaved = true;
-        isModified = false;
     }
     
     public int getPart() {

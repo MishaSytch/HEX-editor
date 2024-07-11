@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import hex.editor.services.FileViewer;
 import hex.editor.services.FileWriter;
@@ -17,49 +18,46 @@ import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
 public class MenuBar extends JMenuBar {
-    private IStyleSheet styleSheet = new StyleSheet_MainWindow();
     private File file = null;
-    private final JMenuItem openFile = new JMenuItem("Open file");
     private final JMenuItem saveFile = new JMenuItem("Save file");
     
     public MenuBar(WorkPanel workPanel) {
+        IStyleSheet styleSheet = new StyleSheet_MainWindow();
         this.setBackground(styleSheet.getBackSecondaryColor());
         JMenu fileMenu = new JMenu("File");
         fileMenu.setForeground(styleSheet.getMainTextColor());
         {
-            openFile.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-                    JFileChooser fileChooser = new JFileChooser();
+            JMenuItem openFile = new JMenuItem("Open file");
+            openFile.addActionListener(arg0 -> {
+                JFileChooser fileChooser = new JFileChooser();
 
-                    if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
-                        file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                        while (true) {
-                            try {
-                                String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
-                                if (textColumns != null && !textColumns.trim().isEmpty()) {
-                                    textColumns = textColumns.trim();
-                                } else {
-                                    break;
-                                }
-                                int countOfColumn = Integer.parseInt(textColumns);
-                                String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
-                                if (workPanel.getHex() != null) workPanel.removeFile();
-                                if (textRows.isEmpty()) {
-                                    FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
-                                } else {
-                                    int countOfRows = Integer.parseInt(textRows);
-                                    FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
-                                }
-                                workPanel.setHex(FileViewer.getCurrentLines());
-                                saveFile.setEnabled(true);
+                if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
+                    file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                    while (true) {
+                        try {
+                            String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
+                            if (textColumns != null && !textColumns.trim().isEmpty()) {
+                                textColumns = textColumns.trim();
+                            } else {
                                 break;
-                            } catch (Exception e) {
-                                System.err.println(e.getMessage());
                             }
+                            int countOfColumn = Integer.parseInt(textColumns);
+                            String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
+                            if (workPanel.getHex() != null) workPanel.removeFile();
+                            if (textRows.isEmpty()) {
+                                FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
+                            } else {
+                                int countOfRows = Integer.parseInt(textRows);
+                                FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
+                            }
+                            workPanel.setHex(FileViewer.getCurrentLines());
+                            saveFile.setEnabled(true);
+                            break;
+                        } catch (Exception e) {
+                            System.err.println(e.getMessage());
                         }
-                   }
-                }
+                    }
+               }
             });
             fileMenu.add(openFile);
         }
@@ -75,12 +73,10 @@ public class MenuBar extends JMenuBar {
                             @Override
                             protected Void doInBackground() {
                                 try {
-                                    if (!FileViewer.getCurrentLines().isSaved()) {
-                                        FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
-                                    }
+                                    FileWriter.writeInCacheFile(FileViewer.getCurrentLines());
                                     FileWriter.saveFile(Paths.get(fileChooser.getSelectedFile().getAbsolutePath() + ".txt"));
                                 } catch (Exception e) {
-                                    System.out.println(e.getStackTrace());
+                                    System.out.println(Arrays.toString(e.getStackTrace()));
                                 }
                                 return null;
                             }
@@ -133,13 +129,5 @@ public class MenuBar extends JMenuBar {
             saveFile.setEnabled(false);
         }
         this.add(fileMenu);
-    }
-
-    public IStyleSheet getStyleSheet() {
-        return styleSheet;
-    }
-    
-    public void setStyleSheet(IStyleSheet styleSheet) {
-        this.styleSheet = styleSheet;
     }
 }

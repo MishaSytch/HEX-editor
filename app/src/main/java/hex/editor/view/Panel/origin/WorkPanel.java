@@ -426,7 +426,7 @@ public class WorkPanel extends BasePanel {
     }
 
     private void loadNextCacheLines() throws IOException {
-        if (cacheLines.isModified() || !cacheLines.isSaved())FileWriter.writeInCacheFile(cacheLines);
+        if (cacheLines.isModified())FileWriter.writeInCacheFile(cacheLines);
         if (!FileViewer.isLast()) {
             currentFirstRow += model.getRowCount();
             clearModel();
@@ -436,7 +436,7 @@ public class WorkPanel extends BasePanel {
     }
     
     private void loadPreviousCacheLines() throws IOException {
-        if (cacheLines.isModified() || !cacheLines.isSaved()) FileWriter.writeInCacheFile(cacheLines);
+        if (cacheLines.isModified()) FileWriter.writeInCacheFile(cacheLines);
         if (cacheLines.getPart() != 1) {
             currentFirstRow -= model.getRowCount();
             clearModel();
