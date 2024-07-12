@@ -29,16 +29,10 @@ public class Positions {
     }
 
     public void getNext(int size) {
-        for (int i = 0; i < size; i++) index++;
-        if (index >= list.size()) {
-            index = 0;
-        }
+        index = Math.min(list.size() - 1, index + size);
     }
     public void getPrevious(int size) {
-        for (int i = 0; i < size; i++) index--;
-        if (index < 0) {
-            index = list.size() - 1;
-        }
+        index = Math.max(0, index - size);
     }
 
     public Position[] getCurrent(int size) {

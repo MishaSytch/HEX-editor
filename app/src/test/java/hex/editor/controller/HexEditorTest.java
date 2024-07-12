@@ -60,6 +60,7 @@ class HexEditorTest {
 
     @Test
     void find() {
+        positions.removeAll();
         HexEditor.find(positions, searchingHex, _matrixHex);
 
         Assertions.assertEquals(new Position(0, 0).getColumn(), positions.getCurrent().getColumn());

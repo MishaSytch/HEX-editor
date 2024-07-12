@@ -53,14 +53,13 @@ public class WorkPanel extends BasePanel {
     private final PopupFactory popupFactory = PopupFactory.getSharedInstance();
     private Popup popup;
     private Timer scopeTimer;
-    private String title;
     private int lengthOfPosition = 0;
     private boolean isModified = false;
     private final JPanel buttons = new JPanel();
     private final JLabel currentPage = new JLabel();
     private CacheLines cacheLines;
     private long currentFirstRow = 0;
-    private JPopupMenu popupMenu;
+    private final JPopupMenu popupMenu;
 
     public WorkPanel(MainWindow mainWindow, InfoPanel infoPanel) {
         super(mainWindow.getHeight(), (int)(mainWindow.getWidth()*0.8));
@@ -259,9 +258,7 @@ public class WorkPanel extends BasePanel {
             List<List<String>> values = new ArrayList<>();
             for (String line : data.split("\n")) {
                 List<String> inner = new ArrayList<>();
-                for (String item : line.split("["+FileWriter.getSeparator()+FileWriter.getRegexForSplit().substring(1))) {
-                    inner.add(item);
-                }
+                Collections.addAll(inner, line.split("[" + FileWriter.getSeparator() + FileWriter.getRegexForSplit().substring(1)));
                 values.add(inner);
             }
 
@@ -334,7 +331,6 @@ public class WorkPanel extends BasePanel {
         unselectCell();
         buttons.setVisible(true);
         fileName.setBorder(new EmptyBorder(10, 0, 10, 0));
-        fileName.setText(title);
         Vector<String> columnNames = new Vector<>();
         columnNames.add(String.valueOf(' '));
         for (int i = 0; i < hex.get(0).size(); i++) columnNames.add(String.valueOf(i));
@@ -415,10 +411,6 @@ public class WorkPanel extends BasePanel {
         SwingUtilities.updateComponentTreeUI(this);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public void removeFile() {
         hex = null;
         clearModel();
@@ -487,6 +479,7 @@ public class WorkPanel extends BasePanel {
         Timer hoverTimer = new Timer(100, e -> {
             tooltip.setTipText(info.getInfo());
             if (popup != null && value == null || popup != null || column == 0) {
+                assert popup != null;
                 popup.hide();
             }
             popup = popupFactory.getPopup(table, tooltip, lastX + 10, lastY - 10);
@@ -620,14 +613,8 @@ public class WorkPanel extends BasePanel {
 
         table.addMouseListener(new MouseAdapter(){
             @Override
-            public void mouseReleased(MouseEvent e) {
-                if (table.getSelectedRowCount() > 1 || table.getSelectedColumnCount() > 1) {
-                    edit.setEnabled(false);
-                } else {
-                    edit.setEnabled(true);
-                }
-            }
-        });;
+            public void mouseReleased(MouseEvent e) {edit.setEnabled(table.getSelectedRowCount() <= 1 && table.getSelectedColumnCount() <= 1);}
+        });
 
         return popupMenu;
     }

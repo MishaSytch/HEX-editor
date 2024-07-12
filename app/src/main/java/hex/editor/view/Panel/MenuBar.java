@@ -3,8 +3,6 @@ package hex.editor.view.Panel;
 import javax.swing.*;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import java.io.File;
 
@@ -27,38 +25,7 @@ public class MenuBar extends JMenuBar {
         JMenu fileMenu = new JMenu("File");
         fileMenu.setForeground(styleSheet.getMainTextColor());
         {
-            JMenuItem openFile = new JMenuItem("Open file");
-            openFile.addActionListener(arg0 -> {
-                JFileChooser fileChooser = new JFileChooser();
-
-                if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
-                    file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-                    while (true) {
-                        try {
-                            String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
-                            if (textColumns != null && !textColumns.trim().isEmpty()) {
-                                textColumns = textColumns.trim();
-                            } else {
-                                break;
-                            }
-                            int countOfColumn = Integer.parseInt(textColumns);
-                            String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
-                            if (workPanel.getHex() != null) workPanel.removeFile();
-                            if (textRows.isEmpty()) {
-                                FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
-                            } else {
-                                int countOfRows = Integer.parseInt(textRows);
-                                FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
-                            }
-                            workPanel.setHex(FileViewer.getCurrentLines());
-                            saveFile.setEnabled(true);
-                            break;
-                        } catch (Exception e) {
-                            System.err.println(e.getMessage());
-                        }
-                    }
-               }
-            });
+            JMenuItem openFile = getjMenuItem(workPanel);
             fileMenu.add(openFile);
         }
         {
@@ -129,5 +96,41 @@ public class MenuBar extends JMenuBar {
             saveFile.setEnabled(false);
         }
         this.add(fileMenu);
+    }
+
+    private JMenuItem getjMenuItem(WorkPanel workPanel) {
+        JMenuItem openFile = new JMenuItem("Open file");
+        openFile.addActionListener(arg0 -> {
+            JFileChooser fileChooser = new JFileChooser();
+
+            if (fileChooser.showOpenDialog(MenuBar.this) == JFileChooser.APPROVE_OPTION) {
+                file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                while (true) {
+                    try {
+                        String textColumns = JOptionPane.showInputDialog(null, "Type count of columns:");
+                        if (textColumns != null && !textColumns.trim().isEmpty()) {
+                            textColumns = textColumns.trim();
+                        } else {
+                            break;
+                        }
+                        int countOfColumn = Integer.parseInt(textColumns);
+                        String textRows = JOptionPane.showInputDialog(null, "Type count of rows:").trim();
+                        if (workPanel.getHex() != null) workPanel.removeFile();
+                        if (textRows.isEmpty()) {
+                            FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn);
+                        } else {
+                            int countOfRows = Integer.parseInt(textRows);
+                            FileViewer.openFile(fileChooser.getSelectedFile().getAbsolutePath(), countOfColumn, countOfRows);
+                        }
+                        workPanel.setHex(FileViewer.getCurrentLines());
+                        saveFile.setEnabled(true);
+                        break;
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+                }
+           }
+        });
+        return openFile;
     }
 }

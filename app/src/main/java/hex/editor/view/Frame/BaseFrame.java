@@ -9,21 +9,12 @@ import hex.editor.view.Style.IStyleSheet;
 import hex.editor.view.Style.StyleSheet_MainWindow;
 
 public class BaseFrame extends JFrame {
-    private IStyleSheet styleSheet = new StyleSheet_MainWindow();
 
-    public IStyleSheet getStyleSheet() {
-        return styleSheet;
-    }
-
-    public void setStyleSheet(IStyleSheet styleSheet) {
-        this.styleSheet = styleSheet;
-    }
-
-    private int HEIGHT;
+    private final int HEIGHT;
     public int getHEIGHT() {
         return HEIGHT;
     }
-    private int WIDTH;
+    private final int WIDTH;
     public int getWIDTH() {
         return WIDTH;
     } 
@@ -32,6 +23,7 @@ public class BaseFrame extends JFrame {
         HEIGHT = height;
         WIDTH = width;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        IStyleSheet styleSheet = new StyleSheet_MainWindow();
         this.setBackground(styleSheet.getBackBaseColor());
         this.setForeground(styleSheet.getForeBaseColor());
         this.setLayout(new BorderLayout());

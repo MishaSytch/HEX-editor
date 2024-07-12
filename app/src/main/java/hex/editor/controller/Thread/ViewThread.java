@@ -10,7 +10,7 @@ import hex.editor.view.Panel.MenuBar;
 import hex.editor.view.Panel.origin.WorkPanel;
 
 public class ViewThread {
-    private static ViewThread instance = new ViewThread();
+    private static final ViewThread instance = new ViewThread();
 
     private ViewThread() {
         MainWindow mainWindow = new MainWindow();

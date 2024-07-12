@@ -23,17 +23,12 @@ import hex.editor.view.Panel.origin.WorkPanel;
 public class InfoPanel extends BasePanel {
     private final JTextField searchingField = new JTextField();
     private final JLabel info = getText("");
-    public JLabel getInfo() {
-        return info;
-    }
 
-    private final JPanel searchingPanel;
     private final JButton maskButton;
     private final JButton hexButton;
     private final JButton clearButton;
     private final JButton nextPosButton;
     private final JButton previousPosButton;
-    private final JPanel positionControlPanel;
     private WorkPanel workPanel;
 
     public InfoPanel(MainWindow mainWindow) {
@@ -51,13 +46,13 @@ public class InfoPanel extends BasePanel {
 
         searchingField.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        searchingPanel = new JPanel();
+        JPanel searchingPanel = new JPanel();
         
         searchingPanel.setLayout(new GridLayout(4, 1));
         searchingPanel.add(hexButton);
         searchingPanel.add(maskButton);
         searchingPanel.add(searchingField);
-        positionControlPanel = new JPanel();
+        JPanel positionControlPanel = new JPanel();
         searchingPanel.add(positionControlPanel);
         
         positionControlPanel.setLayout(new GridLayout(1, 3));

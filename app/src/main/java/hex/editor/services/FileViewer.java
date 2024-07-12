@@ -1,7 +1,6 @@
 package hex.editor.services;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
@@ -29,15 +28,10 @@ public class FileViewer  {
     private static long CACHED_CHAR = 0;
     private static int PART = 1;
 
-    private static int SIZE;
     private static long SAVED_IN_UNCACHED_FILE = 0;
     
     public static File getCacheFile() {
         return cacheFile;
-    }
-
-    public static long getCURRENT_CHAR_IN_FILE() {
-        return CURRENT_CHAR_IN_FILE;
     }
 
     public static void openFile(String path, Integer countOfColumn, Integer countOfRow) {
@@ -58,7 +52,7 @@ public class FileViewer  {
     
     public static CacheLines getCurrentLines() throws IOException {
         if (cache != null && cache.getPart() == PART) return cache;
-        return (cache = new CacheLines(readFile(FILE, CURRENT_CHAR_IN_FILE, LENGTH_OF_LINE), PART));
+        return (cache = new CacheLines(readFile(CURRENT_CHAR_IN_FILE, LENGTH_OF_LINE), PART));
     }
 
     public static CacheLines getNextLines() throws IOException {
@@ -66,7 +60,7 @@ public class FileViewer  {
         if (!isLast()) {
             PART++;
         }
-        if (cacheFile.length() > cache.getNextIndex()) return (cache = new CacheLines(getNextCachedLine(), PART));
+        if (cache != null && cacheFile.length() > cache.getNextIndex()) return (cache = new CacheLines(getNextCachedLine(), PART));
 
         return getCurrentLines();
     }
@@ -78,7 +72,7 @@ public class FileViewer  {
         return (cache = new CacheLines(getPreviousCachedLine(), PART));
     }
     
-    public static List<String> getFile() throws FileNotFoundException, IOException {
+    public static List<String> getFile() throws IOException {
         List<String> data = getAllCachedLines();
         if (FILE.length() > CACHED_CHAR) data.addAll(getUncachedFile());
         return data;
@@ -93,6 +87,7 @@ public class FileViewer  {
         CURRENT_CHAR_IN_FILE = 0;
         FILE = null;
         if (cacheFile != null || (cacheFile = new File(CACHE_FILE)).exists()) cacheFile.delete();
+        cacheFile = null;
         
         countOfColumn = null;
         countOfRow = null;
@@ -108,11 +103,10 @@ public class FileViewer  {
         CACHED_CHAR = Math.max(CACHED_CHAR, CURRENT_CHAR_IN_FILE + size);
     }
     
-    public static List<String> getAllCachedLines() throws FileNotFoundException, IOException {
+    public static List<String> getAllCachedLines() throws IOException {
         try (Scanner scanner = new Scanner(cacheFile, StandardCharsets.UTF_8.name())) {
             String line = scanner.nextLine();
-            List<String> data = Arrays.asList(line.split(FileWriter.getSeparator()));
-            return data;
+            return Arrays.asList(line.split(FileWriter.getSeparator()));
         }
 
     }
@@ -152,7 +146,7 @@ public class FileViewer  {
         }
     }
     
-    private static List<List<String>> readFile(File file, long from, int size) throws IOException {
+    private static List<List<String>> readFile(long from, int size) throws IOException {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
             byte[] bytes = new byte[size];
             randomAccessFile.seek(from);
@@ -165,7 +159,7 @@ public class FileViewer  {
     }
 
     private static List<String> getUncachedFile() throws IOException {
-        SIZE = (int) Math.min(Byte.MAX_VALUE, FILE.length() - CACHED_CHAR);
+        int SIZE = (int) Math.min(Byte.MAX_VALUE, FILE.length() - CACHED_CHAR);
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(FILE, "r")) {
             List<String> data = new ArrayList<>();
 
@@ -174,9 +168,8 @@ public class FileViewer  {
                 randomAccessFile.seek(CACHED_CHAR + SAVED_IN_UNCACHED_FILE);
                 randomAccessFile.read(bytes);
 
-                HexService
-                    .getHexFromString(new String(bytes, StandardCharsets.UTF_8))
-                    .forEach(data::add);
+                data.addAll(HexService
+                        .getHexFromString(new String(bytes, StandardCharsets.UTF_8)));
 
                 SAVED_IN_UNCACHED_FILE += SIZE;
             }
