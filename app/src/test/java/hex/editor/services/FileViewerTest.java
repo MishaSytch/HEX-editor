@@ -17,7 +17,7 @@ public class FileViewerTest {
 
     @BeforeEach
     void setUp() {
-        path = "C:/Users/misha/Documents/nicetu/HEX-editor/app/src/test/resources/text.txt";
+        path = "app/src/test/resources/text.txt";
         countOfColumn = 10;
         countOfRow = 5;
     }
