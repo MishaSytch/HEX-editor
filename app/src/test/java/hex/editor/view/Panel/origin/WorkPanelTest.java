@@ -1,6 +1,8 @@
 package hex.editor.view.Panel.origin;
 
 import hex.editor.model.CacheLines;
+import hex.editor.model.Position;
+import hex.editor.model.Positions;
 import hex.editor.view.MainWindow;
 import hex.editor.view.Panel.InfoPanel;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,19 +46,33 @@ public class WorkPanelTest {
 
     @Test
     public void testSearchByMask() {
-        assertDoesNotThrow(() -> workPanel.searchByMask("test mask"));
+        assertDoesNotThrow(() -> workPanel.searchByMask("48"));
+        assertEquals(new Position(0, 0).getRow(), new Positions().getCurrent().getRow());
+        assertEquals(new Position(0, 0).getColumn(), new Positions().getCurrent().getColumn());
 
     }
 
     @Test
     public void testSearchByHex() {
-        assertDoesNotThrow(() -> workPanel.searchByHex(Arrays.asList("hex1", "hex2", "hex3")));
+        assertDoesNotThrow(() -> workPanel.searchByHex(Arrays.asList("48", "65", "6c")));
+
+        assertEquals(3, new Positions().getCurrent(3).length);
+        assertEquals(new Position(0, 0).getRow(), new Positions().getCurrent(3)[0].getRow());
+        assertEquals(new Position(0, 0).getColumn(), new Positions().getCurrent(3)[0].getColumn());
+        assertEquals(new Position(0, 1).getRow(), new Positions().getCurrent(3)[1].getRow());
+        assertEquals(new Position(0, 1).getColumn(), new Positions().getCurrent(3)[1].getColumn());
+        assertEquals(new Position(0, 2).getRow(), new Positions().getCurrent(3)[2].getRow());
+        assertEquals(new Position(0, 2).getColumn(), new Positions().getCurrent(3)[2].getColumn());
     }
 
     @Test
     public void testNextPosition() {
-        WorkPanel workPanel = new WorkPanel(new MainWindow(), new InfoPanel(new MainWindow()));
-
+        workPanel.searchByMask("6");
+        assertEquals(new Position(0, 1).getRow(), new Positions().getCurrent().getRow());
+        assertEquals(new Position(0, 1).getColumn(), new Positions().getCurrent().getColumn());
         assertDoesNotThrow(workPanel::nextPosition);
+        assertEquals(new Position(0, 2).getRow(), new Positions().getCurrent().getRow());
+        assertEquals(new Position(0, 2).getColumn(), new Positions().getCurrent().getColumn());
+
     }
 }

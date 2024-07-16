@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FileWriterTest {
-    String path = "app/src/test/resources/text.txt";
+    String path = FilePaths.getTextFile();
 
     @Test
     void testGetRegexForSplit() {
@@ -22,11 +22,8 @@ public class FileWriterTest {
 
     @Test
     void testSaveFile() {
-        // Mocking necessary objects and methods
         FileViewer.openFile(path, 10);
-
-        File file = new File(path.substring(0, path.length() - 4) + "/test.txt");
-        // Testing the saveFile method
+        File file = new File(FilePaths.getSaveFile());
         assertDoesNotThrow(() -> FileWriter.saveFile(Paths.get((file).toURI())));
         file.deleteOnExit();
     }

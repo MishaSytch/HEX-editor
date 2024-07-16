@@ -21,4 +21,9 @@ public class InfoPanelTest {
     public void testRemoveInfo() {
         assertDoesNotThrow(() -> infoPanel.removeInfo());
     }
+
+    @Test
+    public void testSetWorkPanel() {
+        assertDoesNotThrow(() -> infoPanel.setWorkPanel(new WorkPanel(new MainWindow(), new InfoPanel(new MainWindow()))));
+    }
 }

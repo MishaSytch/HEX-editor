@@ -9,8 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class HexServiceTest {
     String line;
     List<String> hex;
@@ -29,6 +27,6 @@ class HexServiceTest {
 
     @Test
     void getCharsFromHex() {
-        Assertions.assertEquals(line, HexService.getCharsFromHex(hex).stream().collect(Collectors.joining()));
+        Assertions.assertEquals(line, String.join("", HexService.getCharsFromHex(hex)));
     }
 }
