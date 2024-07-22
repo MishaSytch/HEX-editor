@@ -3,6 +3,7 @@
 .gitattributes
 .vscode
 .idea
+.codiumai
 
 # Ignore Gradle build output directory
 app/build
